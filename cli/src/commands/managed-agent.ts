@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import { Command } from "commander";
 
 import {
@@ -57,7 +58,7 @@ function record(value: unknown): Record<string, unknown> {
 
 function required(value: string | undefined, label: string): string {
   const normalized = value?.trim() ?? "";
-  if (!normalized) throw new Error(`${label} is required`);
+  if (!normalized) throw new Error(tCli("{{value1}} is required", { value1: String(label) }));
   return normalized;
 }
 
@@ -67,11 +68,11 @@ export function validateManagedAgentSetup(
 ): ValidatedSetup {
   const anthropicApiKey = env.ANTHROPIC_API_KEY?.trim();
   if (!anthropicApiKey) {
-    throw new Error("ANTHROPIC_API_KEY is required in the CLI process environment");
+    throw new Error(tCli("ANTHROPIC_API_KEY is required in the CLI process environment"));
   }
   if (!options.acknowledgeRetention) {
     throw new Error(
-      "Pass --acknowledge-retention to enable the stateful beta Managed Agents service",
+      tCli("Pass --acknowledge-retention to enable the stateful beta Managed Agents service"),
     );
   }
 
@@ -81,11 +82,11 @@ export function validateManagedAgentSetup(
   const model = required(options.model, "--model");
   if (model !== CLAUDE_MANAGED_QUALIFIED_MODEL) {
     throw new Error(
-      `--model must be the qualified Managed Agents model ${CLAUDE_MANAGED_QUALIFIED_MODEL}`,
+      tCli("--model must be the qualified Managed Agents model {{value1}}", { value1: String(CLAUDE_MANAGED_QUALIFIED_MODEL) }),
     );
   }
   if (!UUID_RE.test(apiKeySecretId)) {
-    throw new Error("--api-key-secret-id must be a UUID");
+    throw new Error(tCli("--api-key-secret-id must be a UUID"));
   }
 
   const defaultMaxListCostUsd = Number(options.maxSessionListCostUsd);
@@ -96,7 +97,7 @@ export function validateManagedAgentSetup(
     || !Number.isSafeInteger(cents)
     || cents <= 0
   ) {
-    throw new Error("--max-session-list-cost-usd must resolve to at least one cent");
+    throw new Error(tCli("--max-session-list-cost-usd must resolve to at least one cent"));
   }
 
   return {
@@ -130,7 +131,7 @@ async function anthropicRequest(
     signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok) {
-    throw new Error(`Anthropic Managed Agents request failed with HTTP ${response.status}`);
+    throw new Error(tCli("Anthropic Managed Agents request failed with HTTP {{value1}}", { value1: String(response.status) }));
   }
   if (response.status === 204) return {};
   return record(await response.json());
@@ -164,7 +165,7 @@ function resourceByProfile(
   );
   if (matches.length > 1) {
     throw new Error(
-      `Multiple Anthropic ${resourceLabel} resources use Paperclip profile ${profileKey}; pass an explicit resource ID`,
+      tCli("Multiple Anthropic {{value1}} resources use Paperclip profile {{value2}}; pass an explicit resource ID", { value1: tCli(resourceLabel), value2: String(profileKey) }),
     );
   }
   return matches[0] ?? null;
@@ -189,7 +190,7 @@ export function assertSafeManagedEnvironment(environment: Record<string, unknown
     || installed.length > 0
   ) {
     throw new Error(
-      "Existing Anthropic Environment does not match Paperclip's no-network, no-package profile",
+      tCli("Existing Anthropic Environment does not match Paperclip's no-network, no-package profile"),
     );
   }
 }
@@ -210,7 +211,7 @@ export function assertSafeManagedAgent(agent: Record<string, unknown>): void {
     || agent.multiagent != null
   ) {
     throw new Error(
-      "Existing Anthropic Agent enables or omits the locked tools, MCP, skills, or multi-agent profile",
+      tCli("Existing Anthropic Agent enables or omits the locked tools, MCP, skills, or multi-agent profile"),
     );
   }
 }
@@ -238,7 +239,7 @@ async function resolveEnvironment(
     assertSafeManagedEnvironment(existing);
     return existing;
   }
-  if (options.probe) throw new Error("Probe found no matching Anthropic Environment");
+  if (options.probe) throw new Error(tCli("Probe found no matching Anthropic Environment"));
 
   const environment = await anthropicRequest(key, "POST", "/v1/environments", {
     name: `Paperclip · ${options.displayName}`,
@@ -291,7 +292,7 @@ async function resolveAgent(
     assertManagedAgentModel(existing, options.model);
     return existing;
   }
-  if (options.probe) throw new Error("Probe found no matching Anthropic Agent");
+  if (options.probe) throw new Error(tCli("Probe found no matching Anthropic Agent"));
 
   const agent = await anthropicRequest(key, "POST", "/v1/agents", {
     name: `Paperclip · ${options.displayName}`,
@@ -312,7 +313,7 @@ function assertManagedAgentModel(agent: Record<string, unknown>, expectedModel: 
   const model = typeof agent.model === "string" ? agent.model : record(agent.model).id;
   if (model !== expectedModel) {
     throw new Error(
-      `Existing Anthropic Agent model does not match the requested pinned model ${expectedModel}`,
+      tCli("Existing Anthropic Agent model does not match the requested pinned model {{value1}}", { value1: String(expectedModel) }),
     );
   }
 }
@@ -336,7 +337,7 @@ export async function setupManagedAgent(options: ManagedAgentSetupOptions): Prom
   const agentId = String(agent.id ?? "");
   const environmentId = String(environment.id ?? "");
   if (!agentId || !environmentId) {
-    throw new Error("Anthropic did not return usable Agent and Environment identities");
+    throw new Error(tCli("Anthropic did not return usable Agent and Environment identities"));
   }
 
   const versions = await listAll(
@@ -349,10 +350,10 @@ export async function setupManagedAgent(options: ManagedAgentSetupOptions): Prom
     ? versions.find((entry) => String(entry.version) === version)
     : undefined;
   if (!version || !pinnedAgent) {
-    throw new Error("Anthropic did not return a usable pinned Agent version");
+    throw new Error(tCli("Anthropic did not return a usable pinned Agent version"));
   }
   if (String(pinnedAgent.id ?? "") !== agentId) {
-    throw new Error("Anthropic pinned Agent version identity does not match the selected Agent");
+    throw new Error(tCli("Anthropic pinned Agent version identity does not match the selected Agent"));
   }
   assertSafeManagedAgent(pinnedAgent);
   assertManagedAgentModel(pinnedAgent, normalizedOptions.model);
@@ -393,32 +394,32 @@ export async function setupManagedAgent(options: ManagedAgentSetupOptions): Prom
 export function registerManagedAgentCommands(program: Command): void {
   const command = program
     .command("managed-agent")
-    .description("Provision and qualify remote managed-agent providers");
+    .description(tCli("Provision and qualify remote managed-agent providers"));
   addCommonClientOptions(
     command
       .command("setup")
       .description(
-        "Create or adopt a locked-down Anthropic Agent and Environment, then store a company profile",
+        tCli("Create or adopt a locked-down Anthropic Agent and Environment, then store a company profile"),
       )
-      .requiredOption("--profile-key <key>", "Stable company profile key")
-      .requiredOption("--display-name <name>", "Profile display name")
+      .requiredOption("--profile-key <key>", tCli("Stable company profile key"))
+      .requiredOption("--display-name <name>", tCli("Profile display name"))
       .requiredOption(
         "--api-key-secret-id <id>",
-        "Existing company secret containing ANTHROPIC_API_KEY",
+        tCli("Existing company secret containing ANTHROPIC_API_KEY"),
       )
-      .option("--model <id>", "Pinned Claude model", CLAUDE_MANAGED_QUALIFIED_MODEL)
+      .option("--model <id>", tCli("Pinned Claude model"), CLAUDE_MANAGED_QUALIFIED_MODEL)
       .option(
         "--max-session-list-cost-usd <usd>",
-        "Default hard session ceiling",
+        tCli("Default hard session ceiling"),
         "1.00",
       )
-      .option("--agent-id <id>", "Adopt an existing Anthropic Agent")
-      .option("--agent-version <version>", "Pin an existing Agent version")
-      .option("--environment-id <id>", "Adopt an existing Anthropic Environment")
-      .option("--probe", "Read-only qualification; create or persist nothing", false)
+      .option("--agent-id <id>", tCli("Adopt an existing Anthropic Agent"))
+      .option("--agent-version <version>", tCli("Pin an existing Agent version"))
+      .option("--environment-id <id>", tCli("Adopt an existing Anthropic Environment"))
+      .option("--probe", tCli("Read-only qualification; create or persist nothing"), false)
       .option(
         "--acknowledge-retention",
-        "Acknowledge beta retention and non-ZDR/non-HIPAA status",
+        tCli("Acknowledge beta retention and non-ZDR/non-HIPAA status"),
         false,
       )
       .action(async (options: ManagedAgentSetupOptions) => {

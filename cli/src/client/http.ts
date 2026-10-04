@@ -1,12 +1,16 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import { URL } from "node:url";
 
 export class ApiRequestError extends Error {
   status: number;
   details?: unknown;
   body?: unknown;
+  /** Original API text for authentication recovery and machine output. */
+  rawMessage: string;
 
   constructor(status: number, message: string, details?: unknown, body?: unknown) {
-    super(message);
+    super(translateCliDisplayMessage(message));
+    this.rawMessage = message;
     this.status = status;
     this.details = details;
     this.body = body;
@@ -221,21 +225,21 @@ function buildConnectionErrorMessage(input: {
 }): string {
   const healthUrl = buildHealthCheckUrl(input.url);
   const lines = [
-    "Could not reach the Paperclip API.",
+    tCli("Could not reach the Paperclip API."),
     "",
-    `Request: ${input.method} ${input.url}`,
+    tCli("Request: {{method}} {{url}}", { method: input.method, url: input.url }),
   ];
   if (input.causeMessage) {
-    lines.push(`Cause: ${input.causeMessage}`);
+    lines.push(tCli("Cause: {{message}}", { message: translateCliDisplayMessage(input.causeMessage) }));
   }
   lines.push(
     "",
-    "This usually means the Paperclip server is not running, the configured URL is wrong, or the request is being blocked before it reaches Paperclip.",
+    tCli("This usually means the Paperclip server is not running, the configured URL is wrong, or the request is being blocked before it reaches Paperclip."),
     "",
-    "Try:",
-    "- Start Paperclip with `pnpm dev` (from a source checkout) or `npx paperclipai run`.",
-    `- Verify the server is reachable with \`curl ${healthUrl}\`.`,
-    `- If Paperclip is running elsewhere, pass \`--api-base ${input.apiBase.replace(/\/+$/, "")}\` or set \`PAPERCLIP_API_URL\`.`,
+    tCli("Try:"),
+    tCli("- Start Paperclip with `pnpm dev` (from a source checkout) or `npx paperclipai run`."),
+    tCli("- Verify the server is reachable with `curl {{healthUrl}}`.", { healthUrl: String(healthUrl) }),
+    tCli("- If Paperclip is running elsewhere, pass `--api-base {{apiBase}}` or set `PAPERCLIP_API_URL`.", { apiBase: String(input.apiBase.replace(/\/+$/, "")) }),
   );
   return lines.join("\n");
 }

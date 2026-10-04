@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useTranslation } from "@/i18n";
 
 interface SidebarContextValue {
   // Mobile drawer + back-compat (existing behavior, unchanged).
@@ -103,9 +104,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSidebar() {
+  const { t } = useTranslation();
   const ctx = useContext(SidebarContext);
   if (!ctx) {
-    throw new Error("useSidebar must be used within SidebarProvider");
+    throw new Error(t("usesidebar_must_be_used_within_sidebarprovider"));
   }
   return ctx;
 }

@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import type { PaperclipConfig } from "../config/schema.js";
@@ -44,15 +45,15 @@ export async function envCommand(opts: { config?: string }): Promise<void> {
   let configReadError: string | null = null;
 
   if (configExists(opts.config)) {
-    p.log.message(pc.dim(`Config file: ${configPath}`));
+    p.log.message(pc.dim(tCli("Config file: {{value1}}", { value1: String(configPath) })));
     try {
       config = readConfig(opts.config);
     } catch (err) {
       configReadError = err instanceof Error ? err.message : String(err);
-      p.log.message(pc.yellow(`Could not parse config: ${configReadError}`));
+      p.log.message(pc.yellow(tCli("Could not parse config: {{value1}}", { value1: translateCliDisplayMessage(configReadError) })));
     }
   } else {
-    p.log.message(pc.dim(`Config file missing: ${configPath}`));
+    p.log.message(pc.dim(tCli("Config file missing: {{value1}}", { value1: String(configPath) })));
   }
 
   const rows = collectDeploymentEnvRows(config, configPath);
@@ -67,13 +68,13 @@ export async function envCommand(opts: { config?: string }): Promise<void> {
 
     p.log.message(pc.bold(title));
     for (const entry of entries) {
-      const status = entry.source === "missing" ? pc.red("missing") : entry.source === "default" ? pc.yellow("default") : pc.green("set");
+      const status = entry.source === "missing" ? pc.red(tCli("missing")) : entry.source === "default" ? pc.yellow(tCli("default")) : pc.green(tCli("set"));
       const sourceNote = {
-        env: "environment",
-        config: "config",
-        file: "file",
-        default: "default",
-        missing: "missing",
+        env: tCli("environment"),
+        config: tCli("config"),
+        file: tCli("file"),
+        default: tCli("default"),
+        missing: tCli("missing"),
       }[entry.source];
       p.log.message(
         `${pc.cyan(entry.key)} ${status.padEnd(7)} ${pc.dim(`[${sourceNote}] ${entry.note}`)}${entry.source === "missing" ? "" : ` ${pc.dim("=>")} ${pc.white(quoteShellValue(entry.value))}`}`,
@@ -81,32 +82,32 @@ export async function envCommand(opts: { config?: string }): Promise<void> {
     }
   };
 
-  formatSection("Required environment variables", requiredRows);
-  formatSection("Optional environment variables", optionalRows);
+  formatSection(tCli("Required environment variables"), requiredRows);
+  formatSection(tCli("Optional environment variables"), optionalRows);
 
   const exportRows = rows.map((row) => (row.source === "missing" ? { ...row, value: "<set-this-value>" } : row));
   const uniqueRows = uniqueByKey(exportRows);
   const exportBlock = uniqueRows.map((row) => `export ${row.key}=${quoteShellValue(row.value)}`).join("\n");
 
   if (configReadError) {
-    p.log.error(`Could not load config cleanly: ${configReadError}`);
+    p.log.error(tCli("Could not load config cleanly: {{value1}}", { value1: translateCliDisplayMessage(configReadError) }));
   }
 
   p.note(
-    exportBlock || "No values detected. Set required variables manually.",
-    "Deployment export block",
+    exportBlock || tCli("No values detected. Set required variables manually."),
+    tCli("Deployment export block"),
   );
 
   if (missingRequired.length > 0) {
     p.log.message(
       pc.yellow(
-        `Missing required values: ${missingRequired.map((row) => row.key).join(", ")}. Set these before deployment.`,
+        tCli("Missing required values: {{value1}}. Set these before deployment.", { value1: String(missingRequired.map((row) => row.key).join(", ")) }),
       ),
     );
   } else {
-    p.log.message(pc.green("All required deployment variables are present."));
+    p.log.message(pc.green(tCli("All required deployment variables are present.")));
   }
-  p.outro("Done");
+  p.outro(tCli("Done"));
 }
 
 function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: string): EnvVarRow[] {
@@ -191,10 +192,10 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
       required: true,
       note:
         jwtSource === "missing"
-          ? "Generate during onboard or set manually (required for local adapter authentication)"
+          ? tCli("Generate during onboard or set manually (required for local adapter authentication)")
           : jwtSource === "env"
-            ? "Set in process environment"
-            : `Set in ${agentJwtEnvFile}`,
+            ? tCli("Set in process environment")
+            : tCli("Set in {{value1}}", { value1: String(agentJwtEnvFile) }),
     },
     {
       key: "DATABASE_URL",
@@ -203,8 +204,8 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
       required: true,
       note:
         databaseMode === "postgres"
-          ? "Configured for postgres mode (required)"
-          : "Required for live deployment with managed PostgreSQL",
+          ? tCli("Configured for postgres mode (required)")
+          : tCli("Required for live deployment with managed PostgreSQL"),
     },
     {
       key: "PORT",
@@ -213,14 +214,14 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
         (config?.server?.port !== undefined ? String(config.server.port) : "3100"),
       source: process.env.PORT ? "env" : config?.server?.port !== undefined ? "config" : "default",
       required: false,
-      note: "HTTP listen port",
+      note: tCli("HTTP listen port"),
     },
     {
       key: "PAPERCLIP_PUBLIC_URL",
       value: publicUrl,
       source: publicUrlSource,
       required: false,
-      note: "Canonical public URL for auth/callback/invite origin wiring",
+      note: tCli("Canonical public URL for auth/callback/invite origin wiring"),
     },
     {
       key: "BETTER_AUTH_TRUSTED_ORIGINS",
@@ -231,42 +232,42 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "default"
           : "missing",
       required: false,
-      note: "Comma-separated auth origin allowlist (auto-derived from PAPERCLIP_PUBLIC_URL when possible)",
+      note: tCli("Comma-separated auth origin allowlist (auto-derived from PAPERCLIP_PUBLIC_URL when possible)"),
     },
     {
       key: "PAPERCLIP_AGENT_JWT_TTL_SECONDS",
       value: process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS ?? DEFAULT_AGENT_JWT_TTL_SECONDS,
       source: process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS ? "env" : "default",
       required: false,
-      note: "JWT lifetime in seconds",
+      note: tCli("JWT lifetime in seconds"),
     },
     {
       key: "PAPERCLIP_AGENT_JWT_ISSUER",
       value: process.env.PAPERCLIP_AGENT_JWT_ISSUER ?? DEFAULT_AGENT_JWT_ISSUER,
       source: process.env.PAPERCLIP_AGENT_JWT_ISSUER ? "env" : "default",
       required: false,
-      note: "JWT issuer",
+      note: tCli("JWT issuer"),
     },
     {
       key: "PAPERCLIP_AGENT_JWT_AUDIENCE",
       value: process.env.PAPERCLIP_AGENT_JWT_AUDIENCE ?? DEFAULT_AGENT_JWT_AUDIENCE,
       source: process.env.PAPERCLIP_AGENT_JWT_AUDIENCE ? "env" : "default",
       required: false,
-      note: "JWT audience",
+      note: tCli("JWT audience"),
     },
     {
       key: "HEARTBEAT_SCHEDULER_INTERVAL_MS",
       value: heartbeatInterval,
       source: process.env.HEARTBEAT_SCHEDULER_INTERVAL_MS ? "env" : "default",
       required: false,
-      note: "Heartbeat worker interval in ms",
+      note: tCli("Heartbeat worker interval in ms"),
     },
     {
       key: "HEARTBEAT_SCHEDULER_ENABLED",
       value: heartbeatEnabled,
       source: process.env.HEARTBEAT_SCHEDULER_ENABLED ? "env" : "default",
       required: false,
-      note: "Set to `false` to disable timer scheduling",
+      note: tCli("Set to `false` to disable timer scheduling"),
     },
     {
       key: "PAPERCLIP_SECRETS_PROVIDER",
@@ -277,7 +278,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Default provider for new secrets",
+      note: tCli("Default provider for new secrets"),
     },
     {
       key: "PAPERCLIP_SECRETS_STRICT_MODE",
@@ -288,7 +289,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Require secret refs for sensitive env keys",
+      note: tCli("Require secret refs for sensitive env keys"),
     },
     {
       key: "PAPERCLIP_SECRETS_MASTER_KEY_FILE",
@@ -299,7 +300,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Path to local encrypted secrets key file",
+      note: tCli("Path to local encrypted secrets key file"),
     },
     {
       key: "PAPERCLIP_STORAGE_PROVIDER",
@@ -310,7 +311,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Storage provider (local_disk or s3)",
+      note: tCli("Storage provider (local_disk or s3)"),
     },
     {
       key: "PAPERCLIP_STORAGE_LOCAL_DIR",
@@ -321,7 +322,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Local storage base directory for local_disk provider",
+      note: tCli("Local storage base directory for local_disk provider"),
     },
     {
       key: "PAPERCLIP_STORAGE_S3_BUCKET",
@@ -332,7 +333,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "S3 bucket name for s3 provider",
+      note: tCli("S3 bucket name for s3 provider"),
     },
     {
       key: "PAPERCLIP_STORAGE_S3_REGION",
@@ -343,7 +344,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "S3 region for s3 provider",
+      note: tCli("S3 region for s3 provider"),
     },
     {
       key: "PAPERCLIP_STORAGE_S3_ENDPOINT",
@@ -354,7 +355,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Optional custom endpoint for S3-compatible providers",
+      note: tCli("Optional custom endpoint for S3-compatible providers"),
     },
     {
       key: "PAPERCLIP_STORAGE_S3_PREFIX",
@@ -365,7 +366,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Optional object key prefix",
+      note: tCli("Optional object key prefix"),
     },
     {
       key: "PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE",
@@ -376,7 +377,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
           ? "config"
           : "default",
       required: false,
-      note: "Set true for path-style access on compatible providers",
+      note: tCli("Set true for path-style access on compatible providers"),
     },
   ];
 
@@ -387,7 +388,7 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
       value: process.env.PAPERCLIP_CONFIG ?? configPath,
       source: process.env.PAPERCLIP_CONFIG ? "env" : "default",
       required: false,
-      note: "Optional path override for config file",
+      note: tCli("Optional path override for config file"),
     });
   }
 

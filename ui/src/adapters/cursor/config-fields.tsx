@@ -4,11 +4,13 @@ import {
   DraftInput,
 } from "../../components/agent-config-primitives";
 import { ChoosePathButton } from "../../components/PathInstructionsModal";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
 const instructionsFileHint =
-  "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the prompt at runtime.";
+  t("absolute_path_to_a_markdown_file_e_g_agents_md_t_d46d65");
 
 export function CursorLocalConfigFields({
   isCreate,
@@ -19,9 +21,10 @@ export function CursorLocalConfigFields({
   mark,
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   if (hideInstructionsFile) return null;
   return (
-    <Field label="Agent instructions file" hint={instructionsFileHint}>
+    <Field label={t("agent_instructions_file")} hint={instructionsFileHint}>
       <div className="flex items-center gap-2">
         <DraftInput
           value={

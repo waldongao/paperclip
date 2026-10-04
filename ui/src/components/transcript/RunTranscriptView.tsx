@@ -1,3 +1,5 @@
+import { getCountNoun } from "@/components/localized-count";
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TranscriptEntry } from "../../adapters";
 import type { ToolRunDecision } from "@paperclipai/shared";
@@ -14,6 +16,7 @@ import {
   User,
 } from "lucide-react";
 import { toolTaxonomy } from "../task-chat/tool-taxonomy";
+import { t, useTranslation } from "@/i18n";
 
 /** Family glyph for a tool block/row; the taxonomy falls back to Wrench. */
 function ToolFamilyIcon({ name, className }: { name: string; className?: string }) {
@@ -265,7 +268,7 @@ function summarizeToolInput(name: string, input: unknown, density: TranscriptDen
   const record = asRecord(input);
   if (!record) {
     const serialized = compactWhitespace(formatUnknown(input));
-    return serialized ? truncate(serialized, compactMax) : `Inspect ${name} input`;
+    return serialized ? truncate(serialized, compactMax) : t("zhComponents.message_1452eb99ba", { value1: name });
   }
 
   const command = typeof record.command === "string"
@@ -286,14 +289,14 @@ function summarizeToolInput(name: string, input: unknown, density: TranscriptDen
   if (Array.isArray(record.paths) && record.paths.length > 0) {
     const first = record.paths.find((value): value is string => typeof value === "string" && value.trim().length > 0);
     if (first) {
-      return truncate(`${record.paths.length} paths, starting with ${first}`, compactMax);
+      return truncate(t("zhComponents.message_ef7d6ab9d4", { value1: record.paths.length, value2: first }), compactMax);
     }
   }
 
   const keys = Object.keys(record);
-  if (keys.length === 0) return `No ${name} input`;
-  if (keys.length === 1) return truncate(`${keys[0]} payload`, compactMax);
-  return truncate(`${keys.length} fields: ${keys.slice(0, 3).join(", ")}`, compactMax);
+  if (keys.length === 0) return t("zhComponents.message_49171cf047", { value1: name });
+  if (keys.length === 1) return truncate(t("zhComponents.message_a921d56a12", { value1: keys[0] }), compactMax);
+  return truncate(t("zhComponents.message_08f3db968a", { value1: keys.length, value2: keys.slice(0, 3).join(", ") }), compactMax);
 }
 
 function parseStructuredToolResult(result: string | undefined) {
@@ -335,20 +338,20 @@ function isCommandTool(name: string, input: unknown): boolean {
 }
 
 function displayToolName(name: string, input: unknown): string {
-  if (isCommandTool(name, input)) return "Executing command";
+  if (isCommandTool(name, input)) return t("executing_command");
   return humanizeLabel(name);
 }
 
 function summarizeToolResult(result: string | undefined, isError: boolean | undefined, density: TranscriptDensity): string {
-  if (!result) return isError ? "Tool failed" : "Waiting for result";
+  if (!result) return isError ? t("tool_failed") : t("waiting_for_result_481bf2");
   const structured = parseStructuredToolResult(result);
   if (structured) {
     if (structured.body) {
       return truncate(structured.body.split("\n")[0] ?? structured.body, density === "compact" ? 84 : 140);
     }
-    if (structured.status === "completed") return "Completed";
+    if (structured.status === "completed") return t("completed");
     if (structured.status === "failed" || structured.status === "error") {
-      return structured.exitCode ? `Failed with exit code ${structured.exitCode}` : "Failed";
+      return structured.exitCode ? t("zhComponents.message_77cd2e48b9", { value1: structured.exitCode }) : t("failed");
     }
   }
   const lines = result
@@ -404,39 +407,39 @@ function summarizeToolDecision(decision: ToolRunDecision | null): { label: strin
   if (!decision) return null;
   if (decision.pendingAction) {
     return {
-      label: "Needs approval",
+      label: t("needs_approval"),
       className: "text-amber-700 dark:text-amber-300",
-      detail: `Action request ${decision.pendingAction.actionRequestId.slice(0, 8)}`,
+      detail: t("zhComponents.message_1a5a6dcde3", { value1: decision.pendingAction.actionRequestId.slice(0, 8) }),
     };
   }
   if (decision.denialReason || decision.invocation.status === "denied" || decision.outcome === "denied") {
     return {
-      label: "Denied",
+      label: t("denied"),
       className: "text-red-700 dark:text-red-300",
       detail: decision.denialReason ?? decision.reasonCode ?? undefined,
     };
   }
   if (decision.invocation.status === "failed" || decision.invocation.status === "timed_out" || decision.outcome === "failure" || decision.outcome === "timeout") {
     return {
-      label: decision.invocation.status === "timed_out" || decision.outcome === "timeout" ? "Timed out" : "Failed",
+      label: decision.invocation.status === "timed_out" || decision.outcome === "timeout" ? t("timed_out_edcd36") : t("failed"),
       className: "text-red-700 dark:text-red-300",
       detail: decision.denialReason ?? decision.reasonCode ?? undefined,
     };
   }
   if (decision.actionRequest?.status === "approved") {
-    return { label: "Approved", className: "text-emerald-700 dark:text-emerald-300" };
+    return { label: t("approved"), className: "text-emerald-700 dark:text-emerald-300" };
   }
   if (decision.actionRequest?.status === "executed") {
-    return { label: "Executed", className: "text-emerald-700 dark:text-emerald-300" };
+    return { label: t("executed"), className: "text-emerald-700 dark:text-emerald-300" };
   }
   if (decision.decision === "allow" || decision.invocation.status === "authorized" || decision.invocation.status === "executing" || decision.invocation.status === "succeeded") {
-    return { label: "Allowed", className: "text-emerald-700 dark:text-emerald-300" };
+    return { label: t("allowed"), className: "text-emerald-700 dark:text-emerald-300" };
   }
   if (decision.decision === "require_approval" || decision.invocation.approvalState === "pending") {
-    return { label: "Needs approval", className: "text-amber-700 dark:text-amber-300" };
+    return { label: t("needs_approval"), className: "text-amber-700 dark:text-amber-300" };
   }
   return {
-    label: humanizeLabel(decision.invocation.status),
+    label: getDisplayLabel(humanizeLabel(decision.invocation.status), "raw"),
     className: "text-foreground/70",
     detail: decision.reasonCode ?? undefined,
   };
@@ -447,7 +450,7 @@ function parseSystemActivity(text: string): { activityId?: string; name: string;
   if (!match) return null;
   return {
     status: match[1].toLowerCase() === "started" ? "running" : "completed",
-    name: humanizeLabel(match[2] ?? "Activity"),
+    name: humanizeLabel(match[2] ?? t("activity")),
     activityId: match[3] || undefined,
   };
 }
@@ -603,31 +606,31 @@ export function normalizeTranscript(entries: TranscriptEntry[], streaming: boole
       blocks.push({
         type: "event",
         ts: entry.ts,
-        label: entry.complete ? "workspace diff" : "workspace changes",
+        label: entry.complete ? t("workspace_diff_61a3d5") : t("workspace_changes_97d4cb"),
         tone: "info",
-        text: `${entry.totals.files} changed ${entry.totals.files === 1 ? "file" : "files"}`,
-        detail: entry.source === "runner_verified" ? "Verified from workspace" : "Reported by harness",
+        text: t("zhComponents.message_a0d0dd0653", { count: entry.totals.files, value1: entry.totals.files }),
+        detail: entry.source === "runner_verified" ? t("verified_from_workspace") : t("reported_by_harness"),
       });
       continue;
     }
 
     if (entry.kind === "workspace_file_reference") {
-      blocks.push({ type: "event", ts: entry.ts, label: "file reference", tone: "info", text: entry.displayName, detail: entry.path });
+      blocks.push({ type: "event", ts: entry.ts, label: t("file_reference"), tone: "info", text: entry.displayName, detail: entry.path });
       continue;
     }
 
     if (entry.kind === "runtime_request") {
-      blocks.push({ type: "event", ts: entry.ts, label: `runtime ${entry.requestType}`, tone: entry.status === "pending" ? "warn" : "info", text: entry.prompt, detail: entry.status });
+      blocks.push({ type: "event", ts: entry.ts, label: t("zhComponents.message_3f0bda7a2b", { value1: getDisplayLabel(entry.requestType, "raw") }), tone: entry.status === "pending" ? "warn" : "info", text: entry.prompt, detail: getDisplayLabel(entry.status, "raw") });
       continue;
     }
 
     if (entry.kind === "run_result") {
-      blocks.push({ type: "event", ts: entry.ts, label: `result · ${entry.disposition}`, tone: entry.disposition === "blocked" ? "warn" : "info", text: entry.summary });
+      blocks.push({ type: "event", ts: entry.ts, label: t("zhComponents.message_f55acc5f29", { value1: getDisplayLabel(entry.disposition, "raw") }), tone: entry.disposition === "blocked" ? "warn" : "info", text: entry.summary });
       continue;
     }
 
     if (entry.kind === "run_terminal") {
-      blocks.push({ type: "event", ts: entry.ts, label: "terminal", tone: entry.runState === "failed" ? "error" : "info", text: `${entry.runState} · ${entry.disposition}`, detail: entry.stopReason });
+      blocks.push({ type: "event", ts: entry.ts, label: "terminal", tone: entry.runState === "failed" ? "error" : "info", text: `${getDisplayLabel(entry.runState, "raw")} · ${getDisplayLabel(entry.disposition, "raw")}`, detail: entry.stopReason });
       continue;
     }
 
@@ -691,7 +694,7 @@ export function normalizeTranscript(entries: TranscriptEntry[], streaming: boole
         ts: entry.ts,
         label: "init",
         tone: "info",
-        text: `model ${entry.model}${entry.sessionId ? ` • session ${entry.sessionId}` : ""}`,
+        text: t("zhComponents.message_04d315a5d9", { value1: entry.model, value2: entry.sessionId ? t("zhComponents.message_60ee1c8946", { value1: entry.sessionId }) : "" }),
       });
       continue;
     }
@@ -702,7 +705,7 @@ export function normalizeTranscript(entries: TranscriptEntry[], streaming: boole
         ts: entry.ts,
         label: "result",
         tone: entry.isError ? "error" : "info",
-        text: entry.text.trim() || entry.errors[0] || (entry.isError ? "Run failed" : "Completed"),
+        text: entry.text.trim() || entry.errors[0] || (entry.isError ? t("run_failed") : t("completed")),
         detail:
           !entry.isError && entry.text.trim().length > 0
             ? `${formatTokens(entry.inputTokens)} / ${formatTokens(entry.outputTokens)} / $${entry.costUsd.toFixed(6)}`
@@ -862,6 +865,7 @@ function transcriptBlockIdentity(block: TranscriptBlock): string {
 }
 
 function TranscriptProviderActivity({ block, density }: { block: Extract<TranscriptBlock, { type: "provider_activity" }>; density: TranscriptDensity }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(block.status === "running");
   const steps = Array.isArray(block.payload.steps) ? block.payload.steps.map(asRecord).filter((value): value is Record<string, unknown> => value !== null) : [];
   const children = Array.isArray(block.payload.children) ? block.payload.children.map(asRecord).filter((value): value is Record<string, unknown> => value !== null) : [];
@@ -876,10 +880,10 @@ function TranscriptProviderActivity({ block, density }: { block: Extract<Transcr
     </button>
     {open ? <div className="mt-2 space-y-2 border-l border-border pl-5 text-xs">
       {steps.length > 0 ? <ol className="space-y-1">{steps.map((step, index) => <li key={String(step.stepId ?? index)}><span className="mr-2" aria-hidden="true">{step.status === "completed" ? "✓" : step.status === "blocked" ? "!" : "○"}</span>{String(step.body ?? "")}</li>)}</ol> : null}
-      {children.length > 0 ? <ul className="space-y-1">{children.map((child, index) => <li key={String(child.childId ?? index)}><strong>{String(child.role ?? "Child agent")}</strong> · {String(child.status ?? "unknown")}<div className="text-muted-foreground">{String(child.summary ?? "")}</div></li>)}</ul> : null}
-      {sources.length > 0 ? <ul className="space-y-1">{sources.map((source, index) => { const url = typeof source.url === "string" && /^https?:\/\//.test(source.url) ? source.url : null; return <li key={String(source.sourceId ?? index)}>{url ? <a className="underline" href={url} target="_blank" rel="noreferrer">{String(source.title ?? url)}</a> : String(source.title ?? "Unavailable source")} <span className="text-muted-foreground">Provider-reported</span></li>; })}</ul> : null}
+      {children.length > 0 ? <ul className="space-y-1">{children.map((child, index) => <li key={String(child.childId ?? index)}><strong>{String(child.role ?? t("child_agent"))}</strong> · {String(child.status ?? "unknown")}<div className="text-muted-foreground">{String(child.summary ?? "")}</div></li>)}</ul> : null}
+      {sources.length > 0 ? <ul className="space-y-1">{sources.map((source, index) => { const url = typeof source.url === "string" && /^https?:\/\//.test(source.url) ? source.url : null; return <li key={String(source.sourceId ?? index)}>{url ? <a className="underline" href={url} target="_blank" rel="noreferrer">{String(source.title ?? url)}</a> : String(source.title ?? t("unavailable_source"))} <span className="text-muted-foreground">{t("provider_reported_a9c3c2")}</span></li>; })}</ul> : null}
       {output ? <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded bg-background p-2 font-mono">{output}</pre> : null}
-      {block.family === "model_identity" ? <div><span className="text-muted-foreground">Requested</span> {String(block.payload.requestedModel ?? "—")} · <span className="text-muted-foreground">Effective</span> {String(block.payload.effectiveModel ?? "—")}</div> : null}
+      {block.family === "model_identity" ? <div><span className="text-muted-foreground">{t("requested")}</span> {String(block.payload.requestedModel ?? "—")} · <span className="text-muted-foreground">{t("effective")}</span> {String(block.payload.effectiveModel ?? "—")}</div> : null}
     </div> : null}
   </div>;
 }
@@ -908,6 +912,7 @@ function TranscriptMessageBlock({
   density: TranscriptDensity;
   externalReferences?: MarkdownExternalReferenceMap;
 }) {
+  const { t } = useTranslation();
   const isAssistant = block.role === "assistant";
   const compact = density === "compact";
 
@@ -916,7 +921,7 @@ function TranscriptMessageBlock({
       {!isAssistant && (
         <div className="mb-1.5 flex items-center gap-2 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
           <User className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-          <span>User</span>
+          <span>{t("user")}</span>
         </div>
       )}
       <MarkdownBody
@@ -936,7 +941,7 @@ function TranscriptMessageBlock({
             <span className="tc-live-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-70" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-current" />
           </span>
-          Streaming
+          {t("streaming")}
         </div>
       )}
     </div>
@@ -992,6 +997,7 @@ function ToolDecisionInlineDetail({ decision }: { decision: ToolRunDecision | nu
 }
 
 function ToolDecisionDetails({ decision, compact }: { decision: ToolRunDecision | null; compact: boolean }) {
+  const { t } = useTranslation();
   if (!decision) return null;
   const actionRequest = decision.actionRequest;
   return (
@@ -1000,7 +1006,7 @@ function ToolDecisionDetails({ decision, compact }: { decision: ToolRunDecision 
       compact ? "text-(length:--text-micro)" : "text-xs",
     )}>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Decision</span>
+        <span className="font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("decision")}</span>
         <ToolDecisionBadge decision={decision} />
         {decision.reasonCode && <span className="font-mono text-muted-foreground">{decision.reasonCode}</span>}
       </div>
@@ -1010,10 +1016,10 @@ function ToolDecisionDetails({ decision, compact }: { decision: ToolRunDecision 
         </div>
       )}
       <div className="mt-2 grid gap-1 font-mono text-muted-foreground sm:grid-cols-2">
-        <span>invocation {decision.invocation.id.slice(0, 8)}</span>
-        <span>audit {decision.auditEvents.length}</span>
-        {actionRequest && <span>action {actionRequest.status} {actionRequest.id.slice(0, 8)}</span>}
-        {actionRequest?.interactionId && <span>card {actionRequest.interactionId.slice(0, 8)}</span>}
+        <span>{t("zhComponents.text_16ee9dfc7e")} {decision.invocation.id.slice(0, 8)}</span>
+        <span>{t("zhComponents.text_7876153ada")} {decision.auditEvents.length}</span>
+        {actionRequest && <span>{t("zhComponents.text_34eb4c4ef0")} {getDisplayLabel(actionRequest.status)} {actionRequest.id.slice(0, 8)}</span>}
+        {actionRequest?.interactionId && <span>{t("zhComponents.text_2ab0591dbc")} {actionRequest.interactionId.slice(0, 8)}</span>}
       </div>
       {decision.pendingAction?.previewMarkdown && (
         <MarkdownBody className="mt-2 text-(length:--text-micro) leading-5 text-foreground/75 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
@@ -1033,15 +1039,16 @@ function TranscriptToolCard({
   density: TranscriptDensity;
   decision: ToolRunDecision | null;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(block.status === "error" || Boolean(decision?.pendingAction || decision?.denialReason));
   const compact = density === "compact";
   const parsedResult = parseStructuredToolResult(block.result);
   const statusLabel =
     block.status === "running"
-      ? "Running"
+      ? t("running")
       : block.status === "error"
-        ? "Errored"
-        : "Completed";
+        ? t("errored")
+        : t("completed");
   const statusTone =
     block.status === "running"
       ? "text-blue-700 dark:text-blue-300"
@@ -1095,7 +1102,7 @@ function TranscriptToolCard({
           type="button"
           className="mt-0.5 inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? "Collapse tool details" : "Expand tool details"}
+          aria-label={open ? t("collapse_tool_details") : t("expand_tool_details")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1106,21 +1113,21 @@ function TranscriptToolCard({
             <div className={cn("grid gap-3", compact ? "grid-cols-1" : "lg:grid-cols-2")}>
               <div>
                 <div className="mb-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-                  Input
+                  {t("input")}
                 </div>
                 <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro) text-foreground/80">
-                  {formatToolPayload(block.input) || "<empty>"}
+                  {formatToolPayload(block.input) || t("empty")}
                 </pre>
               </div>
               <div>
                 <div className="mb-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-                  Result
+                  {t("result")}
                 </div>
                 <pre className={cn(
                   "overflow-x-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro)",
                   block.status === "error" ? "text-red-700 dark:text-red-300" : "text-foreground/80",
                 )}>
-                  {block.result ? formatToolPayload(block.result) : "Waiting for result..."}
+                  {block.result ? formatToolPayload(block.result) : t("waiting_for_result")}
                 </pre>
               </div>
             </div>
@@ -1146,6 +1153,7 @@ function TranscriptCommandGroup({
   density: TranscriptDensity;
   toolDecisionMaps: ToolDecisionMaps;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const compact = density === "compact";
   const runningItem = [...block.items].reverse().find((item) => item.status === "running");
@@ -1160,10 +1168,10 @@ function TranscriptCommandGroup({
   const isRunning = Boolean(runningItem);
   const showExpandedErrorState = open && hasError;
   const title = isRunning
-    ? "Executing command"
+    ? t("executing_command")
     : block.items.length === 1
-      ? "Executed command"
-      : `Executed ${block.items.length} commands`;
+      ? t("executed_command")
+      : t("zhComponents.message_ae94cfd205", { value1: block.items.length });
   const subtitle = runningItem
     ? summarizeToolInput("command_execution", runningItem.input, density)
     : null;
@@ -1222,7 +1230,7 @@ function TranscriptCommandGroup({
           )}
           {!subtitle && latestItem?.status === "error" && open && (
             <div className={cn("mt-1", compact ? "text-xs" : "text-sm", statusTone)}>
-              Command failed
+              {t("command_failed")}
             </div>
           )}
         </div>
@@ -1236,7 +1244,7 @@ function TranscriptCommandGroup({
             event.stopPropagation();
             setOpen((value) => !value);
           }}
-          aria-label={open ? "Collapse command details" : "Expand command details"}
+          aria-label={open ? t("collapse_command_details") : t("expand_command_details")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1286,6 +1294,7 @@ function TranscriptToolGroup({
   density: TranscriptDensity;
   toolDecisionMaps: ToolDecisionMaps;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const compact = density === "compact";
   const runningItem = [...block.items].reverse().find((item) => item.status === "running");
@@ -1301,12 +1310,12 @@ function TranscriptToolGroup({
   const toolLabel =
     uniqueNames.length === 1
       ? humanizeLabel(uniqueNames[0])
-      : `${uniqueNames.length} tools`;
+      : t("zhComponents.message_354ac980a9", { value1: uniqueNames.length });
   const title = isRunning
-    ? `Using ${toolLabel}`
+    ? t("zhComponents.message_d5438a8d28", { value1: toolLabel })
     : block.items.length === 1
-      ? `Used ${toolLabel}`
-      : `Used ${toolLabel} (${block.items.length} calls)`;
+      ? t("zhComponents.message_b272933569", { value1: toolLabel })
+      : t("zhComponents.message_114ab48355", { value1: toolLabel, value2: block.items.length });
   const subtitle = runningItem
     ? summarizeToolInput(runningItem.name, runningItem.input, density)
     : null;
@@ -1366,7 +1375,7 @@ function TranscriptToolGroup({
           type="button"
           className={cn("inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", subtitle && "mt-0.5")}
           onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-          aria-label={open ? "Collapse tool details" : "Expand tool details"}
+          aria-label={open ? t("collapse_tool_details") : t("expand_tool_details")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1395,20 +1404,20 @@ function TranscriptToolGroup({
                   : item.status === "error" ? "text-red-700 dark:text-red-300"
                   : "text-emerald-700 dark:text-emerald-300"
                 )}>
-                  {item.status === "running" ? "Running" : item.status === "error" ? "Errored" : "Completed"}
+                  {item.status === "running" ? t("running") : item.status === "error" ? t("errored") : t("completed")}
                 </span>
                 <ToolDecisionBadge decision={findToolDecision(toolDecisionMaps, item)} />
               </div>
               <div className={cn("grid gap-2 pl-7", compact ? "grid-cols-1" : "lg:grid-cols-2")}>
                 <div>
-                  <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">Input</div>
+                  <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">{t("input")}</div>
                   <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro) text-foreground/80">
-                    {formatToolPayload(item.input) || "<empty>"}
+                    {formatToolPayload(item.input) || t("empty")}
                   </pre>
                 </div>
                 {item.result && (
                   <div>
-                    <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">Result</div>
+                    <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">{t("result")}</div>
                     <pre className={cn(
                       "overflow-x-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro)",
                       item.status === "error" ? "text-red-700 dark:text-red-300" : "text-foreground/80",
@@ -1499,7 +1508,7 @@ function TranscriptEventRow({
           ) : (
             <div className={cn("whitespace-pre-wrap break-words", compact ? "text-(length:--text-micro)" : "text-xs")}>
               <span className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-label) text-muted-foreground/70">
-                {block.label}
+                {["init", "result", "terminal"].includes(block.label) ? t(`zhComponents.transcriptEvent.${block.label}`) : block.label}
               </span>
               {block.text ? <span className="ml-2">{block.text}</span> : null}
             </div>
@@ -1631,7 +1640,7 @@ function TranscriptStderrGroup({
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen((v) => !v); } }}
       >
         <span className={cn("text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-eyebrow)")}>
-          {block.lines.length} log {block.lines.length === 1 ? "line" : "lines"}
+          {block.lines.length} {t("zhComponents.text_7babc233de")} {getCountNoun(block.lines.length, "line")}
         </span>
         {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
       </div>
@@ -1668,7 +1677,7 @@ function TranscriptSystemGroup({
       >
         <TerminalSquare className="h-3.5 w-3.5 shrink-0" />
         <span className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-eyebrow)">
-          {block.lines.length} system {block.lines.length === 1 ? "message" : "messages"}
+          {block.lines.length} {t("zhComponents.text_317f1e761f")} {getCountNoun(block.lines.length, "message")}
         </span>
         {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
       </div>
@@ -1695,19 +1704,20 @@ function TranscriptStdoutRow({
   density: TranscriptDensity;
   collapseByDefault: boolean;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(!collapseByDefault);
 
   return (
     <div>
       <div className="flex items-center gap-2">
         <span className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-          stdout
+          {t("zhComponents.text_476d9ec701")}
         </span>
         <button
           type="button"
           className="inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? "Collapse stdout" : "Expand stdout"}
+          aria-label={open ? t("collapse_stdout") : t("expand_stdout")}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1750,9 +1760,9 @@ function rawEntryContent(entry: TranscriptEntry): string {
     return `${entry.text}\n${formatTokens(entry.inputTokens)} / ${formatTokens(entry.outputTokens)} / $${entry.costUsd.toFixed(6)}`;
   }
   if (entry.kind === "init") {
-    return `model=${entry.model}${entry.sessionId ? ` session=${entry.sessionId}` : ""}`;
+    return t("zhComponents.extra_1837b35640", { value1: entry.model, value2: entry.sessionId ? t("zhComponents.message_3d152e498e", { value1: entry.sessionId }) : "" });
   }
-  if (entry.kind === "workspace_change") return `${entry.totals.files} files · ${entry.source} · revision ${entry.revision}`;
+  if (entry.kind === "workspace_change") return t("zhComponents.message_85aa7387c7", { value1: entry.totals.files, value2: entry.source, value3: entry.revision });
   if (entry.kind === "workspace_file_reference") return `${entry.displayName}\n${entry.path}`;
   if (entry.kind === "runtime_request") return `${entry.requestType} · ${entry.status}\n${entry.prompt}`;
   if (entry.kind === "run_result") return `${entry.disposition}\n${entry.summary}`;
@@ -1831,7 +1841,7 @@ function RawTranscriptView({
           )}
         >
           <span className="text-(length:--text-nano) uppercase tracking-(--tracking-caps) text-muted-foreground">
-            {entry.kind}
+            {getDisplayLabel(entry.kind)}
           </span>
           <pre className="min-w-0 whitespace-pre-wrap break-words text-foreground/80">
             {rawEntryContent(entry)}
@@ -1851,7 +1861,7 @@ export function RunTranscriptView({
   limit,
   streaming = false,
   collapseStdout = false,
-  emptyMessage = "No transcript yet.",
+  emptyMessage = t("no_transcript_yet"),
   className,
   thinkingClassName,
   externalReferences,

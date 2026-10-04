@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ReactNode } from "react";
 import type { IssueRelationIssueSummary } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -37,7 +38,7 @@ export function IssueReferencePill({
         data-mention-kind="issue"
         className={classNames}
         title={issue.title}
-        aria-label={`Task: ${issue.title}`}
+        aria-label={t("zhComponents.message_e933d2a91f", { value1: issue.title })}
       >
         {content}
       </span>
@@ -50,7 +51,7 @@ export function IssueReferencePill({
       data-mention-kind="issue"
       className={classNames}
       title={issue.title}
-      aria-label={`Task ${issueLabel}: ${issue.title}`}
+      aria-label={t("zhComponents.message_61b0123aa1", { value1: issueLabel, value2: issue.title })}
     >
       {content}
     </Link>

@@ -20,51 +20,52 @@ import { AGENT_ROLE_LABELS } from "@paperclipai/shared";
 
 /* ---- Help text for (?) tooltips ---- */
 export const help: Record<string, string> = {
-  name: "Display name for this agent.",
-  title: "Job title shown in the org chart.",
-  role: "Organizational role. Determines position and capabilities.",
-  reportsTo: "The agent this one reports to in the org hierarchy.",
-  capabilities: "Describes what this agent can do. Shown in the org chart and used for task routing.",
-  adapterType: "How this agent runs: local CLI (Claude/Codex/OpenCode), OpenClaw Gateway, spawned process, or generic HTTP webhook.",
-  cwd: "Deprecated legacy working directory fallback for local adapters. Existing agents may still carry this value, but new configurations should use project workspaces instead.",
-  promptTemplate: "Sent on every heartbeat. Keep this small and dynamic. Use it for current-task framing, not large static instructions. Supports {{ agent.id }}, {{ agent.name }}, {{ agent.role }} and other template variables.",
-  model: "Override the default model used by the adapter.",
-  thinkingEffort: "Control model reasoning depth. Supported values vary by adapter/model.",
-  chrome: "Enable Claude's Chrome integration by passing --chrome.",
-  dangerouslySkipPermissions: "Run unattended by auto-approving adapter permission prompts when supported.",
-  dangerouslyBypassSandbox: "Run Codex without sandbox restrictions. Required for filesystem/network access.",
-  search: "Enable Codex web search capability during runs.",
-  fastMode: "Enable Codex Fast mode. This burns credits/tokens much faster and is supported on GPT-5.6, GPT-5.5, GPT-5.4, and manual Codex model IDs.",
-  workspaceStrategy: "How Paperclip should realize an execution workspace for this agent. Keep project_primary for normal cwd execution, or use git_worktree for issue-scoped isolated checkouts.",
-  workspaceBaseRef: "Base git ref used when creating a worktree branch. Leave blank to use the resolved workspace ref or HEAD.",
-  workspaceBranchTemplate: "Template for naming derived branches. Supports {{issue.identifier}}, {{issue.title}}, {{agent.name}}, {{project.id}}, {{workspace.repoRef}}, and {{slug}}.",
-  worktreeParentDir: "Directory where derived worktrees should be created. Absolute, ~-prefixed, and repo-relative paths are supported.",
-  runtimeServicesJson: "Optional workspace runtime service definitions. Use this for shared app servers, workers, or other long-lived companion processes attached to the workspace.",
-  maxTurnsPerRun: "Maximum number of agentic turns (tool calls) per heartbeat run.",
-  command: "The command to execute (e.g. node, python).",
-  localCommand: "Override the path to the CLI command you want the adapter to call (e.g. /usr/local/bin/claude, codex, opencode).",
-  args: "Command-line arguments, comma-separated.",
-  extraArgs: "Extra CLI arguments for local adapters, comma-separated.",
-  envVars: "Environment variables injected into the adapter process. Use plain values or secret references.",
+  name: t("display_name_for_this_agent"),
+  title: t("job_title_shown_in_the_org_chart"),
+  role: t("organizational_role_determines_position_and_capa"),
+  reportsTo: t("the_agent_this_one_reports_to_in_the_org_hierarc"),
+  capabilities: t("describes_what_this_agent_can_do_shown_in_the_or"),
+  adapterType: t("how_this_agent_runs_local_cli_claude_codex_openc"),
+  cwd: t("deprecated_legacy_working_directory_fallback_for"),
+  promptTemplate: t("zhComponents.promptTemplateHint", { interpolation: { prefix: "%{", suffix: "}%" } }),
+  model: t("override_the_default_model_used_by_the_adapter"),
+  thinkingEffort: t("control_model_reasoning_depth_supported_values_v"),
+  chrome: t("enable_claudes_chrome_integration_by_passing_chr"),
+  dangerouslySkipPermissions: t("run_unattended_by_auto_approving_adapter_permiss"),
+  dangerouslyBypassSandbox: t("run_codex_without_sandbox_restrictions_required"),
+  search: t("enable_codex_web_search_capability_during_runs"),
+  fastMode: t("enable_codex_fast_mode_this_burns_credits_tokens"),
+  workspaceStrategy: t("how_paperclip_should_realize_an_execution_worksp"),
+  workspaceBaseRef: t("base_git_ref_used_when_creating_a_worktree_branc"),
+  workspaceBranchTemplate: t("zhComponents.branchTemplateHint", { interpolation: { prefix: "%{", suffix: "}%" } }),
+  worktreeParentDir: t("directory_where_derived_worktrees_should_be_crea"),
+  runtimeServicesJson: t("optional_workspace_runtime_service_definitions_u"),
+  maxTurnsPerRun: t("maximum_number_of_agentic_turns_tool_calls_per_h"),
+  command: t("the_command_to_execute_e_g_node_python"),
+  localCommand: t("override_the_path_to_the_cli_command_you_want_th"),
+  args: t("command_line_arguments_comma_separated"),
+  extraArgs: t("extra_cli_arguments_for_local_adapters_comma_sep"),
+  envVars: t("environment_variables_injected_into_the_adapter"),
   secretAccess:
-    "Secrets this agent can reach. Env-var bindings are injected at run start; API-access bindings are fetched on demand via the run-bound agent API and never written to the environment.",
-  bootstrapPrompt: "Only sent when Paperclip starts a fresh session. Use this for stable setup guidance that should not be repeated on every heartbeat.",
-  payloadTemplateJson: "Optional JSON merged into remote adapter request payloads before Paperclip adds its standard wake and workspace fields.",
-  webhookUrl: "The URL that receives POST requests when the agent is invoked.",
-  heartbeatInterval: "Run this agent automatically on a timer. Useful for periodic tasks like checking for new work.",
-  intervalSec: "Seconds between automatic heartbeat invocations.",
-  timeoutSec: "Maximum seconds a run can take before being terminated. 0 means no timeout.",
-  graceSec: "Seconds to wait after sending interrupt before force-killing the process.",
-  wakeOnDemand: "Allow this agent to be woken by assignments, API calls, UI actions, or automated systems.",
-  cooldownSec: "Minimum seconds between consecutive heartbeat runs.",
-  maxConcurrentRuns: "Maximum number of heartbeat runs that can execute simultaneously for this agent.",
-  maxTurnContinuationEnabled: "Automatically queue bounded continuation runs when an adapter stops because its per-run turn cap was exhausted.",
-  maxTurnContinuationMaxAttempts: "Maximum automatic continuations after one max-turn stop. This is separate from max turns per run.",
-  maxTurnContinuationDelaySec: "Seconds to wait before starting each max-turn continuation.",
-  budgetMonthlyCents: "Monthly spending limit in cents. 0 means no limit.",
+    t("secrets_this_agent_can_reach_env_var_bindings_ar"),
+  bootstrapPrompt: t("only_sent_when_paperclip_starts_a_fresh_session"),
+  payloadTemplateJson: t("optional_json_merged_into_remote_adapter_request"),
+  webhookUrl: t("the_url_that_receives_post_requests_when_the_age"),
+  heartbeatInterval: t("run_this_agent_automatically_on_a_timer_useful_f"),
+  intervalSec: t("seconds_between_automatic_heartbeat_invocations"),
+  timeoutSec: t("maximum_seconds_a_run_can_take_before_being_term"),
+  graceSec: t("seconds_to_wait_after_sending_interrupt_before_f"),
+  wakeOnDemand: t("allow_this_agent_to_be_woken_by_assignments_api"),
+  cooldownSec: t("minimum_seconds_between_consecutive_heartbeat_ru"),
+  maxConcurrentRuns: t("maximum_number_of_heartbeat_runs_that_can_execut"),
+  maxTurnContinuationEnabled: t("automatically_queue_bounded_continuation_runs_wh"),
+  maxTurnContinuationMaxAttempts: t("maximum_automatic_continuations_after_one_max_tu"),
+  maxTurnContinuationDelaySec: t("seconds_to_wait_before_starting_each_max_turn_co"),
+  budgetMonthlyCents: t("monthly_spending_limit_in_cents_0_means_no_limit"),
 };
 
 import { getAdapterLabels } from "../adapters/adapter-display-registry";
+import { t, useTranslation } from "@/i18n";
 
 export const adapterLabels = getAdapterLabels();
 
@@ -379,6 +380,7 @@ export function DraftNumberInput({
  * type the path due to browser security limitations.
  */
 export function ChoosePathButton() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -387,54 +389,53 @@ export function ChoosePathButton() {
         className="inline-flex items-center rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors shrink-0"
         onClick={() => setOpen(true)}
       >
-        Choose
+        {t("choose")}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Specify path manually</DialogTitle>
+            <DialogTitle>{t("specify_path_manually")}</DialogTitle>
             <DialogDescription>
-              Browser security blocks apps from reading full local paths via a file picker.
-              Copy the absolute path and paste it into the input.
+              {t("browser_security_blocks_apps_from_reading_full_l")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <section className="space-y-1.5">
-              <p className="font-medium">macOS (Finder)</p>
+              <p className="font-medium">{t("macos_finder")}</p>
               <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
-                <li>Find the folder in Finder.</li>
-                <li>Hold <kbd>Option</kbd> and right-click the folder.</li>
-                <li>Click "Copy &lt;folder name&gt; as Pathname".</li>
-                <li>Paste the result into the path input.</li>
+                <li>{t("find_the_folder_in_finder")}</li>
+                <li>{t("hold")} <kbd>{t("option")}</kbd> {t("and_right_click_the_folder")}</li>
+                <li>{t("click_copy_folder_name_as_pathname")}</li>
+                <li>{t("paste_the_result_into_the_path_input")}</li>
               </ol>
               <p className="rounded-md bg-muted px-2 py-1 font-mono text-xs">
                 /Users/yourname/Documents/project
               </p>
             </section>
             <section className="space-y-1.5">
-              <p className="font-medium">Windows (File Explorer)</p>
+              <p className="font-medium">{t("windows_file_explorer")}</p>
               <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
-                <li>Find the folder in File Explorer.</li>
-                <li>Hold <kbd>Shift</kbd> and right-click the folder.</li>
-                <li>Click "Copy as path".</li>
-                <li>Paste the result into the path input.</li>
+                <li>{t("find_the_folder_in_file_explorer")}</li>
+                <li>{t("hold")} <kbd>{t("shift")}</kbd> {t("and_right_click_the_folder")}</li>
+                <li>{t("click_copy_as_path")}</li>
+                <li>{t("paste_the_result_into_the_path_input")}</li>
               </ol>
               <p className="rounded-md bg-muted px-2 py-1 font-mono text-xs">
-                C:\Users\yourname\Documents\project
+                {t("c_users_yourname_documents_project")}
               </p>
             </section>
             <section className="space-y-1.5">
-              <p className="font-medium">Terminal fallback (macOS/Linux)</p>
+              <p className="font-medium">{t("terminal_fallback_macos_linux")}</p>
               <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
-                <li>Run <code>cd /path/to/folder</code>.</li>
-                <li>Run <code>pwd</code>.</li>
-                <li>Copy the output and paste it into the path input.</li>
+                <li>{t("run")} <code>{t("cd_path_to_folder")}</code>.</li>
+                <li>{t("run")} <code>pwd</code>.</li>
+                <li>{t("copy_the_output_and_paste_it_into_the_path_input")}</li>
               </ol>
             </section>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              OK
+              {t("ok")}
             </Button>
           </DialogFooter>
         </DialogContent>

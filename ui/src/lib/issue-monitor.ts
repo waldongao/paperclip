@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t, i18n } from "@/i18n";
 
 const SECOND_MS = 1_000;
 const MINUTE_MS = 60 * SECOND_MS;
@@ -57,33 +58,33 @@ export interface MonitorDateTimeFormatOptions {
 
 function toTimestamp(value: MonitorDate): number {
   const timestamp = new Date(value).getTime();
-  if (Number.isNaN(timestamp)) throw new RangeError("Invalid monitor date");
+  if (Number.isNaN(timestamp)) throw new RangeError(t("invalid_monitor_date"));
   return timestamp;
 }
 
 function formatDuration(durationMs: number): string {
   if (durationMs < MINUTE_MS) {
-    return `${Math.max(1, Math.ceil(durationMs / SECOND_MS))}s`;
+    return t("zhSupport.time.seconds", { count: Math.max(1, Math.ceil(durationMs / SECOND_MS)) });
   }
   if (durationMs < HOUR_MS) {
-    return `${Math.floor(durationMs / MINUTE_MS)}m`;
+    return t("zhSupport.time.minutes", { count: Math.floor(durationMs / MINUTE_MS) });
   }
   if (durationMs < DAY_MS) {
     const hours = Math.floor(durationMs / HOUR_MS);
     const minutes = Math.floor((durationMs % HOUR_MS) / MINUTE_MS);
-    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    return minutes > 0 ? t("zhSupport.time.hoursMinutes", { hours, minutes }) : t("zhSupport.time.hours", { count: hours });
   }
 
   const days = Math.floor(durationMs / DAY_MS);
   const hours = Math.floor((durationMs % DAY_MS) / HOUR_MS);
-  return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  return hours > 0 ? t("zhSupport.time.daysHours", { days, hours }) : t("zhSupport.time.days", { count: days });
 }
 
 export function formatMonitorEta(nextCheckAt: MonitorDate, now: MonitorDate = new Date()): string {
   const deltaMs = toTimestamp(nextCheckAt) - toTimestamp(now);
-  if (deltaMs > 0) return `in ${formatDuration(deltaMs)}`;
-  if (deltaMs > -DUE_NOW_GRACE_MS) return "due now";
-  return `overdue by ${formatDuration(Math.abs(deltaMs))}`;
+  if (deltaMs > 0) return t("zhSupport.time.inDuration", { duration: formatDuration(deltaMs) });
+  if (deltaMs > -DUE_NOW_GRACE_MS) return t("due_now");
+  return t("zhSupport.time.overdue", { duration: formatDuration(Math.abs(deltaMs)) });
 }
 
 export function formatMonitorEtaLabel(nextCheckAt: MonitorDate, now: MonitorDate = new Date()): string {
@@ -121,10 +122,10 @@ export function formatMonitorAbsolute(
 ): string {
   const target = new Date(toTimestamp(nextCheckAt));
   const reference = new Date(toTimestamp(now));
-  const targetYmd = zonedYmd(target, options.locale, options.timeZone);
-  const referenceYmd = zonedYmd(reference, options.locale, options.timeZone);
+  const targetYmd = zonedYmd(target, options.locale ?? i18n.resolvedLanguage ?? i18n.language, options.timeZone);
+  const referenceYmd = zonedYmd(reference, options.locale ?? i18n.resolvedLanguage ?? i18n.language, options.timeZone);
 
-  const time = new Intl.DateTimeFormat(options.locale, {
+  const time = new Intl.DateTimeFormat(options.locale ?? i18n.resolvedLanguage ?? i18n.language, {
     hour: "numeric",
     minute: "2-digit",
     timeZone: options.timeZone,
@@ -134,13 +135,13 @@ export function formatMonitorAbsolute(
     targetYmd.year === referenceYmd.year &&
     targetYmd.month === referenceYmd.month &&
     targetYmd.day === referenceYmd.day;
-  if (isToday) return `Today, ${time}`;
+  if (isToday) return t("zhSupport.todayTime", { time });
 
-  const weekday = new Intl.DateTimeFormat(options.locale, {
+  const weekday = new Intl.DateTimeFormat(options.locale ?? i18n.resolvedLanguage ?? i18n.language, {
     weekday: "short",
     timeZone: options.timeZone,
   }).format(target);
-  const date = new Intl.DateTimeFormat(options.locale, {
+  const date = new Intl.DateTimeFormat(options.locale ?? i18n.resolvedLanguage ?? i18n.language, {
     month: "short",
     day: "numeric",
     year: targetYmd.year === referenceYmd.year ? undefined : "numeric",
@@ -155,14 +156,14 @@ export function formatMonitorAbsoluteFull(
   options: MonitorDateTimeFormatOptions = {},
 ): string {
   const date = new Date(toTimestamp(nextCheckAt));
-  const datePart = new Intl.DateTimeFormat(options.locale, {
+  const datePart = new Intl.DateTimeFormat(options.locale ?? i18n.resolvedLanguage ?? i18n.language, {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
     timeZone: options.timeZone,
   }).format(date);
-  const timePart = new Intl.DateTimeFormat(options.locale, {
+  const timePart = new Intl.DateTimeFormat(options.locale ?? i18n.resolvedLanguage ?? i18n.language, {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
@@ -258,9 +259,9 @@ export function useMonitorCountdown(nextCheckAt: MonitorDate | null | undefined)
 export function formatMonitorOffset(nextCheckAt: MonitorDate): string {
   const now = new Date(Date.now());
   const deltaMs = toTimestamp(nextCheckAt) - now.getTime();
-  if (Math.round(Math.abs(deltaMs) / MINUTE_MS) === 0) return "now";
-  const eta = formatMonitorEta(nextCheckAt, now);
-  if (eta === "due now") return "now";
-  if (eta.startsWith("overdue by ")) return `${eta.slice("overdue by ".length)} ago`;
-  return eta;
+  if (Math.round(Math.abs(deltaMs) / MINUTE_MS) === 0 || (deltaMs <= 0 && deltaMs > -DUE_NOW_GRACE_MS)) return t("zhSupport.time.now");
+  const duration = formatDuration(Math.abs(deltaMs));
+  return deltaMs < 0
+    ? t("zhSupport.time.durationAgo", { duration })
+    : t("zhSupport.time.inDuration", { duration });
 }

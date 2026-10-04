@@ -38,6 +38,7 @@ import { RichWorkProductCard } from "@/components/task-chat/RichWorkProductCard"
 import { DocumentAnnotationsCountChip, IssueDocumentAnnotations } from "@/components/IssueDocumentAnnotations";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Link, useLocation } from "@/lib/router";
+import { t, useTranslation } from "@/i18n";
 
 interface IssuePropertiesArtifactsTabProps {
   issue: Issue;
@@ -59,16 +60,16 @@ function workProductStatusBadge(status: string): { label: string; cssVar: string
   switch (status) {
     case "active":
     case "draft":
-      return { label: "In progress", cssVar: "--status-task-in_progress" };
+      return { label: t("in_progress_b6bd42"), cssVar: "--status-task-in_progress" };
     case "ready_for_review":
-      return { label: "For review", cssVar: "--status-task-in_review" };
+      return { label: t("for_review_1add80"), cssVar: "--status-task-in_review" };
     case "approved":
     case "merged":
-      return { label: "Done", cssVar: "--status-task-done" };
+      return { label: t("done"), cssVar: "--status-task-done" };
     case "changes_requested":
-      return { label: "Changes requested", cssVar: "--status-task-todo" };
+      return { label: t("changes_requested_9be166"), cssVar: "--status-task-todo" };
     case "failed":
-      return { label: "Failed", cssVar: "--status-task-blocked" };
+      return { label: t("failed"), cssVar: "--status-task-blocked" };
     default:
       return null;
   }
@@ -97,6 +98,7 @@ function MarkdownWorkProductRow({
   reviewDoc: IssueDocument | undefined;
   openRequestId?: number;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [annotationPanelOpen, setAnnotationPanelOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement | null>(null);
@@ -149,7 +151,7 @@ function MarkdownWorkProductRow({
   if (tooLarge) {
     expandedBody = (
       <p className="text-sm text-muted-foreground">
-        This Markdown file is too large to preview. Use Raw or Download instead.
+        {t("this_markdown_file_is_too_large_to_preview_use_r")}
       </p>
     );
   } else if (reviewDoc) {
@@ -169,15 +171,15 @@ function MarkdownWorkProductRow({
         <MarkdownBody>{reviewDoc.body}</MarkdownBody>
       </IssueDocumentAnnotations>
     ) : (
-      <p className="text-sm text-muted-foreground">Document is empty.</p>
+      <p className="text-sm text-muted-foreground">{t("document_is_empty")}</p>
     );
   } else if (ensure.isError) {
     expandedBody = (
       <div className="flex flex-col items-start gap-1.5">
         <p className="text-sm text-muted-foreground">
           {unsupportedError
-            ? "This file can't be previewed as Markdown. Use Raw or Download instead."
-            : "Preview failed to load."}
+            ? t("this_file_cant_be_previewed_as_markdown_use_raw")
+            : t("preview_failed_to_load")}
         </p>
         {!unsupportedError ? (
           <button
@@ -188,13 +190,13 @@ function MarkdownWorkProductRow({
               ensure.mutate();
             }}
           >
-            Retry
+            {t("retry")}
           </button>
         ) : null}
       </div>
     );
   } else {
-    expandedBody = <p className="text-sm text-muted-foreground">Preparing preview…</p>;
+    expandedBody = <p className="text-sm text-muted-foreground">{t("preparing_preview")}</p>;
   }
 
   return (
@@ -218,7 +220,7 @@ function MarkdownWorkProductRow({
           ) : null}
           {reviewDoc ? (
             <span className="shrink-0 text-(length:--text-micro) text-muted-foreground">
-              {`Rev ${reviewDoc.latestRevisionNumber ?? 1}`}
+              {t("zhComponents.message_9fc2ffacf4", { value1: reviewDoc.latestRevisionNumber ?? 1 })}
             </span>
           ) : null}
           <Chevron className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -235,16 +237,16 @@ function MarkdownWorkProductRow({
           href={metadata.openPath}
           target="_blank"
           rel="noreferrer"
-          aria-label={`Open raw ${workProduct.title}`}
-          title="Open raw"
+          aria-label={t("zhComponents.message_9a27e9e049", { value1: workProduct.title })}
+          title={t("open_raw")}
           className="shrink-0 px-1.5 py-1.5 text-muted-foreground hover:text-foreground"
         >
           <ExternalLink className="h-3 w-3" />
         </a>
         <a
           href={metadata.downloadPath}
-          aria-label={`Download ${workProduct.title}`}
-          title="Download"
+          aria-label={t("zhComponents.message_991d16a484", { value1: workProduct.title })}
+          title={t("download")}
           className="shrink-0 py-1.5 pr-2 pl-0.5 text-muted-foreground hover:text-foreground"
         >
           <Download className="h-3 w-3" />
@@ -268,6 +270,7 @@ function DocumentRow({
   openRequestId?: number;
   onOpen?: () => void;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [annotationPanelOpen, setAnnotationPanelOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement | null>(null);
@@ -291,7 +294,7 @@ function DocumentRow({
         <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate">{documentDisplayTitle(doc)}</span>
         <span className="shrink-0 text-(length:--text-micro) text-muted-foreground">
-          {`Rev ${doc.latestRevisionNumber ?? 1}`}
+          {t("zhComponents.message_c6ad67fe72", { value1: doc.latestRevisionNumber ?? 1 })}
         </span>
         <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </button>
@@ -309,7 +312,7 @@ function DocumentRow({
           <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span className="min-w-0 flex-1 truncate">{documentDisplayTitle(doc)}</span>
           <span className="shrink-0 text-(length:--text-micro) text-muted-foreground">
-            {`Rev ${doc.latestRevisionNumber ?? 1}`}
+            {t("zhComponents.message_c6ad67fe72", { value1: doc.latestRevisionNumber ?? 1 })}
           </span>
           <Chevron className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         </button>
@@ -338,7 +341,7 @@ function DocumentRow({
               <MarkdownBody>{doc.body}</MarkdownBody>
             </IssueDocumentAnnotations>
           ) : (
-            <p className="text-sm text-muted-foreground">Document is empty.</p>
+            <p className="text-sm text-muted-foreground">{t("document_is_empty")}</p>
           )}
         </div>
       ) : null}
@@ -357,6 +360,7 @@ function DocumentRow({
  * thread.
  */
 export function IssuePropertiesArtifactsTab({ issue, documentDeepLink, onOpenDocument }: IssuePropertiesArtifactsTabProps) {
+  const { t } = useTranslation();
   const [typeFilter, setTypeFilter] = useState("all");
   const [runFilter, setRunFilter] = useState("all");
   const { data: attachments } = useQuery({
@@ -444,7 +448,7 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink, onOpenDoc
   if (workProductRows.length === 0 && documentRows.length === 0 && fileRows.length === 0) {
     return (
       <div className="px-1 py-6 text-sm text-muted-foreground">
-        No artifacts yet. Work products, documents, and agent-produced files will appear here.
+        {t("no_artifacts_yet_work_products_documents_and_age")}
       </div>
     );
   }
@@ -453,50 +457,50 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink, onOpenDoc
     <div className="flex flex-col gap-3 py-2">
       <div className="flex items-center gap-2 px-1">
         <label className="min-w-0 flex-1 text-(length:--text-micro) text-muted-foreground">
-          <span className="sr-only">Filter artifacts by type</span>
+          <span className="sr-only">{t("filter_artifacts_by_type")}</span>
           <select
-            aria-label="Filter artifacts by type"
+            aria-label={t("filter_artifacts_by_type")}
             value={typeFilter}
             onChange={(event) => setTypeFilter(event.target.value)}
             className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
           >
-            <option value="all">All types</option>
-            <option value="image">Images</option>
-            <option value="file">Files</option>
-            <option value="pull_request">Pull requests</option>
-            <option value="commit">Commits</option>
-            <option value="branch">Branches</option>
-            <option value="document">Documents</option>
-            <option value="preview_url">Previews</option>
-            <option value="runtime_service">Runtime services</option>
+            <option value="all">{t("all_types")}</option>
+            <option value="image">{t("images")}</option>
+            <option value="file">{t("files")}</option>
+            <option value="pull_request">{t("pull_requests")}</option>
+            <option value="commit">{t("commits")}</option>
+            <option value="branch">{t("branches")}</option>
+            <option value="document">{t("documents")}</option>
+            <option value="preview_url">{t("previews")}</option>
+            <option value="runtime_service">{t("runtime_services")}</option>
           </select>
         </label>
         <label className="min-w-0 flex-1 text-(length:--text-micro) text-muted-foreground">
-          <span className="sr-only">Filter artifacts by run</span>
+          <span className="sr-only">{t("filter_artifacts_by_run")}</span>
           <select
-            aria-label="Filter artifacts by run"
+            aria-label={t("filter_artifacts_by_run")}
             value={runFilter}
             onChange={(event) => setRunFilter(event.target.value)}
             className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
           >
-            <option value="all">All runs</option>
+            <option value="all">{t("all_runs")}</option>
             {runOptions.map((runId) => {
               const run = runsById.get(runId);
               const agent = run ? agentsById.get(run.agentId) : null;
               const runDate = run?.startedAt ?? allRows.find((row) => row.runId === runId)?.date;
               return (
                 <option key={runId} value={runId}>
-                  {`${agent?.name ?? `Run ${runId.slice(0, 8)}`}${runDate ? ` · ${formatDateTime(runDate)}` : ""}`}
+                  {`${agent?.name ?? t("zhComponents.message_5d6abf9b8a", { value1: runId.slice(0, 8) })}${runDate ? ` · ${formatDateTime(runDate)}` : ""}`}
                 </option>
               );
             })}
-            {allRows.some((row) => row.runId === null) ? <option value="other">Other artifacts</option> : null}
+            {allRows.some((row) => row.runId === null) ? <option value="other">{t("other_artifacts")}</option> : null}
           </select>
         </label>
       </div>
 
       {groupedRows.length === 0 ? (
-        <p className="px-1 py-6 text-sm text-muted-foreground">No artifacts match these filters.</p>
+        <p className="px-1 py-6 text-sm text-muted-foreground">{t("no_artifacts_match_these_filters")}</p>
       ) : groupedRows.map((group) => {
         const run = group.runId === "other" ? null : runsById.get(group.runId);
         const agent = run ? agentsById.get(run.agentId) : null;
@@ -504,7 +508,7 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink, onOpenDoc
           <section key={group.runId} className="flex flex-col gap-1.5">
             <header className="flex items-baseline justify-between gap-2 px-1">
               <h3 className="truncate text-xs font-medium text-foreground">
-                {group.runId === "other" ? "Other artifacts" : agent?.name ?? `Run ${group.runId.slice(0, 8)}`}
+                {group.runId === "other" ? t("other_artifacts") : agent?.name ?? t("zhComponents.message_dd1f352172", { value1: group.runId.slice(0, 8) })}
               </h3>
               <time className="shrink-0 text-(length:--text-micro) text-muted-foreground" dateTime={group.date.toISOString()}>
                 {formatDateTime(group.date)}
@@ -565,7 +569,7 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink, onOpenDoc
       })}
 
       <Link to="/artifacts" className="mx-1 border-t border-border pt-2 text-xs font-medium text-foreground hover:underline">
-        View all in company Artifacts →
+        {t("view_all_in_company_artifacts")}
       </Link>
     </div>
   );

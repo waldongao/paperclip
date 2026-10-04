@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/timeAgo";
 import { appTabHref } from "../app-tabs";
 import type { ActivityPanelProps } from "./types";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 export function ActivityPanel(props: ActivityPanelProps) {
   return <RecentActivity {...props} />;
@@ -38,6 +40,7 @@ function RecentActivity({
   appName,
   userLabelById,
 }: ActivityPanelProps) {
+  const { t } = useTranslation();
   const nameById = useMemo(() => new Map(agents.map((a) => [a.id, a.name])), [agents]);
 
   const rows = useMemo<TimelineRow[]>(() => {
@@ -76,7 +79,7 @@ function RecentActivity({
   return (
     <section className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Recent activity</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t("recent_activity")}</h2>
       </div>
       {loading ? (
         <div className="space-y-2 py-4">
@@ -84,7 +87,7 @@ function RecentActivity({
           <Skeleton className="h-4 w-2/3" />
         </div>
       ) : rows.length === 0 ? (
-        <p className="py-5 text-sm text-muted-foreground">No activity yet.</p>
+        <p className="py-5 text-sm text-muted-foreground">{t("no_activity_yet")}</p>
       ) : (
         <ul className="divide-y divide-border">
           {rows.map((row) => (
@@ -95,7 +98,7 @@ function RecentActivity({
                 <span className="block truncate text-xs text-muted-foreground">
                   {row.issue ? (
                     <>
-                      while working on{" "}
+                      {t("while_working_on")}{" "}
                       <Link
                         to={`/issues/${row.issue.identifier}`}
                         className="font-medium text-muted-foreground hover:text-foreground hover:underline"
@@ -151,9 +154,9 @@ export function resolveActorLabel(
   if (actorId) {
     const label = userLabelById?.get(actorId);
     if (label) return label;
-    if (actorId === "local-board") return "Board";
+    if (actorId === "local-board") return t("board");
   }
-  return "Someone";
+  return t("someone");
 }
 
 export function humanizeEvent(
@@ -166,32 +169,32 @@ export function humanizeEvent(
   // For Test-tab calls, surface "<User> tested as <Agent>" so prosumer test runs are
   // distinguishable from real heartbeat agent activity in the audit trail (PAP-11415).
   const who = testRunnerLabel
-    ? `${testRunnerLabel} tested as ${agentName ?? "an agent"}`
-    : agentName ?? "An agent";
+    ? t("zhPages.5cc3b844b18b", { testRunnerLabel: testRunnerLabel, detail: agentName ?? t("an_agent") })
+    : agentName ?? t("an_agent_d95187");
   // The raw gateway tool name is prefixed (e.g. `mcp.app-gallery-link-…:kv-set`);
   // humanize it to "Kv Set" to match the cross-app Activity view (PAP-11105).
-  const action = event.toolName ? humanizeConnectionDisplayName(event.toolName) : "an action";
+  const action = event.toolName ? humanizeConnectionDisplayName(event.toolName) : t("an_action");
   switch (event.eventType) {
     case "call_completed":
       return {
         primary: event.outcome === "success"
-          ? `${who} used ${action}`
-          : `${who} ran ${action}, but it didn't finish`,
+          ? t("zhPages.72d1b734e5f5", { who: who, action: action })
+          : t("zhPages.89ce56cc74e6", { who: who, action: action }),
       };
     case "call_failed":
-      return { primary: `${action} didn't work for ${lower(who)}` };
+      return { primary: t("zhPages.cfcdb057da0a", { action: action, who: lower(who) }) };
     case "call_denied":
       return {
         primary: testRunnerLabel
-          ? `${who} - ${action} is turned off`
-          : `Blocked ${action} - it isn't turned on`,
+          ? t("zhPages.8d15c2abab47", { who: who, action: action })
+          : t("zhPages.9d96d81ac469", { action: action }),
       };
     case "approval_requested":
-      return { primary: `${who} asked before running ${action}` };
+      return { primary: t("zhPages.dc8ccb484030", { who: who, action: action }) };
     case "approval_resolved":
       return { primary: humanizeApprovalResolved(action, actionRequest) };
     default:
-      return { primary: `${who} used ${action}` };
+      return { primary: t("zhPages.72d1b734e5f5", { who: who, action: action }) };
   }
 }
 
@@ -199,10 +202,10 @@ function humanizeApprovalResolved(
   action: string,
   actionRequest?: ActivityPanelProps["actionRequests"][string],
 ): string {
-  const resolver = actionRequest?.resolverDisplayName ?? "Someone";
-  if (actionRequest?.status === "approved") return `${resolver} approved ${action}`;
-  if (actionRequest?.status === "rejected") return `${resolver} said no to ${action}`;
-  return `${resolver} reviewed ${action}`;
+  const resolver = actionRequest?.resolverDisplayName ?? t("someone");
+  if (actionRequest?.status === "approved") return t("zhPages.11e9fc50d60d", { resolver: resolver, action: action });
+  if (actionRequest?.status === "rejected") return t("zhPages.2b8d96806030", { resolver: resolver, action: action });
+  return t("zhPages.01d7834f0b34", { resolver: resolver, action: action });
 }
 
 /** Humanize a connection lifecycle event into a prosumer sentence (PAP-11284). */
@@ -211,26 +214,26 @@ function humanizeLifecycleEvent(
   appName: string,
   agentName: string | null,
 ): string {
-  const who = event.actorDisplayName ?? agentName ?? "Someone";
+  const who = event.actorDisplayName ?? agentName ?? t("someone");
   switch (event.type) {
     case "app_connected":
-      return `${who} connected ${appName}`;
+      return t("zhPages.29909b8e6e7d", { who: who, appName: appName });
     case "app_paused":
-      return `${who} paused this app`;
+      return t("zhPages.08e8255554c1", { who: who });
     case "app_resumed":
-      return `${who} resumed this app`;
+      return t("zhPages.ce10e15fbcd3", { who: who });
     case "reconnected":
-      return `${who} reconnected ${appName}`;
+      return t("zhPages.e23c8ea96f52", { who: who, appName: appName });
     case "disconnected":
-      return `${who} disconnected ${appName}`;
+      return t("zhPages.29d9815e7092", { who: who, appName: appName });
     case "allowlist_changed":
       return humanizeAllowlistChange(who, event.details);
     case "actions_quarantined": {
       const count = numberFrom(event.details?.count);
-      return `${count} new ${count === 1 ? "action" : "actions"} need review`;
+      return t("zhPages.387688b23a04", { count: count });
     }
     default:
-      return `${who} updated this app`;
+      return t("zhPages.3fd952c4e657", { who: who });
   }
 }
 
@@ -238,19 +241,19 @@ function humanizeAllowlistChange(who: string, details: Record<string, unknown> |
   const added = numberFrom(details?.added);
   const removed = numberFrom(details?.removed);
   if (added > 0 && removed === 0) {
-    return `${who} added ${added} ${added === 1 ? "sheet" : "sheets"} to the allowlist`;
+    return t("zhPages.e1663e59f58c", { who: who, added: added , count: added });
   }
   if (removed > 0 && added === 0) {
-    return `${who} removed ${removed} ${removed === 1 ? "sheet" : "sheets"} from the allowlist`;
+    return t("zhPages.3dcb648e2fc0", { who: who, removed: removed , count: removed });
   }
   if (added > 0 && removed > 0) {
-    return `${who} updated the allowlist (added ${added}, removed ${removed})`;
+    return t("zhPages.90075bd4b218", { who: who, added: added, removed: removed });
   }
-  return `${who} updated the allowlist`;
+  return t("zhPages.d1a75e11c7c5", { who: who });
 }
 
 function lifecycleLinkLabel(event: ToolConnectionLifecycleEvent): string {
-  return event.type === "actions_quarantined" ? "Review in Setup" : "View in Setup";
+  return event.type === "actions_quarantined" ? t("review_in_setup") : t("view_in_setup");
 }
 
 function numberFrom(value: unknown): number {
@@ -259,7 +262,7 @@ function numberFrom(value: unknown): number {
 }
 
 function lower(who: string): string {
-  return who === "An agent" ? "an agent" : who;
+  return who === "An agent" ? t("an_agent") : who;
 }
 
 function dotColor(event: ToolCallEvent): string {

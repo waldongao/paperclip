@@ -65,10 +65,12 @@ import {
   connectionDisplayNameForOwner,
   connectionOwnerProfile,
 } from "./connection-owner";
+import { t, useTranslation } from "@/i18n";
 
 export { DangerZone, connectionAddress, connectionTransportLabel };
 
 export function AppDetail() {
+  const { t } = useTranslation();
   const { connectionId = "", tab } = useParams<{ connectionId: string; tab?: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -191,13 +193,13 @@ export function AppDetail() {
     )
     : grantsQuery.data?.capabilities.canConfigure === true;
   const reconnectUnavailableMessage = grantsQuery.isLoading
-    ? "Checking who can reconnect this identity…"
+    ? t("checking_who_can_reconnect_this_identity")
     : grantsQuery.isError
-      ? "We couldn't verify who can reconnect this identity. Reload the page to try again."
+      ? t("we_couldnt_verify_who_can_reconnect_this_identit")
       : managedIdentityGrant?.kind === "user"
         && managedPersonalUserId !== grantsQuery.data?.currentUserId
-        ? "The person this connection belongs to must reconnect it."
-        : "You don't have permission to reconnect this identity.";
+        ? t("the_person_this_connection_belongs_to_must_recon")
+        : t("you_dont_have_permission_to_reconnect_this_ident");
   const composioChildConnectionCount = (connectionsQuery.data?.connections ?? []).filter(
     (candidate) => candidate.status !== "archived"
       && candidate.config?.provider === "composio"
@@ -217,10 +219,10 @@ export function AppDetail() {
   const owner = connection ? connectionOwnerProfile(connection, userProfileById) : null;
   const baseAppName = connection
     ? logoEntry ? appDefinitionName(logoEntry) : humanizeConnectionDisplayName(connection)
-    : "App";
+    : t("app_");
   const appName = connection
     ? connectionDisplayNameForOwner(connection, baseAppName, owner)
-    : "App";
+    : t("app_");
   const successNoticeShownFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -240,8 +242,8 @@ export function AppDetail() {
     ) return;
     successNoticeShownFor.current = connection.id;
     pushToast({
-      title: `${appName} connected`,
-      body: "The connection is ready. You can test an action below.",
+      title: t("zhPages.e257e27d3e9b", { appName: appName }),
+      body: t("the_connection_is_ready_you_can_test_an_action_b"),
       tone: "success",
     });
     navigate(appTabHref(connection.id, "test"), { replace: true });
@@ -250,7 +252,7 @@ export function AppDetail() {
   useEffect(() => {
     if (!activeTab) return;
     setBreadcrumbs([
-      { label: "Connectors", href: "/apps" },
+      { label: t("connectors"), href: "/apps" },
       { label: appName, href: appTabHref(connectionId, "setup") },
       { label: appTabLabel(activeTab) },
     ]);
@@ -308,8 +310,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't save that",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_save_that"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
     onSettled: () => setPending(false),
@@ -328,8 +330,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't save installs",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_save_installs"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -346,8 +348,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't rename the app",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_rename_the_app"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -364,8 +366,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't save that",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_save_that"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -377,15 +379,15 @@ export function AppDetail() {
       // from the remote server, and this is where an unsafe scheme would run.
       const target = resolveAuthorizationTarget(authorizationUrl);
       if (!target.ok) {
-        pushToast({ title: "Couldn't start sign-in", body: target.message, tone: "error" });
+        pushToast({ title: t("couldnt_start_sign_in"), body: target.message, tone: "error" });
         return;
       }
       navigateTopLevel(target.url);
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't start sign-in",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_start_sign_in"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -403,7 +405,7 @@ export function AppDetail() {
   const startPersonalAuth = useMutation({
     mutationFn: () => {
       const subjectUserId = grantsQuery.data?.currentUserId;
-      if (!subjectUserId) throw new Error("Sign in again to connect your own account.");
+      if (!subjectUserId) throw new Error(t("sign_in_again_to_connect_your_own_account"));
       return toolsApi.startPersonalAuthorization(selectedCompanyId!, connectionId, {
         subjectUserId,
         returnTo: appTabHref(connectionId, "setup"),
@@ -412,15 +414,15 @@ export function AppDetail() {
     onSuccess: ({ url }) => {
       const target = resolveAuthorizationTarget(url);
       if (!target.ok) {
-        pushToast({ title: "Couldn't start sign-in", body: target.message, tone: "error" });
+        pushToast({ title: t("couldnt_start_sign_in"), body: target.message, tone: "error" });
         return;
       }
       navigateTopLevel(target.url);
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't start sign-in",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_start_sign_in"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -430,17 +432,17 @@ export function AppDetail() {
     onSuccess: (grant) => {
       invalidateGrants();
       pushToast({
-        title: grant.kind === "user" ? "Identity revoked" : "Organization identity revoked",
+        title: grant.kind === "user" ? t("identity_revoked") : t("organization_identity_revoked"),
         body: grant.kind === "user"
-          ? "Agents will stop acting as this person."
-          : "Installed agents no longer have the shared identity.",
+          ? t("agents_will_stop_acting_as_this_person")
+          : t("installed_agents_no_longer_have_the_shared_ident"),
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't revoke that identity",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_revoke_that_identity"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -457,15 +459,15 @@ export function AppDetail() {
       invalidateGrants();
       setAudienceOpenGrantId(null);
       pushToast({
-        title: "Audience saved",
+        title: t("audience_saved"),
         body: (grant.members?.length ?? 0) === 0
-          ? "Every organization member can use this identity."
-          : `${grant.members?.length} ${grant.members?.length === 1 ? "member" : "members"} can use this identity.`,
+          ? t("every_organization_member_can_use_this_identity")
+          : t("zhPages.3d0827d3389b", { length: grant.members?.length , count: grant.members?.length }),
         tone: "success",
       });
     },
     onError: (error) =>
-      setAudienceError(error instanceof Error ? error.message : "We couldn't save that audience."),
+      setAudienceError(error instanceof Error ? error.message : t("we_couldnt_save_that_audience")),
   });
 
   const removeApp = useMutation({
@@ -477,16 +479,16 @@ export function AppDetail() {
       queryClient.invalidateQueries({ queryKey: queryKeys.tools.applications(selectedCompanyId!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.apps.attention(selectedCompanyId!) });
       pushToast({
-        title: "App removed",
-        body: `${appName} no longer has access and its credentials are deleted. Connecting it again needs a new sign-in or key.`,
+        title: t("app_removed"),
+        body: t("zhPages.519077eae251", { appName: appName }),
         tone: "success",
       });
       navigate("/apps");
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't remove the app",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_remove_the_app"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -499,17 +501,17 @@ export function AppDetail() {
       queryClient.invalidateQueries({ queryKey: queryKeys.tools.applications(selectedCompanyId!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.apps.attention(selectedCompanyId!) });
       pushToast({
-        title: updated.enabled ? "App resumed" : "App paused",
+        title: updated.enabled ? t("app_resumed") : t("app_paused"),
         body: updated.enabled
-          ? `${humanizeConnectionDisplayName(updated)} is available to agents again.`
-          : `${humanizeConnectionDisplayName(updated)} is paused for agents.`,
+          ? t("zhPages.c97b39658033", { updated: humanizeConnectionDisplayName(updated) })
+          : t("zhPages.981925995197", { updated: humanizeConnectionDisplayName(updated) }),
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't update the app",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_update_the_app"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -523,17 +525,17 @@ export function AppDetail() {
       queryClient.invalidateQueries({ queryKey: queryKeys.tools.connections(selectedCompanyId!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.apps.attention(selectedCompanyId!) });
       pushToast({
-        title: `Found ${result.discoveredCount} ${result.discoveredCount === 1 ? "action" : "actions"}`,
+        title: t("zhPages.a2069d236abb", { discoveredCount: result.discoveredCount , count: result.discoveredCount }),
         body: result.quarantinedCount > 0
-          ? `${result.quarantinedCount} new ${result.quarantinedCount === 1 ? "action needs" : "actions need"} your OK.`
+          ? t("zhPages.ad86a9a201da", { quarantinedCount: result.quarantinedCount , count: result.quarantinedCount })
           : undefined,
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't refresh actions",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldnt_refresh_actions"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       }),
   });
@@ -563,7 +565,7 @@ export function AppDetail() {
   }
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to manage apps.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("select_an_organization_to_manage_apps")}</div>;
   }
   if (connectionQuery.isLoading) {
     return (
@@ -577,9 +579,9 @@ export function AppDetail() {
   if (!connection) {
     return (
       <div className="max-w-3xl p-6">
-        <p className="text-sm text-muted-foreground">We couldn't find that app.</p>
+        <p className="text-sm text-muted-foreground">{t("we_couldnt_find_that_app")}</p>
         <Button className="mt-4" variant="outline" onClick={() => navigate("/apps")}>
-          Back to connectors
+          {t("back_to_connectors")}
         </Button>
       </div>
     );
@@ -601,10 +603,10 @@ export function AppDetail() {
   // delegation answers who an agent may act as; the profile binding below is
   // the source of truth for which agents may use the connection at all.
   const setupAgentsSummary = access.mode === "all"
-    ? "Every agent"
+    ? t("every_agent")
     : access.agentIds.size === 0
-      ? "No agents"
-      : `${access.agentIds.size} ${access.agentIds.size === 1 ? "agent" : "agents"}`;
+      ? t("no_agents_56b58f")
+      : t("zhSupport.appsFinal.agentCount", { count: access.agentIds.size });
   const reviewLoading = catalogQuery.isLoading || profilesQuery.isLoading || policiesQuery.isLoading;
   const permissionsLoading = reviewLoading || installsQuery.isLoading || agentsQuery.isLoading;
   const reviewFailed = catalogQuery.isError || profilesQuery.isError || policiesQuery.isError;
@@ -827,6 +829,7 @@ function AppDetailHeader({
   onRenameCancel: () => void;
   onRenameSubmit: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   const unverifiedHost = unverifiedRemoteHost(connection);
   return (
     <header>
@@ -849,17 +852,17 @@ function AppDetailHeader({
               }}
             >
               <Input
-                aria-label="App name"
+                aria-label={t("app_name")}
                 value={nameDraft}
                 onChange={(event) => onNameDraftChange(event.target.value)}
                 className="h-9 w-64 text-lg font-bold"
                 autoFocus
               />
               <Button type="submit" size="sm" disabled={renamePending || !nameDraft.trim()}>
-                {renamePending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                {renamePending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("save")}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={onRenameCancel} disabled={renamePending}>
-                Cancel
+                {t("cancel")}
               </Button>
             </form>
           ) : (
@@ -869,7 +872,7 @@ function AppDetailHeader({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground"
-                aria-label="Rename app"
+                aria-label={t("rename_app")}
                 onClick={onRenameStart}
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -880,8 +883,7 @@ function AppDetailHeader({
             <StatusBadge status={status} />
             {actionCount !== null && (
               <span className="text-xs text-muted-foreground">
-                {actionCount} {actionCount === 1 ? "action" : "actions"} available
-              </span>
+                {t("zhSupport.appsFinal.actionsAvailable", { count: actionCount })}</span>
             )}
             {connectionDisplaySecondaryHint(connection) ? (
               <span className="text-xs text-muted-foreground">
@@ -898,19 +900,21 @@ function AppDetailHeader({
 }
 
 function ToolsLoading({ mcpActions = false }: { mcpActions?: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground" role="status">
       <Loader2 className="h-4 w-4 animate-spin" />
-      {mcpActions ? "Loading MCP actions, this may take a minute." : "Loading tools…"}
+      {mcpActions ? t("loading_mcp_actions_this_may_take_a_minute") : t("loading_tools")}
     </div>
   );
 }
 
 function ToolsLoadError({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3 py-8">
-      <p className="text-sm text-destructive">Couldn’t load tools for this app.</p>
-      <Button size="sm" variant="outline" onClick={onRetry}>Try again</Button>
+      <p className="text-sm text-destructive">{t("couldn_t_load_tools_for_this_app")}</p>
+      <Button size="sm" variant="outline" onClick={onRetry}>{t("try_again")}</Button>
     </div>
   );
 }
@@ -941,12 +945,12 @@ type StatusInfo = { label: string; tone: "connected" | "attention" | "paused" };
 
 function statusFor(connection: ToolConnection): StatusInfo {
   if (connection.enabled === false || connection.status === "disabled") {
-    return { label: "Paused", tone: "paused" };
+    return { label: t("paused"), tone: "paused" };
   }
   if (isAttentionHealthStatus(connection.healthStatus)) {
-    return { label: "Needs attention", tone: "attention" };
+    return { label: t("needs_attention"), tone: "attention" };
   }
-  return { label: "Connected", tone: "connected" };
+  return { label: t("connected"), tone: "connected" };
 }
 
 function StatusBadge({ status }: { status: StatusInfo }) {

@@ -1,3 +1,5 @@
+import { translateDisplayMessage } from "@/i18n/display-message";
+import { i18n } from "@/i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
@@ -58,6 +60,8 @@ import {
   FRONTMATTER_FIELD_LABELS,
   FileTree,
 } from "../components/FileTree";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 /**
  * Extract the set of agent/project/task slugs that are "checked" based on
@@ -405,7 +409,7 @@ function FrontmatterCard({
 
 const ROLE_LABELS: Record<string, string> = {
   ceo: "CEO", cto: "CTO", cmo: "CMO", cfo: "CFO", coo: "COO",
-  vp: "VP", manager: "Manager", engineer: "Engineer", agent: "Agent",
+  vp: "VP", manager: t("manager"), engineer: t("engineer"), agent: t("agent_5ce2e6"),
 };
 
 /**
@@ -437,23 +441,23 @@ function generateReadmeFromSelection(
   }
   // Org chart image (generated during export as images/org-chart.png)
   if (agents.length > 0) {
-    lines.push("![Org Chart](images/org-chart.png)");
+    lines.push(t("org_chart_images_org_chart_png"));
     lines.push("");
   }
 
   lines.push("## What's Inside");
   lines.push("");
-  lines.push("This is an [Agent Company](https://paperclip.ing) package.");
+  lines.push(t("this_is_an_agent_company_https_paperclip_ing_pac"));
   lines.push("");
 
   const counts: Array<[string, number]> = [];
-  if (agents.length > 0) counts.push(["Agents", agents.length]);
-  if (projects.length > 0) counts.push(["Projects", projects.length]);
-  if (skills.length > 0) counts.push(["Skills", skills.length]);
-  if (tasks.length > 0) counts.push(["Tasks", tasks.length]);
+  if (agents.length > 0) counts.push([t("agents"), agents.length]);
+  if (projects.length > 0) counts.push([t("projects"), projects.length]);
+  if (skills.length > 0) counts.push([t("skills"), skills.length]);
+  if (tasks.length > 0) counts.push([t("tasks"), tasks.length]);
 
   if (counts.length > 0) {
-    lines.push("| Content | Count |");
+    lines.push(t("content_count"));
     lines.push("|---------|-------|");
     for (const [label, count] of counts) {
       lines.push(`| ${label} | ${count} |`);
@@ -464,7 +468,7 @@ function generateReadmeFromSelection(
   if (agents.length > 0) {
     lines.push("### Agents");
     lines.push("");
-    lines.push("| Agent | Role | Reports To |");
+    lines.push(t("agent_role_reports_to"));
     lines.push("|-------|------|------------|");
     for (const agent of agents) {
       const roleLabel = ROLE_LABELS[agent.role] ?? agent.role;
@@ -490,10 +494,10 @@ function generateReadmeFromSelection(
   lines.push("npx paperclipai company import this-github-url-or-folder");
   lines.push("```");
   lines.push("");
-  lines.push("See [Paperclip](https://paperclip.ing) for more information.");
+  lines.push(t("see_paperclip_https_paperclip_ing_for_more_infor"));
   lines.push("");
   lines.push("---");
-  lines.push(`Exported from [Paperclip](https://paperclip.ing) on ${new Date().toISOString().split("T")[0]}`);
+  lines.push(t("zhPages.d3cb9949e459", { value: new Date().toISOString().split("T")[0] }));
   lines.push("");
 
   return lines.join("\n");
@@ -537,9 +541,10 @@ function ExportPreviewPane({
   orgChartPreviewUrl?: string;
   onSkillClick?: (skill: string) => void;
 }) {
+  const { t } = useTranslation();
   if (!selectedFile || content === null) {
     return (
-      <EmptyState icon={Package} message="Select a file to preview its contents." />
+      <EmptyState icon={Package} message={t("select_a_file_to_preview_its_contents")} />
     );
   }
 
@@ -576,7 +581,7 @@ function ExportPreviewPane({
           </pre>
         ) : (
           <div className="rounded-lg border border-border bg-accent/10 px-4 py-3 text-sm text-muted-foreground">
-            Binary asset preview is not available for this file type.
+            {t("binary_asset_preview_is_not_available_for_this_f")}
           </div>
         )}
       </div>
@@ -622,10 +627,11 @@ function isAbortError(error: unknown): boolean {
 }
 
 function previewErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Failed to load export data.";
+  return error instanceof Error ? error.message : t("failed_to_load_export_data");
 }
 
 export function CompanyExport() {
+  const { t } = useTranslation();
   const { selectedCompanyId, selectedCompany } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { pushToast } = useToastActions();
@@ -733,9 +739,9 @@ export function CompanyExport() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Organization", href: "/dashboard" },
-      { label: "Settings", href: "/company/settings" },
-      { label: "Export" },
+      { label: selectedCompany?.name ?? t("organization"), href: "/dashboard" },
+      { label: t("settings_"), href: "/company/settings" },
+      { label: t("export") },
     ]);
   }, [selectedCompany?.name, setBreadcrumbs]);
 
@@ -776,7 +782,7 @@ export function CompanyExport() {
       if (request.requestId !== previewRequestIdRef.current || isAbortError(err)) return;
       pushToast({
         tone: "error",
-        title: "Export failed",
+        title: t("export_failed"),
         body: previewErrorMessage(err),
       });
     },
@@ -810,15 +816,15 @@ export function CompanyExport() {
       downloadZip(result, resultCheckedFiles, result.files);
       pushToast({
         tone: "success",
-        title: "Export downloaded",
-        body: `${resultCheckedFiles.size} file${resultCheckedFiles.size === 1 ? "" : "s"} exported as ${result.rootPath}.zip`,
+        title: t("export_downloaded"),
+        body: t("zhPages.eee3e0149843", { size: resultCheckedFiles.size, rootPath: result.rootPath , count: resultCheckedFiles.size }),
       });
     },
     onError: (err) => {
       pushToast({
         tone: "error",
-        title: "Export failed",
-        body: err instanceof Error ? err.message : "Failed to build export package.",
+        title: t("export_failed"),
+        body: err instanceof Error ? err.message : t("failed_to_build_export_package"),
       });
     },
   });
@@ -915,7 +921,7 @@ export function CompanyExport() {
 
     // Regenerate README.md based on checked selection
     if (typeof exportData.files["README.md"] === "string") {
-      const companyName = exportData.manifest.company?.name ?? selectedCompany?.name ?? "Company";
+      const companyName = exportData.manifest.company?.name ?? selectedCompany?.name ?? t("company");
       const companyDescription = exportData.manifest.company?.description ?? null;
       filtered["README.md"] = generateReadmeFromSelection(
         exportData.manifest,
@@ -1024,7 +1030,7 @@ export function CompanyExport() {
   }
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Package} message="Select an organization to export." />;
+    return <EmptyState icon={Package} message={t("select_an_organization_to_export")} />;
   }
 
   if (exportPreviewMutation.isPending && !exportData) {
@@ -1035,9 +1041,9 @@ export function CompanyExport() {
     return (
       <EmptyState
         icon={Package}
-        title="Export preview cancelled"
-        message="The preview request was cancelled. Your export settings are unchanged."
-        action="Retry preview"
+        title={t("export_preview_cancelled")}
+        message={t("the_preview_request_was_cancelled_your_export_se")}
+        action={t("retry_preview")}
         onAction={startPreviewRequest}
         hideActionIcon
       />
@@ -1048,10 +1054,10 @@ export function CompanyExport() {
     return (
       <EmptyState
         icon={Package}
-        title="Export preview failed"
+        title={t("export_preview_failed")}
         message={previewErrorMessage(exportPreviewMutation.error)}
-        description="Retry the preview. You do not need to reload this page."
-        action="Retry preview"
+        description={t("retry_the_preview_you_do_not_need_to_reload_this")}
+        action={t("retry_preview")}
         onAction={startPreviewRequest}
         hideActionIcon
       />
@@ -1062,9 +1068,9 @@ export function CompanyExport() {
     return (
       <EmptyState
         icon={Package}
-        title="Export preview unavailable"
-        message="No export preview is loaded."
-        action="Load preview"
+        title={t("export_preview_unavailable")}
+        message={t("no_export_preview_is_loaded")}
+        action={t("load_preview")}
         onAction={startPreviewRequest}
         hideActionIcon
       />
@@ -1084,15 +1090,14 @@ export function CompanyExport() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <span className="font-medium">
-              {selectedCompany?.name ?? "Organization"} export
-            </span>
+              {selectedCompany?.name ?? t("organization")}{t("zhPages.d46aee08cc49")}</span>
             <span className="text-muted-foreground">
-              Exporting {selectedCount.toLocaleString()} of {totalFiles.toLocaleString()} file{totalFiles === 1 ? "" : "s"}
+              {t("exporting")} {selectedCount.toLocaleString(i18n.resolvedLanguage ?? i18n.language)}{t("zhPages.28391d3bc64e")}{totalFiles.toLocaleString(i18n.resolvedLanguage ?? i18n.language)}{t("zhPages.3b9c358f36f0")}{totalFiles === 1 ? "" : t("zhPages.pluralSuffix")}
               {selectedCount > 0 && ` (~${formatBytes(estimatedZipBytes)})`}
             </span>
             {warnings.length > 0 && (
               <span className="text-amber-500">
-                {warnings.length} warning{warnings.length === 1 ? "" : "s"}
+                {warnings.length}{t("zhPages.4bd9354bb652")}{warnings.length === 1 ? "" : t("zhPages.pluralSuffix")}
               </span>
             )}
           </div>
@@ -1109,8 +1114,8 @@ export function CompanyExport() {
           >
             <Download className="mr-1.5 h-3.5 w-3.5" />
             {downloadMutation.isPending
-              ? "Building export..."
-              : `Export ${selectedCount.toLocaleString()} file${selectedCount === 1 ? "" : "s"}`}
+              ? t("building_export")
+              : t("zhPages.792b64dafb67", { value: selectedCount.toLocaleString(i18n.resolvedLanguage ?? i18n.language) , count: selectedCount })}
           </Button>
         </div>
       </div>
@@ -1119,7 +1124,7 @@ export function CompanyExport() {
       {warnings.length > 0 && (
         <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
           {warnings.map((w) => (
-            <div key={w} className="text-xs text-amber-500">{w}</div>
+            <div key={w} className="text-xs text-amber-500">{translateDisplayMessage(w)}</div>
           ))}
         </div>
       )}
@@ -1127,7 +1132,7 @@ export function CompanyExport() {
       {/* Export fidelity: data the bundle will not carry */}
       {fidelityReport && fidelityReport.warnings.length > 0 && (
         <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-          <h3 className="mb-1.5 text-xs font-medium">Not included in this export</h3>
+          <h3 className="mb-1.5 text-xs font-medium">{t("not_included_in_this_export")}</h3>
           {fidelityReport.warnings.map((warning) => (
             <div
               key={warning.code}
@@ -1136,7 +1141,7 @@ export function CompanyExport() {
                 warning.severity === "blocker" ? "font-medium text-destructive" : "text-amber-500",
               )}
             >
-              {warning.message}
+              {translateDisplayMessage(warning.message)}
             </div>
           ))}
         </div>
@@ -1146,11 +1151,11 @@ export function CompanyExport() {
       <div className="grid gap-4 xl:h-(--sz-calc-30) xl:grid-cols-(--gtc-25) xl:gap-0">
         <aside className="flex max-h-(--sz-24rem) flex-col overflow-hidden border-b border-border xl:max-h-none xl:border-b-0 xl:border-r">
           <div className="border-b border-border px-4 py-3 shrink-0">
-            <h2 className="text-base font-semibold">Package files</h2>
+            <h2 className="text-base font-semibold">{t("package_files")}</h2>
           </div>
           <div className="border-b border-border px-4 py-3 shrink-0">
-            <h3 className="mb-2 text-xs font-medium text-muted-foreground">What to include</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5" role="group" aria-label="What to include">
+            <h3 className="mb-2 text-xs font-medium text-muted-foreground">{t("what_to_include")}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5" role="group" aria-label={t("what_to_include")}>
               {EXPORT_CATEGORY_ORDER.map((key) => {
                 const isAttachments = key === "attachments";
                 const disabled = isAttachments && !isAttachmentsCategoryEnabled(categories);
@@ -1167,7 +1172,7 @@ export function CompanyExport() {
                     )}
                     title={
                       disabled
-                        ? "Attachments travel with tasks and routines; re-enable one of them to include attachments."
+                        ? t("attachments_travel_with_tasks_and_routines_re_en")
                         : undefined
                     }
                   >
@@ -1181,14 +1186,14 @@ export function CompanyExport() {
                     />
                     <span className="min-w-0 truncate">{EXPORT_CATEGORY_LABELS[key]}</span>
                     <span className="text-xs text-muted-foreground">
-                      {countLoaded ? count.toLocaleString() : "—"}
+                      {countLoaded ? count.toLocaleString(i18n.resolvedLanguage ?? i18n.language) : "—"}
                     </span>
                   </label>
                 );
               })}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Task and routine history is opt-in because it can be large.
+              {t("task_and_routine_history_is_opt_in_because_it_ca")}
             </p>
           </div>
           <div className="border-b border-border px-3 py-2 shrink-0">
@@ -1198,7 +1203,7 @@ export function CompanyExport() {
                 type="text"
                 value={treeSearch}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search files..."
+                placeholder={t("search_files")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 data-page-search-target="true"
               />
@@ -1222,7 +1227,7 @@ export function CompanyExport() {
                   onClick={() => setTaskLimit((prev) => prev + TASKS_PAGE_SIZE)}
                   className="w-full rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/30 hover:text-foreground transition-colors"
                 >
-                  Show more tasks ({visibleTaskChildren} of {totalTaskChildren})
+                  {t("show_more_tasks")}{visibleTaskChildren}{t("zhPages.28391d3bc64e")}{totalTaskChildren})
                 </button>
               </div>
             )}
@@ -1247,14 +1252,14 @@ export function CompanyExport() {
               <div className="flex max-w-md flex-col items-center gap-3">
                 <LoaderCircle className="h-6 w-6 animate-spin text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Updating export preview…</p>
+                  <p className="text-sm font-medium">{t("updating_export_preview")}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Large task histories can take a minute. You can untick Tasks or cancel this update.
+                    {t("large_task_histories_can_take_a_minute_you_can_u")}
                   </p>
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={handleCancelPreview}>
                   <X />
-                  Cancel update
+                  {t("cancel_update")}
                 </Button>
               </div>
             </div>
@@ -1265,14 +1270,14 @@ export function CompanyExport() {
             >
               <div className="flex max-w-md flex-col items-center gap-3">
                 <div>
-                  <p className="text-sm font-medium">Preview update cancelled</p>
+                  <p className="text-sm font-medium">{t("preview_update_cancelled")}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    The previous preview remains available. Retry when you are ready.
+                    {t("the_previous_preview_remains_available_retry_whe")}
                   </p>
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={startPreviewRequest}>
                   <RotateCcw />
-                  Retry preview
+                  {t("retry_preview")}
                 </Button>
               </div>
             </div>
@@ -1284,14 +1289,14 @@ export function CompanyExport() {
             >
               <div className="flex max-w-md flex-col items-center gap-3">
                 <div>
-                  <p className="text-sm font-medium text-destructive">Export preview failed</p>
+                  <p className="text-sm font-medium text-destructive">{t("export_preview_failed")}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {previewErrorMessage(exportPreviewMutation.error)}
                   </p>
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={startPreviewRequest}>
                   <RotateCcw />
-                  Retry preview
+                  {t("retry_preview")}
                 </Button>
               </div>
             </div>

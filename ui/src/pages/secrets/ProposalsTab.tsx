@@ -27,16 +27,18 @@ import {
   bindingSecretLabel,
   useProposalReview,
 } from "./proposal-review";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 /** ISO expiry → "expires in 12d" / "expires in 5h" / "expired". */
 function expiryLabel(expiresAt: string): { text: string; urgent: boolean } {
   const ms = new Date(expiresAt).getTime() - Date.now();
-  if (Number.isNaN(ms)) return { text: "no expiry", urgent: false };
+  if (Number.isNaN(ms)) return { text: t("no_expiry_784626"), urgent: false };
   if (ms <= 0) return { text: "expired", urgent: true };
   const hours = Math.floor(ms / 3_600_000);
-  if (hours < 24) return { text: `expires in ${hours}h`, urgent: true };
+  if (hours < 24) return { text: t("zhPages.96988bff6d16", { hours: hours }), urgent: true };
   const days = Math.floor(hours / 24);
-  return { text: `expires in ${days}d`, urgent: days <= 2 };
+  return { text: t("zhPages.73c56bc3bb7a", { days: days }), urgent: days <= 2 };
 }
 
 function ProposalRow({
@@ -74,7 +76,7 @@ function ProposalRow({
               {proposal.target ? (
                 <AgentRefChip agent={proposal.target} className="font-medium" />
               ) : (
-                <span className="text-muted-foreground">agent</span>
+                <span className="text-muted-foreground">{t("zhPages.d4f0bc5a29de")}</span>
               )}
               <DeliveryBadge configPath={proposal.configPath} />
               <code className="font-mono text-xs">{envKey || proposal.configPath}</code>
@@ -90,8 +92,7 @@ function ProposalRow({
 
         {/* Provenance meta */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            by <AgentRefChip agent={proposal.proposedBy} className="font-medium text-foreground" />
+          <span className="inline-flex items-center gap-1">{t("zhPages.a7e2d26e8d15")}<AgentRefChip agent={proposal.proposedBy} className="font-medium text-foreground" />
           </span>
           {proposal.originIssue ? (
             <>
@@ -144,6 +145,7 @@ export function ProposalsTab({
   companyId: string;
   providerConfigs: CompanySecretProviderConfig[];
 }) {
+  const { t } = useTranslation();
   const proposalsQuery = useQuery({
     queryKey: queryKeys.secrets.proposals(companyId, "pending"),
     queryFn: () => secretsApi.listProposals(companyId, "pending"),
@@ -167,7 +169,7 @@ export function ProposalsTab({
   if (proposalsQuery.isError) {
     return (
       <div className="flex items-center gap-2 py-4 text-sm text-destructive">
-        <AlertCircle className="size-4" /> Couldn’t load proposals. Try again.
+        <AlertCircle className="size-4" /> {t("couldn_t_load_proposals_try_again")}
       </div>
     );
   }
@@ -175,7 +177,7 @@ export function ProposalsTab({
   if (proposalsQuery.isPending) {
     return (
       <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> Loading proposals…
+        <Loader2 className="size-4 animate-spin" /> {t("loading_proposals")}
       </div>
     );
   }
@@ -184,8 +186,8 @@ export function ProposalsTab({
     return (
       <EmptyState
         icon={Inbox}
-        title="No pending proposals"
-        message="When an agent proposes a secret or an access binding, it shows up here for review."
+        title={t("no_pending_proposals")}
+        message={t("when_an_agent_proposes_a_secret_or_an_access_bin")}
       />
     );
   }
@@ -193,8 +195,7 @@ export function ProposalsTab({
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">
-        Agents propose credentials and access bindings; you approve or reject them here. Proposed
-        values are never shown — only a fingerprint and length.
+        {t("agents_propose_credentials_and_access_bindings_y")}
       </p>
       {sorted.map((proposal) => (
         <ProposalRow

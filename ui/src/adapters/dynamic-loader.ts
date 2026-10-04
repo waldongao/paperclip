@@ -31,6 +31,7 @@ import type { TranscriptEntry } from "@paperclipai/adapter-utils";
 import type { StdoutLineParser, StdoutParserFactory } from "./types";
 import { createSandboxedWorker } from "./sandboxed-parser-worker";
 import type { SandboxRequest, SandboxResponse } from "./sandboxed-parser-worker";
+import { t } from "@/i18n";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -120,7 +121,7 @@ function initSandboxedWorker(source: string): Promise<SandboxedParser> {
     const timeout = setTimeout(() => {
       drainPendingRequests(sandbox);
       worker.terminate();
-      reject(new Error("Parser worker init timed out"));
+      reject(new Error(t("parser_worker_init_timed_out")));
     }, 5000);
 
     worker.onmessage = (e: MessageEvent<SandboxResponse>) => {
@@ -162,7 +163,7 @@ function initSandboxedWorker(source: string): Promise<SandboxedParser> {
       clearTimeout(timeout);
       drainPendingRequests(sandbox);
       worker.terminate();
-      reject(new Error(`Worker error: ${ev.message}`));
+      reject(new Error(t("zhSupport.parserWorkerError", { message: ev.message })));
     };
 
     // Send the parser source to the worker for evaluation.

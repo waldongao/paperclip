@@ -17,8 +17,10 @@ import {
   auditSectionHref,
   type AuditSection,
 } from "./audit-navigation";
+import { useTranslation } from "@/i18n";
 
 export function AuditHub({ section }: { section: AuditSection }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -30,7 +32,7 @@ export function AuditHub({ section }: { section: AuditSection }) {
   useEffect(() => {
     const current = AUDIT_SECTIONS.find((candidate) => candidate.value === section);
     setBreadcrumbs([
-      { label: "Audit", href: section === "activity" ? undefined : "/activity" },
+      { label: t("audit"), href: section === "activity" ? undefined : "/activity" },
       ...(section === "activity" || !current ? [] : [{ label: current.label }]),
     ]);
   }, [section, setBreadcrumbs]);
@@ -51,16 +53,15 @@ export function AuditHub({ section }: { section: AuditSection }) {
   );
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={History} message="Select an organization to view Audit." />;
+    return <EmptyState icon={History} message={t("select_an_organization_to_view_audit")} />;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Audit</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground">{t("audit")}</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          Review what happened, inspect agent runs, and understand the costs and budget controls
-          behind your organization.
+          {t("review_what_happened_inspect_agent_runs_and_unde")}
         </p>
       </div>
 

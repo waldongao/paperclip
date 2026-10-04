@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { Clock, RotateCcw, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { formatRetryReason } from "@/lib/runRetryState";
 import type { IssueScheduledRetry } from "@paperclipai/shared";
 import { useRetryNowMutation, type RetryNowError } from "../hooks/useRetryNowMutation";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n";
 
 const MAX_TURN_CONTINUATION = "max_turns_continuation";
 
@@ -27,6 +29,7 @@ export function IssueScheduledRetryCard({
   issueId,
   scheduledRetry,
 }: IssueScheduledRetryCardProps) {
+  const { t } = useTranslation();
   const retryNow = useRetryNowMutation(issueId);
 
   if (!scheduledRetry || !issueId) return null;
@@ -48,21 +51,19 @@ export function IssueScheduledRetryCard({
       ? scheduledRetry.scheduledRetryAttempt
       : null;
 
-  const badgeLabel = continuation ? "Continuation scheduled" : "Retry scheduled";
-  const titleAction = continuation ? "Automatic continuation" : "Automatic retry";
-  let titleSuffix: string;
-  if (relative === "now") {
-    titleSuffix = "due now";
-  } else if (relative) {
-    titleSuffix = relative;
-  } else {
-    titleSuffix = "pending schedule";
-  }
-  const title = `${titleAction} ${titleSuffix}`;
+  const badgeLabel = continuation ? t("continuation_scheduled") : t("retry_scheduled");
+  const deltaMs = dueAtIso ? new Date(dueAtIso).getTime() - Date.now() : null;
+  const dueNow = deltaMs !== null
+    && (Math.round(Math.abs(deltaMs) / 60_000) === 0 || (deltaMs <= 0 && deltaMs > -60_000));
+  const title = dueNow
+    ? t(continuation ? "zhComponents.continuationDueNow" : "zhComponents.retryDueNow")
+    : relative
+      ? t(continuation ? "zhComponents.continuationWhen" : "zhComponents.retryWhen", { when: relative })
+      : t(continuation ? "zhComponents.continuationPending" : "zhComponents.retryPending");
 
   const helperIdle = continuation
-    ? "Pulls continuation forward immediately"
-    : "Pulls retry forward immediately";
+    ? t("pulls_continuation_forward_immediately")
+    : t("pulls_retry_forward_immediately");
   const isError = retryNow.isError || retryNow.lastError !== null;
   const isSuccessTransient = retryNow.isSuccess
     && (retryNow.data?.outcome === "promoted" || retryNow.data?.outcome === "already_promoted");
@@ -80,7 +81,7 @@ export function IssueScheduledRetryCard({
               {badgeLabel}
             </Badge>
             {attempt !== null ? (
-              <span className="text-muted-foreground">Attempt {attempt}</span>
+              <span className="text-muted-foreground">{t("attempt")} {attempt}</span>
             ) : null}
             {reason ? (
               <span className="text-muted-foreground">{reason}</span>
@@ -93,7 +94,7 @@ export function IssueScheduledRetryCard({
               {absolute && scheduledRetry.retryOfRunId ? <span>{" · "}</span> : null}
               {scheduledRetry.retryOfRunId ? (
                 <span>
-                  Replaces run{" "}
+                  {t("replaces_run")}{" "}
                   <Link
                     to={`/agents/${scheduledRetry.agentId}/runs/${scheduledRetry.retryOfRunId}`}
                     className="font-mono text-foreground hover:underline"
@@ -106,7 +107,7 @@ export function IssueScheduledRetryCard({
           ) : null}
           {scheduledRetry.error ? (
             <div className="mt-1 text-xs text-muted-foreground">
-              Last attempt failed: {scheduledRetry.error}. Paperclip will retry automatically.
+              {t("last_attempt_failed")} {scheduledRetry.error}{t("zhComponents.text_d4d6ea73e6")}
             </div>
           ) : null}
           {isError ? (
@@ -132,27 +133,27 @@ export function IssueScheduledRetryCard({
             {retryNow.isPending ? (
               <span className="inline-flex items-center gap-1.5">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                Retrying…
+                {t("retrying_231013")}
               </span>
             ) : isSuccessTransient ? (
               <span className="inline-flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                {retryNow.data?.outcome === "already_promoted" ? "Already promoted" : "Promoted"}
+                {retryNow.data?.outcome === "already_promoted" ? t("already_promoted") : t("promoted")}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                Retry now
+                {t("retry_now")}
               </span>
             )}
           </Button>
           <span className="text-right text-xs text-muted-foreground sm:max-w-(--sz-12rem)">
             {retryNow.isPending
-              ? "Promoting scheduled retry"
+              ? t("promoting_scheduled_retry")
               : isSuccessTransient
                 ? retryNow.data?.outcome === "already_promoted"
-                  ? "Already promoted — run starting"
-                  : "Promoted — run starting"
+                  ? t("already_promoted_run_starting")
+                  : t("promoted_run_starting")
                 : helperIdle}
           </span>
         </div>
@@ -168,6 +169,7 @@ interface RetryErrorBandProps {
 }
 
 export function RetryErrorBand({ error, onRetry, className }: RetryErrorBandProps) {
+  const { t } = useTranslation();
   if (!error) return null;
   return (
     <div
@@ -180,7 +182,7 @@ export function RetryErrorBand({ error, onRetry, className }: RetryErrorBandProp
     >
       <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <div className="font-medium">Couldn't retry now</div>
+        <div className="font-medium">{t("couldnt_retry_now")}</div>
         <div className="mt-0.5 text-muted-foreground">{error.message}</div>
       </div>
       <button
@@ -188,7 +190,7 @@ export function RetryErrorBand({ error, onRetry, className }: RetryErrorBandProp
         onClick={onRetry}
         className="shrink-0 font-medium text-rose-700 hover:underline dark:text-rose-300"
       >
-        Try again
+        {t("try_again")}
       </button>
     </div>
   );

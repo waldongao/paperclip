@@ -1,4 +1,5 @@
 import type { AppDefinition, ToolApplication, ToolConnection } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 export type AppGalleryDisplayEntry = AppDefinition & {
   key?: string;
@@ -12,7 +13,7 @@ export function appDefinitionSlug(entry: AppGalleryDisplayEntry | null | undefin
 }
 
 export function appDefinitionName(entry: AppGalleryDisplayEntry | null | undefined): string {
-  return entry?.name ?? appDefinitionSlug(entry) ?? "App";
+  return entry?.name ?? appDefinitionSlug(entry) ?? t("app_");
 }
 
 export function appDefinitionDescription(entry: AppGalleryDisplayEntry | null | undefined): string {

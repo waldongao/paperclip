@@ -2,6 +2,7 @@ import type { AdapterModel } from "../../api/agents";
 import type { Issue, Project } from "@paperclipai/shared";
 import { extractProviderIdWithFallback } from "../../lib/model-utils";
 import type { IssueModelLane } from "../../lib/issue-assignee-overrides";
+import { t } from "@/i18n";
 
 export function defaultProjectWorkspaceIdForProject(project: {
   workspaces?: Array<{ id: string; isPrimary: boolean }>;
@@ -54,27 +55,27 @@ export function toDateTimeLocalValue(value: string | null | undefined) {
 
 export const ISSUE_THINKING_EFFORT_OPTIONS = {
   claude_local: [
-    { value: "", label: "Default" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "", label: t("default_808d7d") },
+    { value: "low", label: t("low") },
+    { value: "medium", label: t("medium") },
+    { value: "high", label: t("high") },
   ],
   codex_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
+    { value: "", label: t("default_808d7d") },
+    { value: "minimal", label: t("minimal") },
+    { value: "low", label: t("low") },
+    { value: "medium", label: t("medium") },
+    { value: "high", label: t("high") },
+    { value: "xhigh", label: t("x_high") },
   ],
   opencode_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
-    { value: "max", label: "Max" },
+    { value: "", label: t("default_808d7d") },
+    { value: "minimal", label: t("minimal") },
+    { value: "low", label: t("low") },
+    { value: "medium", label: t("medium") },
+    { value: "high", label: t("high") },
+    { value: "xhigh", label: t("x_high") },
+    { value: "max", label: t("max") },
   ],
 } as const;
 

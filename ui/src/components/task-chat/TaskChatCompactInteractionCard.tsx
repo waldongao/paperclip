@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import {
   useEffect,
   useMemo,
@@ -65,6 +66,7 @@ import {
 } from "./TaskChatComposerTakeoverContext";
 import { TaskChatPlanPreviewCard } from "./TaskChatPlanPreviewCard";
 import { TaskChatRichInput } from "./TaskChatRichInput";
+import { t, useTranslation } from "@/i18n";
 
 const TAKEOVER_TEXTAREA_CLASS =
   "min-h-16 resize-y border-0 bg-muted/35 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0";
@@ -85,33 +87,33 @@ export interface TaskChatCompactInteractionCardProps extends SharedInteractionPr
 
 const KIND_COPY = {
   suggest_tasks: {
-    fallbackTitle: "Suggested tasks",
-    label: "Tasks",
+    fallbackTitle: t("suggested_tasks"),
+    label: t("tasks"),
     icon: GitBranch,
   },
   ask_user_questions: {
-    fallbackTitle: "Questions",
-    label: "Questions",
+    fallbackTitle: t("questions"),
+    label: t("questions"),
     icon: CircleHelp,
   },
   request_confirmation: {
-    fallbackTitle: "Confirmation",
-    label: "Confirmation",
+    fallbackTitle: t("confirmation"),
+    label: t("confirmation"),
     icon: CheckCircle2,
   },
   request_checkbox_confirmation: {
-    fallbackTitle: "Choose options",
-    label: "Selection",
+    fallbackTitle: t("choose_options"),
+    label: t("selection"),
     icon: ListChecks,
   },
   request_item_verdicts: {
-    fallbackTitle: "Review items",
-    label: "Review",
+    fallbackTitle: t("review_items"),
+    label: t("review"),
     icon: MessageSquareQuote,
   },
   connection_intent: {
-    fallbackTitle: "Connect service",
-    label: "Connection",
+    fallbackTitle: t("connect_service"),
+    label: t("connection"),
     icon: Plug,
   },
 } as const;
@@ -233,11 +235,12 @@ function InteractionActionError({ message }: { message: string | null }) {
 }
 
 function Details({ children }: { children?: ReactNode }) {
+  const { t } = useTranslation();
   if (!children) return null;
   return (
     <details className="mt-2">
       <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-muted-foreground">
-        <ChevronDown aria-hidden className="h-3.5 w-3.5" /> Details
+        <ChevronDown aria-hidden className="h-3.5 w-3.5" /> {t("details")}
       </summary>
       <div className="mt-2 rounded-sm bg-muted/40 px-2.5 py-2 text-sm text-muted-foreground">
         {children}
@@ -342,7 +345,7 @@ function PlanReviewPreview({
       }}
       href="#document-plan"
       testId="plan-review-preview"
-      ariaLabel={`Open ${target.label ?? (targetRevision == null ? "plan" : `plan revision ${targetRevision}`)}`}
+      ariaLabel={t("zhComponents.message_e19ee25d1a", { value1: target.label ?? (targetRevision == null ? t("plan") : t("zhComponents.message_a9681b459a", { value1: targetRevision })) })}
     />
   );
 }
@@ -371,6 +374,7 @@ function ReceiptDisclosure({
   externalReferences?: SharedInteractionProps["externalReferences"];
   compact?: boolean;
 }) {
+  const { t } = useTranslation();
   const reason = receiptReason(interaction);
   const answerReason =
     reason ??
@@ -413,7 +417,7 @@ function ReceiptDisclosure({
                 </p>
               ) : null}
               <p className="mt-1 text-sm font-medium text-foreground">
-                Answer: {values.length > 0 ? values.join(", ") : "No answer"}
+                {t("answer_c36008")} {values.length > 0 ? values.join(", ") : t("no_answer")}
               </p>
             </div>
           );
@@ -430,10 +434,10 @@ function ReceiptDisclosure({
         <p className="text-sm text-foreground">{interaction.payload.prompt}</p>
         {interaction.status === "accepted" ? (
           <p className="mt-1 text-sm font-medium text-foreground">
-            Answer:{" "}
+            {t("answer_c36008")}{" "}
             {selectedLabels.length > 0
               ? selectedLabels.join(", ")
-              : "No options selected"}
+              : t("no_options_selected")}
           </p>
         ) : null}
         {interaction.payload.detailsMarkdown ? (
@@ -470,7 +474,7 @@ function ReceiptDisclosure({
           </ul>
         ) : (
           <p className="mt-1 text-sm font-medium text-foreground">
-            No verdicts submitted
+            {t("no_verdicts_submitted")}
           </p>
         )}
         {interaction.payload.detailsMarkdown ? (
@@ -501,7 +505,7 @@ function ReceiptDisclosure({
           </ul>
         ) : interaction.status === "accepted" ? (
           <p className="text-sm font-medium text-foreground">
-            No tasks created
+            {t("no_tasks_created")}
           </p>
         ) : null}
       </div>
@@ -509,7 +513,7 @@ function ReceiptDisclosure({
   } else if (interaction.kind === "connection_intent") {
     request = (
       <p className="text-sm text-foreground">
-        {interaction.payload.requestingAgentName} requested access to{" "}
+        {interaction.payload.requestingAgentName} {t("requested_access_to")}{" "}
         {interaction.payload.serviceName}.
       </p>
     );
@@ -528,13 +532,13 @@ function ReceiptDisclosure({
           <div className="rounded-sm bg-muted/45 px-3 py-2.5 text-sm">
             <p>
               <strong>{interaction.payload.toolAction.toolDisplayName}</strong>{" "}
-              · {interaction.payload.toolAction.risk} risk
+              · {interaction.payload.toolAction.risk} {t("zhComponents.text_11a110bbef")}
             </p>
             <p className="mt-1">
-              Expires{" "}
+              {t("expires")}{" "}
               {new Date(
                 interaction.payload.toolAction.expiresAt,
-              ).toLocaleString()}
+              ).toLocaleString(i18n.resolvedLanguage ?? i18n.language)}
             </p>
             <div className="mt-2">
               <MarkdownBody externalReferences={externalReferences}>
@@ -552,26 +556,26 @@ function ReceiptDisclosure({
         {interaction.payload.secretProposal ? (
           <dl className="grid gap-1 rounded-sm bg-muted/45 px-3 py-2.5 text-sm">
             <div>
-              <dt className="text-xs text-muted-foreground">Secret</dt>
+              <dt className="text-xs text-muted-foreground">{t("secret")}</dt>
               <dd>{interaction.payload.secretProposal.sourceSecretLabel}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Binding</dt>
+              <dt className="text-xs text-muted-foreground">{t("binding")}</dt>
               <dd className="font-mono text-xs">
                 {interaction.payload.secretProposal.configPath} →{" "}
                 {interaction.payload.secretProposal.targetAgentName}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Why</dt>
+              <dt className="text-xs text-muted-foreground">{t("why")}</dt>
               <dd>{interaction.payload.secretProposal.justification}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Expires</dt>
+              <dt className="text-xs text-muted-foreground">{t("expires")}</dt>
               <dd>
                 {new Date(
                   interaction.payload.secretProposal.expiresAt,
-                ).toLocaleString()}
+                ).toLocaleString(i18n.resolvedLanguage ?? i18n.language)}
               </dd>
             </div>
           </dl>
@@ -591,7 +595,7 @@ function ReceiptDisclosure({
       {request}
       {answerReason ? (
         <p className="text-sm text-muted-foreground">
-          <span className="font-medium">Reason:</span> {answerReason}
+          <span className="font-medium">{t("reason_2c25e6")}</span> {answerReason}
         </p>
       ) : null}
     </div>
@@ -602,7 +606,7 @@ function ReceiptDisclosure({
     const summary =
       interaction.kind === "ask_user_questions" &&
       interaction.status === "answered"
-        ? "Questions answered"
+        ? t("questions_answered")
         : buildIssueThreadInteractionSummary(interaction);
     return (
       <details
@@ -640,7 +644,7 @@ function ReceiptDisclosure({
   return (
     <details className="mt-2">
       <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-        View original request and resolution
+        {t("view_original_request_and_resolution")}
       </summary>
       {detail}
     </details>
@@ -813,6 +817,7 @@ function ConfirmationCard({
   onUploadImage?: SharedInteractionProps["onUploadImage"];
   mentions?: MentionOption[];
 }) {
+  const { t } = useTranslation();
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState(() =>
     draftKey ? loadStructuredDraft(draftKey, "") : "",
@@ -862,7 +867,7 @@ function ConfirmationCard({
         <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="min-w-0 flex-1 text-sm leading-5 text-foreground">
             {isPlanConfirmation
-              ? "Do you accept this plan?"
+              ? t("do_you_accept_this_plan")
               : interaction.payload.prompt}
           </p>
           {!isPlanConfirmation ? (
@@ -889,13 +894,13 @@ function ConfirmationCard({
                   : "text-muted-foreground",
               )}
             >
-              {interaction.payload.toolAction.risk} risk
+              {interaction.payload.toolAction.risk} {t("zhComponents.text_11a110bbef")}
             </span>
             <span className="ml-auto text-xs text-muted-foreground">
-              Expires{" "}
+              {t("expires")}{" "}
               {new Date(
                 interaction.payload.toolAction.expiresAt,
-              ).toLocaleString()}
+              ).toLocaleString(i18n.resolvedLanguage ?? i18n.language)}
             </span>
           </div>
           <MarkdownBody externalReferences={externalReferences}>
@@ -903,7 +908,7 @@ function ConfirmationCard({
           </MarkdownBody>
           <details>
             <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-              Arguments and audit hash
+              {t("arguments_and_audit_hash")}
             </summary>
             <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-foreground">
               {interaction.payload.toolAction.argumentsSummaryJson}
@@ -917,26 +922,26 @@ function ConfirmationCard({
       {interaction.payload.secretProposal ? (
         <dl className="mt-3 grid gap-2 rounded-sm bg-muted/45 px-3 py-2.5 text-sm">
           <div>
-            <dt className="text-xs text-muted-foreground">Secret</dt>
+            <dt className="text-xs text-muted-foreground">{t("secret")}</dt>
             <dd>{interaction.payload.secretProposal.sourceSecretLabel}</dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground">Binding</dt>
+            <dt className="text-xs text-muted-foreground">{t("binding")}</dt>
             <dd className="font-mono text-xs">
               {interaction.payload.secretProposal.configPath} →{" "}
               {interaction.payload.secretProposal.targetAgentName}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground">Why</dt>
+            <dt className="text-xs text-muted-foreground">{t("why")}</dt>
             <dd>{interaction.payload.secretProposal.justification}</dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground">Expires</dt>
+            <dt className="text-xs text-muted-foreground">{t("expires")}</dt>
             <dd>
               {new Date(
                 interaction.payload.secretProposal.expiresAt,
-              ).toLocaleString()}
+              ).toLocaleString(i18n.resolvedLanguage ?? i18n.language)}
             </dd>
           </div>
         </dl>
@@ -947,8 +952,8 @@ function ConfirmationCard({
             id={`${interaction.id}-reject-reason-label`}
             className="text-xs font-medium leading-4 text-foreground"
           >
-            {interaction.payload.rejectReasonLabel ?? "What should change?"}
-            {interaction.payload.rejectRequiresReason ? "" : " (optional)"}
+            {interaction.payload.rejectReasonLabel ?? t("what_should_change")}
+            {interaction.payload.rejectRequiresReason ? "" : t("optional_32ee20")}
           </p>
           {isPlanConfirmation ? (
             <TaskChatRichInput
@@ -956,7 +961,7 @@ function ConfirmationCard({
               onChange={setReason}
               placeholder={
                 interaction.payload.declineReasonPlaceholder ??
-                "Describe what should change"
+                t("describe_what_should_change")
               }
               imageUploadHandler={onUploadImage}
               mentions={mentions}
@@ -977,7 +982,7 @@ function ConfirmationCard({
               onChange={(event) => setReason(event.target.value)}
               placeholder={
                 interaction.payload.declineReasonPlaceholder ??
-                "Add a short note"
+                t("add_a_short_note")
               }
               className={TAKEOVER_TEXTAREA_CLASS}
               autoFocus
@@ -998,7 +1003,7 @@ function ConfirmationCard({
                 setRejecting(false);
               }}
             >
-              Back
+              {t("back")}
             </Button>
             <Button
               type="button"
@@ -1016,7 +1021,7 @@ function ConfirmationCard({
               {working === "reject" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.rejectLabel ?? "Reject"}
+              {interaction.payload.rejectLabel ?? t("reject")}
             </Button>
           </>
         ) : (
@@ -1032,7 +1037,7 @@ function ConfirmationCard({
                   : void resolve("reject")
               }
             >
-              {interaction.payload.rejectLabel ?? "Reject"}
+              {interaction.payload.rejectLabel ?? t("reject")}
             </Button>
             <Button
               type="button"
@@ -1043,7 +1048,7 @@ function ConfirmationCard({
               {working === "accept" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.acceptLabel ?? "Approve"}
+              {interaction.payload.acceptLabel ?? t("approve")}
             </Button>
           </>
         )}
@@ -1067,6 +1072,7 @@ function CheckboxConfirmationCard({
   errorMessage: (error: unknown) => string;
   draftKey?: string;
 }) {
+  const { t } = useTranslation();
   const restored = draftKey
     ? loadStructuredDraft<{ selected: string[]; reason: string }>(draftKey, {
         selected: interaction.payload.defaultSelectedOptionIds ?? [],
@@ -1140,10 +1146,10 @@ function CheckboxConfirmationCard({
 
   const countHint =
     maximum < Number.POSITIVE_INFINITY
-      ? `${selected.size} selected · choose ${minimum}–${maximum}`
+      ? t("zhComponents.message_3ef7d9974c", { value1: selected.size, value2: minimum, value3: maximum })
       : minimum > 0
-        ? `${selected.size} selected · at least ${minimum}`
-        : `${selected.size} selected`;
+        ? t("zhComponents.message_321953a84d", { value1: selected.size, value2: minimum })
+        : t("zhComponents.message_092be7f18d", { value1: selected.size });
 
   return (
     <div>
@@ -1167,8 +1173,8 @@ function CheckboxConfirmationCard({
             <Input
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
-              placeholder="Filter options"
-              aria-label="Filter options"
+              placeholder={t("filter_options")}
+              aria-label={t("filter_options")}
               className="pl-8"
             />
           </label>
@@ -1209,15 +1215,15 @@ function CheckboxConfirmationCard({
             htmlFor={`${interaction.id}-reject-reason`}
             className="text-xs font-medium text-foreground"
           >
-            {interaction.payload.rejectReasonLabel ?? "What should change?"}
-            {interaction.payload.rejectRequiresReason ? "" : " (optional)"}
+            {interaction.payload.rejectReasonLabel ?? t("what_should_change")}
+            {interaction.payload.rejectRequiresReason ? "" : t("optional_32ee20")}
           </label>
           <Textarea
             id={`${interaction.id}-reject-reason`}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder={
-              interaction.payload.declineReasonPlaceholder ?? "Add a short note"
+              interaction.payload.declineReasonPlaceholder ?? t("add_a_short_note")
             }
             className={TAKEOVER_TEXTAREA_CLASS}
             autoFocus
@@ -1235,7 +1241,7 @@ function CheckboxConfirmationCard({
               disabled={working !== null}
               onClick={() => setRejecting(false)}
             >
-              Back
+              {t("back")}
             </Button>
             <Button
               type="button"
@@ -1252,7 +1258,7 @@ function CheckboxConfirmationCard({
               {working === "reject" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.rejectLabel ?? "Decline"}
+              {interaction.payload.rejectLabel ?? t("decline")}
             </Button>
           </>
         ) : (
@@ -1268,7 +1274,7 @@ function CheckboxConfirmationCard({
                   : void resolve("reject")
               }
             >
-              {interaction.payload.rejectLabel ?? "Decline"}
+              {interaction.payload.rejectLabel ?? t("decline")}
             </Button>
             <Button
               type="button"
@@ -1279,7 +1285,7 @@ function CheckboxConfirmationCard({
               {working === "accept" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.acceptLabel ?? "Confirm selection"}
+              {interaction.payload.acceptLabel ?? t("confirm_selection")}
             </Button>
           </>
         )}
@@ -1297,6 +1303,7 @@ function SuggestedTaskRow({
   selected: Set<string>;
   onToggle: (node: SuggestedTaskTreeNode) => void;
 }) {
+  const { t } = useTranslation();
   if (node.task.hiddenInPreview) return null;
   const hiddenCount = collectSuggestedTaskClientKeys(node).filter(
     (key) =>
@@ -1319,7 +1326,7 @@ function SuggestedTaskRow({
           </span>
           {hiddenCount > 0 ? (
             <span className="block text-xs text-muted-foreground">
-              + {hiddenCount} hidden follow-up
+              + {hiddenCount} {t("hidden_follow_up")}
             </span>
           ) : null}
         </span>
@@ -1353,6 +1360,7 @@ function SuggestedTasksCard({
   errorMessage: (error: unknown) => string;
   draftKey?: string;
 }) {
+  const { t } = useTranslation();
   const roots = useMemo(
     () => buildSuggestedTaskTree(interaction.payload.tasks),
     [interaction.payload.tasks],
@@ -1437,7 +1445,7 @@ function SuggestedTasksCard({
   return (
     <div>
       <p className="text-sm leading-5 text-foreground">
-        Select the tasks to create.
+        {t("select_the_tasks_to_create")}
       </p>
       {interaction.payload.tasks.length > 10 ? (
         <label className="relative mt-3 block">
@@ -1448,15 +1456,15 @@ function SuggestedTasksCard({
           <Input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filter suggested tasks"
-            aria-label="Filter suggested tasks"
+            placeholder={t("filter_suggested_tasks")}
+            aria-label={t("filter_suggested_tasks")}
             className="pl-8"
           />
         </label>
       ) : null}
       <ul
         className="mt-2 max-h-(--sz-28dvh) overflow-y-auto scrollbar-auto-hide"
-        aria-label="Suggested tasks"
+        aria-label={t("suggested_tasks")}
       >
         {visibleRoots.map((node) => (
           <SuggestedTaskRow
@@ -1473,13 +1481,13 @@ function SuggestedTasksCard({
             htmlFor={`${interaction.id}-reject-reason`}
             className="text-xs font-medium text-foreground"
           >
-            Why should these tasks change? (optional)
+            {t("why_should_these_tasks_change_optional")}
           </label>
           <Textarea
             id={`${interaction.id}-reject-reason`}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("add_a_short_note")}
             className={TAKEOVER_TEXTAREA_CLASS}
             autoFocus
           />
@@ -1487,7 +1495,7 @@ function SuggestedTasksCard({
       ) : null}
       <InteractionActionError message={actionError} />
       <ActionRow
-        hint={`${selected.size} of ${interaction.payload.tasks.length} selected`}
+        hint={t("zhComponents.message_dcafe78284", { value1: selected.size, value2: interaction.payload.tasks.length })}
       >
         {rejecting ? (
           <>
@@ -1498,7 +1506,7 @@ function SuggestedTasksCard({
               disabled={working !== null}
               onClick={() => setRejecting(false)}
             >
-              Back
+              {t("back")}
             </Button>
             <Button
               type="button"
@@ -1510,7 +1518,7 @@ function SuggestedTasksCard({
               {working === "reject" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              Send back
+              {t("send_back")}
             </Button>
           </>
         ) : (
@@ -1522,7 +1530,7 @@ function SuggestedTasksCard({
               disabled={working !== null || !onRejectInteraction}
               onClick={() => setRejecting(true)}
             >
-              Revise
+              {t("revise")}
             </Button>
             <Button
               type="button"
@@ -1535,7 +1543,7 @@ function SuggestedTasksCard({
               {working === "accept" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              Create selected
+              {t("create_selected")}
             </Button>
           </>
         )}
@@ -1563,6 +1571,7 @@ function ItemVerdictsCard({
   errorMessage: (error: unknown) => string;
   draftKey?: string;
 }) {
+  const { t } = useTranslation();
   const takeoverActions = useTaskChatComposerTakeoverActions();
   const items = interaction.payload.items;
   const resolvedById = useMemo(
@@ -1617,7 +1626,7 @@ function ItemVerdictsCard({
   if (!item)
     return (
       <p className="text-sm text-muted-foreground">
-        No review items were provided.
+        {t("no_review_items_were_provided")}
       </p>
     );
   const resolved = resolvedById.get(item.id);
@@ -1708,30 +1717,30 @@ function ItemVerdictsCard({
   return (
     <div>
       <div className="mb-2 flex items-center text-xs text-muted-foreground">
-        <span>{drafts.size + resolvedById.size} decided</span>
+        <span>{drafts.size + resolvedById.size} {t("zhComponents.text_d4b8ee9993")}</span>
         <TaskChatComposerTakeoverControls>
           <nav
             className="flex shrink-0 items-center gap-1"
-            aria-label="Item pagination"
+            aria-label={t("item_pagination")}
           >
             <Button
               type="button"
               size="icon-xs"
               variant="ghost"
-              aria-label="Previous item"
+              aria-label={t("previous_item")}
               disabled={working || page === 0}
               onClick={() => setPage((current) => current - 1)}
             >
               <ChevronLeft aria-hidden />
             </Button>
             <span className="min-w-10 text-center tabular-nums">
-              {page + 1} of {items.length}
+              {page + 1} {t("zhComponents.text_de04fa0e29")} {items.length}
             </span>
             <Button
               type="button"
               size="icon-xs"
               variant="ghost"
-              aria-label="Next item"
+              aria-label={t("next_item")}
               disabled={
                 working ||
                 page === items.length - 1 ||
@@ -1760,7 +1769,7 @@ function ItemVerdictsCard({
             href={itemHref}
             className="text-xs font-medium text-primary hover:underline"
           >
-            Open
+            {t("open")}
           </a>
         ) : null}
       </div>
@@ -1780,7 +1789,7 @@ function ItemVerdictsCard({
         <div
           className="mt-3 flex flex-wrap gap-1.5"
           role="group"
-          aria-label={`Verdict for ${item.label}`}
+          aria-label={t("zhComponents.message_e171d71c81", { value1: item.label })}
         >
           {enabledVerdicts.map((verdict) => (
             <Button
@@ -1819,13 +1828,13 @@ function ItemVerdictsCard({
             htmlFor={`${interaction.id}-${item.id}-reason`}
             className="text-xs font-medium text-foreground"
           >
-            {interaction.payload.reasonLabel ?? "Reason"}
+            {interaction.payload.reasonLabel ?? t("reason")}
           </label>
           <Textarea
             id={`${interaction.id}-${item.id}-reason`}
             value={draft.reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="Add a short reason"
+            placeholder={t("add_a_short_reason")}
             className={TAKEOVER_TEXTAREA_CLASS}
             autoFocus
           />
@@ -1837,7 +1846,7 @@ function ItemVerdictsCard({
               disabled={!draft.reason.trim() || working}
               onClick={confirmRejectionReason}
             >
-              Submit rejection reason
+              {t("submit_rejection_reason")}
             </Button>
           </div>
         </div>
@@ -1861,7 +1870,7 @@ function ItemVerdictsCard({
           {working ? (
             <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
           ) : null}
-          {drafts.size > 0 ? `Apply ${drafts.size}` : "Apply decisions"}
+          {drafts.size > 0 ? t("zhComponents.message_7b533f4235", { value1: drafts.size }) : t("apply_decisions")}
         </Button>
       </ActionRow>
     </div>
@@ -1886,18 +1895,19 @@ export function TaskChatCompactInteractionCard({
   draftKey,
   mentions,
 }: TaskChatCompactInteractionCardProps) {
+  const { t } = useTranslation();
   const creatorLabel = interaction.createdByAgentId
     ? agentMap?.get(interaction.createdByAgentId)?.name
     : interaction.createdByUserId
       ? interaction.createdByUserId === currentUserId
-        ? "You"
+        ? t("you")
         : userLabelMap?.get(interaction.createdByUserId)
       : null;
   const addresseeLabel = interaction.addresseeAgentId
     ? agentMap?.get(interaction.addresseeAgentId)?.name
     : interaction.addresseeUserId
       ? interaction.addresseeUserId === currentUserId
-        ? "You"
+        ? t("you")
         : (userLabelMap?.get(interaction.addresseeUserId) ??
           interaction.addresseeUserId)
       : null;
@@ -1929,7 +1939,7 @@ export function TaskChatCompactInteractionCard({
         <ConnectionIntentInteractionBody
           interaction={interaction}
           currentUserId={currentUserId}
-          addresseeLabel={addresseeLabel ?? "the addressed user"}
+          addresseeLabel={addresseeLabel ?? t("the_addressed_user")}
         />
       </InteractionShell>
     );

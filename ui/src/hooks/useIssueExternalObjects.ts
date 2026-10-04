@@ -11,6 +11,7 @@ import { normalizeExternalObjectHref } from "../lib/external-object-href";
 import type { MarkdownExternalReferenceMap } from "../components/MarkdownBody";
 import type { ExternalObjectPillData } from "../components/ExternalObjectPill";
 import { instanceSettingsApi } from "../api/instanceSettings";
+import { t } from "@/i18n";
 
 export const EXTERNAL_OBJECT_SUMMARY_BATCH_SIZE = 500;
 
@@ -34,19 +35,19 @@ export async function fetchIssueExternalObjectSummariesInBatches(
 function formatMentionSourceLabel(mention: ExternalObjectMention): string {
   switch (mention.sourceKind) {
     case "title":
-      return "Title";
+      return t("title");
     case "description":
-      return "Description";
+      return t("description");
     case "comment":
-      return "Comment";
+      return t("comment");
     case "document":
-      return mention.documentKey ? `Document: ${mention.documentKey}` : "Document";
+      return mention.documentKey ? t("zhSupport.documentKey", { key: mention.documentKey }) : t("document");
     case "property":
-      return mention.propertyKey ? `Property: ${mention.propertyKey}` : "Property";
+      return mention.propertyKey ? t("zhSupport.propertyKey", { key: mention.propertyKey }) : t("property");
     case "plugin":
-      return "Plugin";
+      return t("plugin");
     default:
-      return "Source";
+      return t("source");
   }
 }
 

@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -50,7 +51,7 @@ function isDatabaseUnreachableError(error: unknown): boolean {
 
 async function runPreUpdateBackup(options: UpdateOptions, backup: () => Promise<void>, hasInstanceData = hasPaperclipInstanceData): Promise<void> {
   if (!hasInstanceData()) {
-    const message = "Skipping the pre-update backup because this Paperclip instance has not been onboarded and has no data to back up.";
+    const message = tCli("Skipping the pre-update backup because this Paperclip instance has not been onboarded and has no data to back up.");
     if (options.json) console.error(message); else console.log(pc.yellow(message));
     return;
   }
@@ -59,7 +60,7 @@ async function runPreUpdateBackup(options: UpdateOptions, backup: () => Promise<
   } catch (error) {
     if (isDatabaseUnreachableError(error)) {
       throw new Error(
-        "The Paperclip database is not running or reachable, so the pre-update backup cannot be taken. Start the service with `paperclipai service start` and retry, or skip the backup with `paperclipai update --no-backup`.",
+        tCli("The Paperclip database is not running or reachable, so the pre-update backup cannot be taken. Start the service with `paperclipai service start` and retry, or skip the backup with `paperclipai update --no-backup`."),
         { cause: error },
       );
     }
@@ -116,7 +117,7 @@ export function compareVersions(left: string, right: string): number {
 
 export function resolveUpdateRequest(manifest: InstallManifest | null, options: Pick<UpdateOptions, "canary" | "latest" | "version">): { spec: string; channel: InstallChannel; explicit: boolean } {
   const selected = Number(Boolean(options.canary)) + Number(Boolean(options.latest)) + Number(Boolean(options.version));
-  if (selected > 1) throw new Error("Choose only one of --latest, --canary, or --version.");
+  if (selected > 1) throw new Error(tCli("Choose only one of --latest, --canary, or --version."));
   if (options.version) return { spec: options.version.trim(), channel: "pinned", explicit: true };
   if (options.canary) return { spec: "canary", channel: "canary", explicit: true };
   if (options.latest) return { spec: "latest", channel: "latest", explicit: true };
@@ -127,10 +128,10 @@ export function resolveUpdateRequest(manifest: InstallManifest | null, options: 
 
 export function rollbackManagedInstall(paths = resolveInstallStorePaths()): InstallManifest {
   const manifest = readInstallManifest(paths);
-  if (!manifest) throw new Error("No managed install was found to roll back.");
+  if (!manifest) throw new Error(tCli("No managed install was found to roll back."));
   const target = manifest.previous[0];
-  if (!target) throw new Error("No previous managed payload is available for rollback.");
-  if (!fs.existsSync(target.payloadPath)) throw new Error(`Previous payload is missing: ${target.payloadPath}`);
+  if (!target) throw new Error(tCli("No previous managed payload is available for rollback."));
+  if (!fs.existsSync(target.payloadPath)) throw new Error(tCli("Previous payload is missing: {{value1}}", { value1: String(target.payloadPath) }));
   const current: InstallRecord = { source: manifest.source, version: manifest.version, channel: manifest.channel, payloadPath: manifest.payloadPath, repo: manifest.repo, ref: manifest.ref, sha: manifest.sha, installedAt: manifest.installedAt };
   const next: InstallManifest = { schemaVersion: manifest.schemaVersion, ...target, previous: [current, ...manifest.previous.slice(1)].slice(0, 2) };
   const oldTarget = fs.readlinkSync(paths.currentPath);
@@ -157,11 +158,11 @@ async function rollbackAfterServiceValidationFailure(
     await restartActiveService(rolledBack.version);
   } catch (restartError) {
     throw new Error(
-      `${payloadLabel} failed service validation and was rolled back to ${rolledBack.version}, but the rolled-back service also failed to restart.`,
+      tCli("{{value1}} failed service validation and was rolled back to {{value2}}, but the rolled-back service also failed to restart.", { value1: String(payloadLabel), value2: String(rolledBack.version) }),
       { cause: new AggregateError([validationError, restartError]) },
     );
   }
-  throw new Error(`${payloadLabel} failed service validation and was rolled back to ${rolledBack.version}.`, { cause: validationError });
+  throw new Error(tCli("{{value1}} failed service validation and was rolled back to {{value2}}.", { value1: String(payloadLabel), value2: String(rolledBack.version) }), { cause: validationError });
 }
 
 export async function updateCommand(options: UpdateOptions, overrides: Partial<Dependencies> = {}): Promise<void> {
@@ -171,25 +172,25 @@ export async function updateCommand(options: UpdateOptions, overrides: Partial<D
   const mode = detectInstallMode(executablePath, paths);
   const manifest = readInstallManifest(paths);
   if (options.rollback) {
-    if (mode !== "managed") throw new Error("--rollback is only available for managed installs.");
-    if (options.dryRun) { emit(options, { mode, action: "rollback", dryRun: true, target: manifest?.previous[0]?.version ?? null }, `Would roll back to ${manifest?.previous[0]?.version ?? "the previous payload"}.`); return; }
+    if (mode !== "managed") throw new Error(tCli("--rollback is only available for managed installs."));
+    if (options.dryRun) { emit(options, { mode, action: "rollback", dryRun: true, target: manifest?.previous[0]?.version ?? null }, tCli("Would roll back to {{value1}}.", { value1: String(manifest?.previous[0]?.version ?? tCli("the previous payload")) })); return; }
     const next = await withInstallStoreLock(async () => rollbackManagedInstall(paths), paths);
     const restarted = await (overrides.restartActiveService ?? restartActiveManagedService)(next.version);
-    emit(options, { mode, action: "rollback", version: next.version, restarted }, pc.green(`Rolled back to paperclipai ${next.version}${restarted ? " and restarted the active service" : ""}. Database migrations are not reversed; restore the pre-update backup if needed.`));
+    emit(options, { mode, action: "rollback", version: next.version, restarted }, pc.green(tCli("Rolled back to paperclipai {{value1}}{{value2}}. Database migrations are not reversed; restore the pre-update backup if needed.", { value1: String(next.version), value2: String(restarted ? tCli(" and restarted the active service") : "") })));
     return;
   }
-  if (mode === "npx") { emit(options, { mode, action: "install" }, "This is an ephemeral npx install. Run `paperclipai install`, then use `paperclipai update` from the managed shim."); return; }
-  if (mode === "source" || mode === "unknown") { emit(options, { mode, action: "manual" }, "This appears to be a source checkout. Update it with `git pull` followed by `pnpm install`; Paperclip will not mutate the repository."); return; }
+  if (mode === "npx") { emit(options, { mode, action: "install" }, tCli("This is an ephemeral npx install. Run `paperclipai install`, then use `paperclipai update` from the managed shim.")); return; }
+  if (mode === "source" || mode === "unknown") { emit(options, { mode, action: "manual" }, tCli("This appears to be a source checkout. Update it with `git pull` followed by `pnpm install`; Paperclip will not mutate the repository.")); return; }
   const request = resolveUpdateRequest(mode === "managed" ? manifest : null, options);
   if (mode === "managed" && manifest?.source === "git") {
-    if (!manifest.repo || !manifest.ref || !manifest.sha) throw new Error("Managed git install metadata is incomplete.");
-    if (/^[0-9a-f]{7,40}$/i.test(manifest.ref)) { emit(options, { mode, source: "git", pinned: true, sha: manifest.sha }, `Git install is pinned at ${manifest.sha.slice(0, 12)}.`); return; }
+    if (!manifest.repo || !manifest.ref || !manifest.sha) throw new Error(tCli("Managed git install metadata is incomplete."));
+    if (/^[0-9a-f]{7,40}$/i.test(manifest.ref)) { emit(options, { mode, source: "git", pinned: true, sha: manifest.sha }, tCli("Git install is pinned at {{value1}}.", { value1: String(manifest.sha.slice(0, 12)) })); return; }
     const targetSha = await resolveGitHubRef(manifest.repo, manifest.ref, runCommand);
-    if (targetSha === manifest.sha) { emit(options, { mode, source: "git", changed: false, sha: targetSha, ref: manifest.ref }, `${manifest.repo}@${manifest.ref} is already at ${targetSha.slice(0, 12)}.`); return; }
-    if (options.check || options.dryRun) { emit(options, { mode, source: "git", changed: true, currentSha: manifest.sha, targetSha, ref: manifest.ref, dryRun: Boolean(options.dryRun) }, `Git update available: ${manifest.sha.slice(0, 12)} → ${targetSha.slice(0, 12)}.`); if (options.check) process.exitCode = 10; return; }
+    if (targetSha === manifest.sha) { emit(options, { mode, source: "git", changed: false, sha: targetSha, ref: manifest.ref }, tCli("{{value1}}@{{value2}} is already at {{value3}}.", { value1: String(manifest.repo), value2: String(manifest.ref), value3: String(targetSha.slice(0, 12)) })); return; }
+    if (options.check || options.dryRun) { emit(options, { mode, source: "git", changed: true, currentSha: manifest.sha, targetSha, ref: manifest.ref, dryRun: Boolean(options.dryRun) }, tCli("Git update available: {{value1}} → {{value2}}.", { value1: String(manifest.sha.slice(0, 12)), value2: String(targetSha.slice(0, 12)) })); if (options.check) process.exitCode = 10; return; }
     if (options.yes !== true) {
-      const confirmed = await (overrides.confirm ?? defaultConfirm)(`Update from ${manifest.repo}@${manifest.ref} and execute build scripts from commit ${targetSha.slice(0, 12)}?`);
-      if (!confirmed) throw new Error("Git update cancelled. Re-run with --yes to confirm executing build scripts from the updated commit.");
+      const confirmed = await (overrides.confirm ?? defaultConfirm)(tCli("Update from {{value1}}@{{value2}} and execute build scripts from commit {{value3}}?", { value1: String(manifest.repo), value2: String(manifest.ref), value3: String(targetSha.slice(0, 12)) }));
+      if (!confirmed) throw new Error(tCli("Git update cancelled. Re-run with --yes to confirm executing build scripts from the updated commit."));
     }
     if (options.backup !== false) await runPreUpdateBackup(options, overrides.backup ?? (() => dbBackupCommand({})), overrides.hasInstanceData);
     const installed = await withInstallStoreLock(async () => {
@@ -207,19 +208,19 @@ export async function updateCommand(options: UpdateOptions, overrides: Partial<D
         paths,
         overrides.restartActiveService ?? restartActiveManagedService,
         error,
-        "Updated git payload",
+        tCli("Updated git payload"),
       );
     }
-    emit(options, { mode, source: "git", changed: true, currentSha: manifest.sha, targetSha, reused: installed.reused, restarted }, pc.yellow(`Updated unreleased git payload ${manifest.sha.slice(0, 12)} → ${targetSha.slice(0, 12)} from ${manifest.repo}@${manifest.ref}${restarted ? " and restarted the active service" : ""}.`));
+    emit(options, { mode, source: "git", changed: true, currentSha: manifest.sha, targetSha, reused: installed.reused, restarted }, pc.yellow(tCli("Updated unreleased git payload {{value1}} → {{value2}} from {{value3}}@{{value4}}{{value5}}.", { value1: String(manifest.sha.slice(0, 12)), value2: String(targetSha.slice(0, 12)), value3: String(manifest.repo), value4: String(manifest.ref), value5: String(restarted ? tCli(" and restarted the active service") : "") })));
     return;
   }
   const targetVersion = await resolvePublishedVersion(request.spec, runCommand);
   const currentVersion = manifest?.version ?? (mode === "global-npm" ? packageVersion : undefined);
   const comparison = currentVersion ? compareVersions(targetVersion, currentVersion) : 1;
-  if (options.check) { emit(options, { mode, currentVersion: currentVersion ?? null, targetVersion, updateAvailable: comparison > 0, downgrade: comparison < 0, channel: request.channel }, comparison > 0 ? `Update available: ${targetVersion}` : comparison < 0 ? `Target ${targetVersion} is older than ${currentVersion}.` : `paperclipai ${targetVersion} is current.`); if (comparison > 0) process.exitCode = 10; return; }
+  if (options.check) { emit(options, { mode, currentVersion: currentVersion ?? null, targetVersion, updateAvailable: comparison > 0, downgrade: comparison < 0, channel: request.channel }, comparison > 0 ? tCli("Update available: {{value1}}", { value1: String(targetVersion) }) : comparison < 0 ? tCli("Target {{value1}} is older than {{value2}}.", { value1: String(targetVersion), value2: String(currentVersion) }) : tCli("paperclipai {{value1}} is current.", { value1: String(targetVersion) })); if (comparison > 0) process.exitCode = 10; return; }
   if (mode === "global-npm") {
-    if (comparison < 0 && options.yes !== true) { const confirmed = await (overrides.confirm ?? defaultConfirm)(`Downgrade paperclipai from ${currentVersion} to ${targetVersion}?`); if (!confirmed) throw new Error("Downgrade cancelled. Re-run with --yes to confirm explicitly."); }
-    const args = ["install", "-g", `paperclipai@${targetVersion}`, `--registry=${PUBLIC_NPM_REGISTRY}`, `--@paperclipai:registry=${PUBLIC_NPM_REGISTRY}`]; console.log(`Running: npm ${args.join(" ")}`);
+    if (comparison < 0 && options.yes !== true) { const confirmed = await (overrides.confirm ?? defaultConfirm)(tCli("Downgrade paperclipai from {{value1}} to {{value2}}?", { value1: String(currentVersion), value2: String(targetVersion) })); if (!confirmed) throw new Error(tCli("Downgrade cancelled. Re-run with --yes to confirm explicitly.")); }
+    const args = ["install", "-g", `paperclipai@${targetVersion}`, `--registry=${PUBLIC_NPM_REGISTRY}`, `--@paperclipai:registry=${PUBLIC_NPM_REGISTRY}`]; console.log(tCli("Running: npm {{value1}}", { value1: String(args.join(" ")) }));
     if (!options.dryRun) {
       const npmConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-npm-"));
       const npmUserConfigPath = path.join(npmConfigDir, "npmrc");
@@ -239,12 +240,12 @@ export async function updateCommand(options: UpdateOptions, overrides: Partial<D
         fs.rmSync(npmConfigDir, { recursive: true, force: true });
       }
     }
-    emit(options, { mode, action: "update", targetVersion, dryRun: Boolean(options.dryRun), command: ["npm", ...args] }, options.dryRun ? "Dry run complete." : pc.green(`Updated global npm install to ${targetVersion}.`)); return;
+    emit(options, { mode, action: "update", targetVersion, dryRun: Boolean(options.dryRun), command: ["npm", ...args] }, options.dryRun ? tCli("Dry run complete.") : pc.green(tCli("Updated global npm install to {{value1}}.", { value1: String(targetVersion) }))); return;
   }
-  if (!manifest) throw new Error("Managed install metadata is missing.");
-  if (comparison === 0) { emit(options, { mode, currentVersion, targetVersion, changed: false }, `paperclipai ${targetVersion} is already active.`); return; }
-  if (comparison < 0 && options.yes !== true) { const confirmed = await (overrides.confirm ?? defaultConfirm)(`Downgrade paperclipai from ${currentVersion} to ${targetVersion}?`); if (!confirmed) throw new Error("Downgrade cancelled. Re-run with --yes to confirm explicitly."); }
-  if (options.dryRun) { emit(options, { mode, currentVersion, targetVersion, action: comparison < 0 ? "downgrade" : "update", backup: options.backup !== false, dryRun: true }, `Would ${comparison < 0 ? "downgrade" : "update"} paperclipai ${currentVersion} → ${targetVersion}${options.backup === false ? " without a backup" : " after a database backup"}.`); return; }
+  if (!manifest) throw new Error(tCli("Managed install metadata is missing."));
+  if (comparison === 0) { emit(options, { mode, currentVersion, targetVersion, changed: false }, tCli("paperclipai {{value1}} is already active.", { value1: String(targetVersion) })); return; }
+  if (comparison < 0 && options.yes !== true) { const confirmed = await (overrides.confirm ?? defaultConfirm)(tCli("Downgrade paperclipai from {{value1}} to {{value2}}?", { value1: String(currentVersion), value2: String(targetVersion) })); if (!confirmed) throw new Error(tCli("Downgrade cancelled. Re-run with --yes to confirm explicitly.")); }
+  if (options.dryRun) { emit(options, { mode, currentVersion, targetVersion, action: comparison < 0 ? "downgrade" : "update", backup: options.backup !== false, dryRun: true }, tCli("Would {{value1}} paperclipai {{value2}} → {{value3}}{{value4}}.", { value1: String(comparison < 0 ? tCli("downgrade") : tCli("update")), value2: String(currentVersion), value3: String(targetVersion), value4: String(options.backup === false ? tCli(" without a backup") : tCli(" after a database backup")) })); return; }
   if (options.backup !== false) await runPreUpdateBackup(options, overrides.backup ?? (() => dbBackupCommand({})), overrides.hasInstanceData);
   const installed = await withInstallStoreLock(async () => {
     const payload = await installNpmPayload(targetVersion, runCommand, paths);
@@ -261,8 +262,8 @@ export async function updateCommand(options: UpdateOptions, overrides: Partial<D
       paths,
       overrides.restartActiveService ?? restartActiveManagedService,
       error,
-      "Updated payload",
+      tCli("Updated payload"),
     );
   }
-  emit(options, { mode, currentVersion, targetVersion, changed: true, reused: installed.reused, restarted }, pc.green(`Updated paperclipai ${currentVersion} → ${targetVersion}${restarted ? " and restarted the active service" : ""}. Run \`paperclipai update --rollback\` for an instant payload rollback.`));
+  emit(options, { mode, currentVersion, targetVersion, changed: true, reused: installed.reused, restarted }, pc.green(tCli("Updated paperclipai {{value1}} → {{value2}}{{value3}}. Run `paperclipai update --rollback` for an instant payload rollback.", { value1: String(currentVersion), value2: String(targetVersion), value3: String(restarted ? tCli(" and restarted the active service") : "") })));
 }

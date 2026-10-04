@@ -14,6 +14,8 @@ import {
   summarizeActionPermissions,
 } from "./action-permission-summary";
 import type { AccessDraft, AppDetailSectionProps } from "./types";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 type ActionPermission = "off" | "allowed" | "ask";
 
@@ -125,6 +127,7 @@ function AgentAccessSection({
   disabled: boolean;
   onSave: (next: AccessDraft) => void;
 }) {
+  const { t } = useTranslation();
   const liveAgents = agents.filter((a) => a.status !== "terminated");
   const canManage = capabilities?.canConfigure ?? false;
   const editableAgentIds = capabilities?.editableAgentIds;
@@ -134,28 +137,28 @@ function AgentAccessSection({
   const selectedAgents = liveAgents.filter((agent) => access.agentIds.has(agent.id));
   const requiredAgentIds = install.agentIds;
   const summary = access.mode === "all"
-    ? "Any agent"
+    ? t("any_agent")
     : access.agentIds.size === 0
-      ? "No agents"
-      : `${access.agentIds.size} ${access.agentIds.size === 1 ? "agent" : "agents"}`;
+      ? t("no_agents_56b58f")
+      : t("zhSupport.appsFinal.agentCount", { count: access.agentIds.size });
 
   return (
     <section className="border-t border-border pt-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Agent access</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("agent_access")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Agents that may use {appName} when work needs it.
+            {t("agents_that_may_use")} {appName} {t("when_work_needs_it")}
           </p>
         </div>
-        {disabled && <span className="text-xs text-muted-foreground">Saving…</span>}
+        {disabled && <span className="text-xs text-muted-foreground">{t("saving_56a228")}</span>}
       </div>
 
       {canManage ? (
         <div className="space-y-3 pt-4">
           <RadioCardGroup
-            ariaLabel="Which agents can use this connection"
+            ariaLabel={t("which_agents_can_use_this_connection_d56d22")}
             value={access.mode}
             disabled={disabled}
             className="sm:grid-cols-2"
@@ -169,16 +172,16 @@ function AgentAccessSection({
             options={[
               {
                 value: "specific",
-                title: "Agents I pick",
+                title: t("agents_i_pick"),
                 description: install.onAll
-                  ? "Unavailable while installed for every agent."
-                  : "Only selected agents.",
+                  ? t("unavailable_while_installed_for_every_agent")
+                  : t("only_selected_agents"),
                 disabled: install.onAll,
               },
               {
                 value: "all",
-                title: "Any agent",
-                description: "Available across your company.",
+                title: t("any_agent"),
+                description: t("available_across_your_company"),
               },
             ]}
           />
@@ -190,15 +193,15 @@ function AgentAccessSection({
               disabled={disabled}
               triggerLabel={
                 access.agentIds.size === 0
-                  ? "Choose agents"
-                  : `${access.agentIds.size} ${access.agentIds.size === 1 ? "agent" : "agents"} selected`
+                  ? t("choose_agents")
+                  : t("zhPages.ea6f7a5726e7", { size: access.agentIds.size , count: access.agentIds.size })
               }
-              emptyMessage="You cannot edit any agents yet."
+              emptyMessage={t("you_cannot_edit_any_agents_yet")}
               isAgentDisabled={(agent) => requiredAgentIds.has(agent.id)}
-              getDescription={(agent) => requiredAgentIds.has(agent.id) ? "Always installed" : agent.title}
+              getDescription={(agent) => requiredAgentIds.has(agent.id) ? t("always_installed") : agent.title}
               headerContent={requiredAgentIds.size > 0 ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Always-installed agents keep access.
+                  {t("always_installed_agents_keep_access")}
                 </p>
               ) : null}
               onChange={(agentIds) => onSave({
@@ -212,9 +215,9 @@ function AgentAccessSection({
         // Read-only: the state is still fully legible, just not editable.
         <div className="pt-3">
           {access.mode === "all" ? (
-            <p className="text-sm text-muted-foreground">Every agent can use this connection.</p>
+            <p className="text-sm text-muted-foreground">{t("every_agent_can_use_this_connection")}</p>
           ) : selectedAgents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No agents can use this connection.</p>
+            <p className="text-sm text-muted-foreground">{t("no_agents_can_use_this_connection")}</p>
           ) : (
             <div className="space-y-0.5">
               {selectedAgents.map((agent) => (
@@ -246,6 +249,7 @@ function AlwaysInstalledSection({
   disabled: boolean;
   onSave: (next: InstallState) => void;
 }) {
+  const { t } = useTranslation();
   const liveAgents = agents.filter((agent) => agent.status !== "terminated");
   const canManage = capabilities?.canManageAgentInstalls ?? false;
   const canSetCompanyWide = capabilities?.canSetCompanyInstall ?? false;
@@ -256,28 +260,28 @@ function AlwaysInstalledSection({
   const selectedAgents = liveAgents.filter((agent) => install.agentIds.has(agent.id));
   const mode: "all" | "specific" = install.onAll ? "all" : "specific";
   const summary = install.onAll
-    ? "Every agent"
+    ? t("every_agent")
     : install.agentIds.size === 0
-      ? "No agents"
-      : `${install.agentIds.size} ${install.agentIds.size === 1 ? "agent" : "agents"}`;
+      ? t("no_agents_56b58f")
+      : t("zhSupport.appsFinal.agentCount", { count: install.agentIds.size });
 
   return (
     <section>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Always installed</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("always_installed")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Loads {appName} on every run. Agent access only makes it available when needed.
+            {t("loads")} {appName} {t("on_every_run_agent_access_only_makes_it_availabl")}
           </p>
         </div>
-        {disabled && <span className="text-xs text-muted-foreground">Saving…</span>}
+        {disabled && <span className="text-xs text-muted-foreground">{t("saving_56a228")}</span>}
       </div>
 
       {canManage ? (
         <div className="space-y-3 pt-4">
           <RadioCardGroup
-            ariaLabel="Which agents always load this connection"
+            ariaLabel={t("which_agents_always_load_this_connection")}
             value={mode}
             disabled={disabled}
             className="sm:grid-cols-2"
@@ -288,15 +292,15 @@ function AlwaysInstalledSection({
             options={[
               {
                 value: "specific",
-                title: "Agents I pick",
-                description: "Always loaded for selected agents.",
+                title: t("agents_i_pick"),
+                description: t("always_loaded_for_selected_agents"),
               },
               {
                 value: "all",
-                title: "Every agent",
+                title: t("every_agent"),
                 description: canSetCompanyWide
-                  ? "Always loaded for current and future agents."
-                  : "Only a connection manager can choose this.",
+                  ? t("always_loaded_for_current_and_future_agents")
+                  : t("only_a_connection_manager_can_choose_this"),
               },
             ].filter((option) => option.value !== "all" || canSetCompanyWide || install.onAll)}
           />
@@ -307,9 +311,9 @@ function AlwaysInstalledSection({
               selectedAgentIds={install.agentIds}
               disabled={disabled}
               triggerLabel={install.agentIds.size === 0
-                ? "Choose agents"
-                : `${install.agentIds.size} ${install.agentIds.size === 1 ? "agent" : "agents"} selected`}
-              emptyMessage="You cannot edit any agents yet."
+                ? t("choose_agents")
+                : t("zhPages.ea6f7a5726e7", { size: install.agentIds.size , count: install.agentIds.size })}
+              emptyMessage={t("you_cannot_edit_any_agents_yet")}
               onChange={(agentIds) => onSave({ onAll: false, agentIds })}
             />
           ) : null}
@@ -317,9 +321,9 @@ function AlwaysInstalledSection({
       ) : (
         <div className="pt-3">
           {install.onAll ? (
-            <p className="text-sm text-muted-foreground">This connection is always loaded for every agent.</p>
+            <p className="text-sm text-muted-foreground">{t("this_connection_is_always_loaded_for_every_agent")}</p>
           ) : selectedAgents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">This connection is not always loaded for any agent.</p>
+            <p className="text-sm text-muted-foreground">{t("this_connection_is_not_always_loaded_for_any_age")}</p>
           ) : (
             <div className="space-y-0.5">
               {selectedAgents.map((agent) => (
@@ -364,11 +368,12 @@ function ActionsSection({
   onReviewQuarantined: (enabledIds: string[]) => void;
   onRefreshActions: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-10 border-t border-border pt-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Actions</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("actions")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {formatActionPermissionSummary(summarizeActionPermissions(
               [...readOnly, ...canChange],
@@ -382,7 +387,7 @@ function ActionsSection({
             not configure it never sees the control. */}
         {canConfigure ? (
           <div className="flex items-center gap-2">
-            {disabled && <span className="text-xs text-muted-foreground">Saving...</span>}
+            {disabled && <span className="text-xs text-muted-foreground">{t("saving")}</span>}
             <Button
               variant="outline"
               size="sm"
@@ -394,7 +399,7 @@ function ActionsSection({
               ) : (
                 <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
               )}
-              Refresh actions
+              {t("refresh_actions")}
             </Button>
           </div>
         ) : null}
@@ -409,8 +414,8 @@ function ActionsSection({
       )}
 
       <ActionGroup
-        title={`Read (${readOnly.length})`}
-        hint="Views data without changing it."
+        title={t("zhPages.c9edbeb05cd5", { length: readOnly.length })}
+        hint={t("views_data_without_changing_it")}
         actions={readOnly}
         enabledIds={enabledIds}
         askFirstIds={askFirstIds}
@@ -420,8 +425,8 @@ function ActionsSection({
         onSetPermission={onSetPermission}
       />
       <ActionGroup
-        title={`Write (${canChange.length})`}
-        hint="Creates or changes data."
+        title={t("zhPages.2db24f2f3a5f", { length: canChange.length })}
+        hint={t("creates_or_changes_data")}
         actions={canChange}
         enabledIds={enabledIds}
         askFirstIds={askFirstIds}
@@ -435,9 +440,9 @@ function ActionsSection({
 }
 
 const ACTION_PERMISSION_LABELS: Record<ActionPermission, string> = {
-  off: "Off",
-  allowed: "Allowed",
-  ask: "Ask a human first",
+  off: t("off"),
+  allowed: t("allowed"),
+  ask: t("ask_a_human_first"),
 };
 
 function ActionGroup({
@@ -461,6 +466,7 @@ function ActionGroup({
   canConfigure: boolean;
   onSetPermission: (id: string, next: ActionPermission) => void;
 }) {
+  const { t } = useTranslation();
   const focusRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (focusId && focusRef.current) {
@@ -496,7 +502,7 @@ function ActionGroup({
               </div>
               {canConfigure ? (
                 <select
-                  aria-label={`${action.title ?? action.toolName} permission`}
+                  aria-label={t("zhPages.dcb8aabc1082", { toolName: action.title ?? action.toolName })}
                   className={cn(
                     "h-9 w-44 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none",
                     "focus-visible:border-ring focus-visible:ring-(length:--rad-3) focus-visible:ring-ring/50",
@@ -506,9 +512,9 @@ function ActionGroup({
                   disabled={disabled}
                   onChange={(event) => onSetPermission(action.id, event.currentTarget.value as ActionPermission)}
                 >
-                  <option value="off">Off</option>
-                  <option value="allowed">Allowed</option>
-                  <option value="ask">Ask a human first</option>
+                  <option value="off">{t("off")}</option>
+                  <option value="allowed">{t("allowed")}</option>
+                  <option value="ask">{t("ask_a_human_first")}</option>
                 </select>
               ) : (
                 // Read-only: the same fact, stated rather than offered.

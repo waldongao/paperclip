@@ -34,6 +34,7 @@ import {
   paperclipRunnerTimelineItems,
 } from "./transcript-adapter";
 import { toolTaxonomy } from "./tool-taxonomy";
+import { useTranslation } from "@/i18n";
 
 function lastOf<T extends TaskChatItem>(
   items: readonly TaskChatItem[],
@@ -227,6 +228,7 @@ function terminalStatusFailed(status: string): boolean {
 }
 
 function RunnerActivityTimeline({ items }: { items: readonly TaskChatItem[] }) {
+  const { t } = useTranslation();
   if (items.length === 0) return null;
   return (
     <div className="relative ml-4 min-w-0 pl-6">
@@ -237,7 +239,7 @@ function RunnerActivityTimeline({ items }: { items: readonly TaskChatItem[] }) {
       />
       <ol
         className="flex min-w-0 flex-col gap-2 py-1"
-        aria-label="Run activity"
+        aria-label={t("run_activity")}
         data-testid="task-chat-runner-activity-list"
       >
         {items.map((item, index) => (
@@ -303,6 +305,7 @@ function RunnerTurnStatus({
   startedAtMs: number | null;
   finishedAtMs?: number | null;
 }) {
+  const { t } = useTranslation();
   const terminal = isTerminalRunStatus(status);
   useSecondTick(!terminal && startedAtMs != null);
   const elapsedMs =
@@ -315,12 +318,12 @@ function RunnerTurnStatus({
   const elapsed = formatCompactDuration(elapsedMs);
 
   const failed = terminalStatusFailed(status);
-  const label = terminal ? (failed ? "Stopped" : "Worked") : "Working";
+  const label = terminal ? (failed ? t("stopped") : t("worked")) : t("working_3b4dfc");
   const semanticLabel = terminal
     ? elapsed
-      ? `${label} ${failed ? "after" : "for"} ${elapsed}`
+      ? (failed ? t("label_after_elapsed", { label, elapsed }) : t("label_for_elapsed", { label, elapsed }))
       : label
-    : `${label} for ${elapsed ?? "0s"}`;
+    : t("label_for_elapsed", { label, elapsed: elapsed ?? "0s" });
 
   return (
     <span
@@ -342,6 +345,7 @@ function RunnerCurrentActivityTail({
   items: readonly TaskChatItem[];
   status: string;
 }) {
+  const { t } = useTranslation();
   if (isTerminalRunStatus(status)) return null;
   const activity = lastOf<
     TaskChatThinkingItem | TaskChatToolItem | TaskChatProtocolItem
@@ -356,7 +360,7 @@ function RunnerCurrentActivityTail({
   );
 
   let Icon: ComponentType<SVGProps<SVGSVGElement>> | null = null;
-  let label = "Thinking";
+  let label = t("thinking_d08d8d");
   let detail: string | undefined;
   let family: string | undefined;
   let active = true;
@@ -449,6 +453,7 @@ export function TaskChatRunnerTurn({
     decision: TaskChatRuntimeRequestDecision,
   ) => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const terminal = isTerminalRunStatus(status);
   const narration = latestFoldedNarration(items);
   const timelineRows = buildTurnTimelineRows(
@@ -538,7 +543,7 @@ export function TaskChatRunnerTurn({
           role="status"
           data-testid="task-chat-activity-unavailable"
         >
-          Live runner activity is temporarily unavailable. Retrying…
+          {t("live_runner_activity_is_temporarily_unavailable")}
         </div>
       ) : null}
       {timelineRows.length > 0 ? (

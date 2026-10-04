@@ -1,3 +1,4 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -42,6 +43,7 @@ import {
 import { cn, relativeTime } from "@/lib/utils";
 import { appTabHref } from "../app-tabs";
 import { formatActionPermissionSummary } from "./action-permission-summary";
+import { t, useTranslation } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Small format helpers
@@ -80,15 +82,15 @@ const TEST_ACCESS_GC_TIME_MS = 30 * 60_000;
 
 const DECISION_META: Record<ToolConnectionTestDecision, DecisionMeta> = {
   allowed: {
-    label: "Allowed",
+    label: t("allowed"),
     className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   },
   ask_first: {
-    label: "Ask first",
+    label: t("ask_first"),
     className: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   off: {
-    label: "Off",
+    label: t("off"),
     className: "border-border bg-muted text-muted-foreground",
   },
 };
@@ -124,6 +126,7 @@ export function TestPanel({
   /** New, not-yet-reviewed actions — shown as Off so they're reachable to test. */
   quarantined?: ToolCatalogEntry[];
 }) {
+  const { t } = useTranslation();
   const hasActions = active.length > 0 || quarantined.length > 0;
   const testAgentsQuery = useQuery({
     queryKey: queryKeys.tools.testAgents(connectionId),
@@ -210,7 +213,7 @@ export function TestPanel({
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading agents…
+          {t("loading_agents_aa8e27")}
         </div>
         <Skeleton className="h-20 w-full" />
         <Skeleton className="h-12 w-full" />
@@ -222,7 +225,7 @@ export function TestPanel({
   if (testAgentsQuery.isError) {
     return (
       <TestLoadError
-        message="We couldn't load the agents available for testing."
+        message={t("we_couldnt_load_the_agents_available_for_testing")}
         onRetry={() => { void testAgentsQuery.refetch(); }}
       />
     );
@@ -231,13 +234,13 @@ export function TestPanel({
   if (agents.length === 0) {
     return (
       <div className="py-6 text-center">
-        <p className="text-sm font-medium text-foreground">No agents to test as</p>
+        <p className="text-sm font-medium text-foreground">{t("no_agents_to_test_as")}</p>
         <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-          Only agents you can assign tasks to can preview {appName}. Give an agent access in{" "}
+          {t("only_agents_you_can_assign_tasks_to_can_preview")} {appName}{t("zhPages.16f8683eddb5")}{" "}
           <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
-            Permissions
+            {t("permissions")}
           </Link>{" "}
-          to test it here.
+          {t("to_test_it_here")}
         </p>
       </div>
     );
@@ -246,7 +249,7 @@ export function TestPanel({
   if (testAgentAccessQuery.isError && !testAgentAccessQuery.data) {
     return (
       <TestLoadError
-        message={`We couldn't load ${selectedAgentBase?.name ?? "this agent"}'s permissions.`}
+        message={t("zhPages.6ca5c4ce3367", { value: selectedAgentBase?.name ?? t("this_agent_58f9e3") })}
         onRetry={() => { void testAgentAccessQuery.refetch(); }}
       />
     );
@@ -257,7 +260,7 @@ export function TestPanel({
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading agent permissions…
+          {t("loading_agent_permissions")}
         </div>
         <Skeleton className="h-20 w-full" />
         <Skeleton className="h-12 w-full" />
@@ -286,34 +289,34 @@ export function TestPanel({
       )}
 
       <section className="space-y-4 border-t border-border pt-8">
-        <h2 className="text-lg font-semibold text-foreground">Actions</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t("actions")}</h2>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-(--sz-12rem) flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Find an action"
-              placeholder="Find an action…"
+              aria-label={t("find_an_action")}
+              placeholder={t("find_an_action_7c227d")}
               className="pl-9"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
           </div>
-          <FilterChip label={`All ${active.length + quarantinedActions.length}`} active={kindFilter === "all"} onClick={() => setKindFilter("all")} />
-          <FilterChip label={`Read ${readActions.length}`} active={kindFilter === "read"} onClick={() => setKindFilter("read")} />
-          <FilterChip label={`Write ${writeActions.length}`} active={kindFilter === "write"} onClick={() => setKindFilter("write")} />
+          <FilterChip label={t("zhPages.0902d718a9fc", { length: active.length + quarantinedActions.length })} active={kindFilter === "all"} onClick={() => setKindFilter("all")} />
+          <FilterChip label={t("zhPages.e065b55066d4", { length: readActions.length })} active={kindFilter === "read"} onClick={() => setKindFilter("read")} />
+          <FilterChip label={t("zhPages.b3163e794b38", { length: writeActions.length })} active={kindFilter === "write"} onClick={() => setKindFilter("write")} />
         </div>
-        <p className="text-xs text-muted-foreground">{visibleCount} matches · sorted A–Z</p>
+        <p className="text-xs text-muted-foreground">{visibleCount} {t("matches_sorted_a_z")}</p>
       </section>
 
       {visibleCount === 0 ? (
         <div className="py-6 text-center text-sm text-muted-foreground">
-          No actions match “{query}”. Clear the search to see them all.
+          {t("no_actions_match")}{query}{t("clear_the_search_to_see_them_all")}
         </div>
       ) : (
         <div className="space-y-6">
           {visibleRead.length > 0 && selectedAgent && (
             <ActionGroup
-              heading={`Read (${visibleRead.length})`}
+              heading={t("zhPages.c9edbeb05cd5", { length: visibleRead.length })}
               entries={visibleRead}
               decisionFor={decisionFor}
               agent={selectedAgent}
@@ -322,7 +325,7 @@ export function TestPanel({
           )}
           {visibleWrite.length > 0 && selectedAgent && (
             <ActionGroup
-              heading={`Write (${visibleWrite.length})`}
+              heading={t("zhPages.2db24f2f3a5f", { length: visibleWrite.length })}
               entries={visibleWrite}
               decisionFor={decisionFor}
               agent={selectedAgent}
@@ -331,8 +334,8 @@ export function TestPanel({
           )}
           {visibleQuarantined.length > 0 && selectedAgent && (
             <ActionGroup
-              heading={`New (${visibleQuarantined.length})`}
-              subheading="New actions wait, switched off, until you turn them on."
+              heading={t("zhPages.efcfc746836b", { length: visibleQuarantined.length })}
+              subheading={t("new_actions_wait_switched_off_until_you_turn_the")}
               entries={visibleQuarantined}
               decisionFor={() => "off" as const}
               agent={selectedAgent}
@@ -350,25 +353,27 @@ export function TestPanel({
 // ---------------------------------------------------------------------------
 
 function EmptyState({ connectionId, appName }: { connectionId: string; appName: string }) {
+  const { t } = useTranslation();
   return (
     <div className="py-8 text-center">
-      <p className="text-base font-bold text-foreground">Nothing to test yet</p>
+      <p className="text-base font-bold text-foreground">{t("nothing_to_test_yet")}</p>
       <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
-        Once {appName} is connected, the actions it offers will show up here so you can try them out.
+        {t("once")} {appName} {t("is_connected_the_actions_it_offers_will_show_up")}
       </p>
       <Button asChild className="mt-4" variant="outline">
-        <Link to={appTabHref(connectionId, "setup")}>Go to Setup</Link>
+        <Link to={appTabHref(connectionId, "setup")}>{t("go_to_setup")}</Link>
       </Button>
     </div>
   );
 }
 
 function TestLoadError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="py-8 text-center">
       <p className="text-sm font-medium text-foreground">{message}</p>
       <Button className="mt-3" size="sm" variant="outline" onClick={onRetry}>
-        Try again
+        {t("try_again")}
       </Button>
     </div>
   );
@@ -391,17 +396,18 @@ function TestAsHeader({
   onSelect: (agentId: string) => void;
   connectionId: string;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Test an action</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t("test_an_action")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Run a real action as an agent.
+          {t("run_a_real_action_as_an_agent")}
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">Agent</p>
+          <p className="text-xs font-medium text-muted-foreground">{t("agent_5ce2e6")}</p>
           <AgentPicker
             agents={agents}
             selectedAgent={selectedAgent}
@@ -436,6 +442,7 @@ function AgentPicker({
   appName: string;
   inline?: boolean;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -452,7 +459,7 @@ function AgentPicker({
             "items-center gap-1.5 text-foreground outline-none hover:text-primary focus-visible:text-primary",
             inline ? "inline-flex font-semibold underline-offset-2 hover:underline" : "mt-0.5 flex text-lg font-bold",
           )}
-          aria-label="Choose which agent to test as"
+          aria-label={t("choose_which_agent_to_test_as")}
         >
           {selectedAgent.name}
           <ChevronsUpDown className={cn("text-muted-foreground", inline ? "h-3.5 w-3.5" : "h-4 w-4")} />
@@ -463,8 +470,8 @@ function AgentPicker({
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Search agents"
-              placeholder="Search agents…"
+              aria-label={t("search_agents_f1ff54")}
+              placeholder={t("search_agents_97ce8a")}
               className="h-8 pl-8 text-sm"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -474,7 +481,7 @@ function AgentPicker({
         </div>
         <div className="max-h-60 overflow-y-auto p-1">
           {filtered.length === 0 ? (
-            <p className="px-3 py-4 text-center text-xs text-muted-foreground">No agents match.</p>
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">{t("no_agents_match")}</p>
           ) : (
             filtered.map((agent) => {
               const detail = agent.title?.trim() || agent.role;
@@ -508,23 +515,23 @@ function AgentPicker({
           )}
         </div>
         <div className="border-t border-border px-3 py-2 text-(length:--text-micro) text-muted-foreground">
-          <p>Only agents you can assign tasks to are listed.</p>
-          <p>Pick one to preview what they'd see in {appName}.</p>
+          <p>{t("only_agents_you_can_assign_tasks_to_are_listed")}</p>
+          <p>{t("pick_one_to_preview_what_theyd_see_in")} {appName}.</p>
         </div>
         <div className="border-t border-border p-3">
-          <p className="text-xs font-semibold text-foreground">What the badges mean</p>
+          <p className="text-xs font-semibold text-foreground">{t("what_the_badges_mean")}</p>
           <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-            <li><span className="font-medium text-foreground">Allowed</span> — runs immediately when you press Run.</li>
-            <li><span className="font-medium text-foreground">Ask first</span> — Run is parked in Review for your OK.</li>
+            <li><span className="font-medium text-foreground">{t("allowed")}</span> {t("runs_immediately_when_you_press_run")}</li>
+            <li><span className="font-medium text-foreground">{t("ask_first")}</span> {t("run_is_parked_in_review_for_your_ok")}</li>
             <li>
-              <span className="font-medium text-foreground">Off</span> — won't run. Change it in{" "}
+              <span className="font-medium text-foreground">{t("off")}</span> {t("wont_run_change_it_in")}{" "}
               <Link className="text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
-                Permissions
+                {t("permissions")}
               </Link>.
             </li>
           </ul>
           <p className="mt-2 text-(length:--text-micro) text-muted-foreground">
-            Badges reflect this agent's current settings, not yours. Swap agents to see how an action would behave for each.
+            {t("badges_reflect_this_agents_current_settings_not")}
           </p>
         </div>
       </PopoverContent>
@@ -707,9 +714,9 @@ function splitRequiredOptional(schema: JsonSchemaNode): JsonSchemaNode {
 }
 
 const GUT_CHECK: Record<ToolConnectionTestDecision, (app: string, agent: string) => string> = {
-  allowed: (app, agent) => `This runs a real call against ${app} as ${agent}.`,
-  ask_first: () => `Waiting for your OK before this call leaves Paperclip.`,
-  off: (_app, agent) => `No call will be made — this action is off for ${agent}.`,
+  allowed: (app, agent) => t("zhPages.d52b557a18a8", { app: app, agent: agent }),
+  ask_first: () => t("zhPages.e8f3443a7051"),
+  off: (_app, agent) => t("zhPages.07c6432ca413", { agent: agent }),
 };
 
 function ActionTester({
@@ -725,6 +732,7 @@ function ActionTester({
   decision: ToolConnectionTestDecision;
   agent: TestAgentWithAccess;
 } & RowSharedProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
   const rawSchema = (entry.inputSchema ?? { type: "object", properties: {} }) as JsonSchemaNode;
@@ -833,10 +841,10 @@ function ActionTester({
           onChange={setValues}
           errors={errors}
           disabled={running}
-          advancedLabel="More options"
+          advancedLabel={t("more_options")}
         />
       ) : (
-        <p className="text-xs text-muted-foreground">This action takes no inputs.</p>
+        <p className="text-xs text-muted-foreground">{t("this_action_takes_no_inputs")}</p>
       )}
 
       <p className="text-xs text-muted-foreground">{GUT_CHECK[decision](appName, agent.name)}</p>
@@ -845,16 +853,16 @@ function ActionTester({
         <Button onClick={onRun} disabled={running} size="sm">
           {running ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Running…
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t("running_7ef25a")}
             </>
           ) : (
             <>
-              <Play className="h-3.5 w-3.5" /> {outcome ? "Run again" : "Run"}
+              <Play className="h-3.5 w-3.5" /> {outcome ? t("run_again") : t("run")}
             </>
           )}
         </Button>
         <Button onClick={onReset} disabled={running} size="sm" variant="ghost">
-          Reset
+          {t("reset")}
         </Button>
       </div>
 
@@ -864,7 +872,7 @@ function ActionTester({
 
       {run.isError && !running && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          Couldn't reach {agent.name}. {run.error instanceof Error ? run.error.message : "Please try again."}
+          {t("couldnt_reach")} {agent.name}. {run.error instanceof Error ? run.error.message : t("please_try_again")}
         </div>
       )}
 
@@ -892,20 +900,21 @@ function RunningCard({
   elapsedMs: number;
   onCancel: () => void;
 }) {
-  const verb = entry.isReadOnly ? "Reading from" : entry.isWrite ? "Writing to" : "Calling";
+  const { t } = useTranslation();
+  const verb = entry.isReadOnly ? t("reading_from") : entry.isWrite ? t("writing_to") : t("calling");
   return (
     <div className="rounded-md border border-border bg-muted/30 p-4">
       <div className="flex items-center gap-2">
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-        <span className="text-sm font-medium text-foreground">Running…</span>
+        <span className="text-sm font-medium text-foreground">{t("running_7ef25a")}</span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
-        {verb} {appName} as {agentName}.
+        {verb} {appName}{t("zhPages.f4bf9f7fcbed")}{agentName}.
       </p>
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Started {seconds(elapsedMs)} ago · Press cancel to stop</span>
+        <span className="text-xs text-muted-foreground">{t("started")} {seconds(elapsedMs)} {t("ago_press_cancel_to_stop")}</span>
         <Button onClick={onCancel} size="sm" variant="outline">
-          Cancel
+          {t("cancel")}
         </Button>
       </div>
     </div>
@@ -927,6 +936,7 @@ function ResultPanel({
   appName: string;
   connectionId: string;
 }) {
+  const { t } = useTranslation();
   const { result } = outcome;
   if (result.decision === "ask_first") {
     return <AskFirstResult outcome={outcome} entry={entry} appName={appName} connectionId={connectionId} />;
@@ -934,7 +944,7 @@ function ResultPanel({
   if (result.decision === "off") {
     return (
       <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-        {result.error?.message ?? "This action is off and won't run."}
+        {result.error?.message ?? t("this_action_is_off_and_wont_run")}
       </div>
     );
   }
@@ -965,7 +975,7 @@ function mcpToolError(value: unknown): { message: string; reasonCode: string | n
   const message =
     (typeof envelope.content === "string" && envelope.content.trim() !== "" && envelope.content)
     || (typeof envelope.error === "string" && envelope.error.trim() !== "" && envelope.error)
-    || "The app returned an error result.";
+    || t("the_app_returned_an_error_result");
   return { message, reasonCode: "tool_error" };
 }
 
@@ -1003,11 +1013,11 @@ function writeVerb(entry: ToolCatalogEntry): string | null {
 
 function successHeadline(value: unknown, entry: ToolCatalogEntry, appName: string): string {
   const verb = writeVerb(entry);
-  if (!entry.isReadOnly && verb) return `Worked. Row ${verb}.`;
+  if (!entry.isReadOnly && verb) return t("zhPages.489d159662b5", { verb: getDisplayLabel(verb) });
   const rows = asRows(value);
-  if (rows) return `Worked. ${rows.length} ${rows.length === 1 ? "row" : "rows"} came back.`;
-  if (isEmptyResult(value)) return "Worked. No data to show.";
-  return `Worked. ${appName} sent back the result.`;
+  if (rows) return t("zhPages.052395717894", { length: rows.length , count: rows.length });
+  if (isEmptyResult(value)) return t("worked_no_data_to_show");
+  return t("zhPages.f1a5c621c47c", { appName: appName });
 }
 
 function AllowedResult({
@@ -1021,6 +1031,7 @@ function AllowedResult({
   appName: string;
   connectionId: string;
 }) {
+  const { t } = useTranslation();
   const value = outcome.result.result;
   return (
     <div className="rounded-md border border-emerald-500/40 bg-emerald-500/5 p-4">
@@ -1030,12 +1041,12 @@ function AllowedResult({
       </div>
       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Clock className="h-3 w-3" />
-        Ran as {outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
+        {t("ran_as")} {outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
       </p>
 
       {!isEmptyResult(value) && (
         <div className="mt-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Preview</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("preview")}</p>
           <div className="mt-1.5">
             <PrettyPreview value={value} />
           </div>
@@ -1045,19 +1056,20 @@ function AllowedResult({
       <RawResponseDisclosure value={value} />
 
       <p className="mt-3 text-xs text-muted-foreground">
-        This call is in the{" "}
+        {t("this_call_is_in_the")}{" "}
         <Link className="text-primary hover:underline" to={appTabHref(connectionId, "activity")}>
-          Activity tab
+          {t("activity_tab")}
         </Link>
         .
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">Last run finished in {seconds(outcome.durationMs)}.</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t("last_run_finished_in")} {seconds(outcome.durationMs)}.</p>
     </div>
   );
 }
 
 /** Pretty preview: table for row arrays, depth-limited JSON otherwise, plain text for strings. */
 function PrettyPreview({ value }: { value: unknown }) {
+  const { t } = useTranslation();
   const rows = asRows(value);
   if (rows) {
     const columns = Array.from(new Set(rows.flatMap((r) => Object.keys(r)))).slice(0, 6);
@@ -1083,7 +1095,7 @@ function PrettyPreview({ value }: { value: unknown }) {
           </tbody>
         </table>
         {rows.length > shown.length && (
-          <p className="px-2.5 py-1.5 text-(length:--text-micro) text-muted-foreground">… {rows.length - shown.length} more rows</p>
+          <p className="px-2.5 py-1.5 text-(length:--text-micro) text-muted-foreground">… {rows.length - shown.length} {t("more_rows")}</p>
         )}
       </div>
     );
@@ -1117,6 +1129,7 @@ function collapseDeep(value: unknown, maxDepth: number, depth = 0): unknown {
 }
 
 function RawResponseDisclosure({ value }: { value: unknown }) {
+  const { t } = useTranslation();
   const [showRaw, setShowRaw] = useState(false);
   if (value === undefined || value === null) return null;
   return (
@@ -1126,7 +1139,7 @@ function RawResponseDisclosure({ value }: { value: unknown }) {
         onClick={() => setShowRaw((prev) => !prev)}
         className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline"
       >
-        {showRaw ? "Hide raw response" : "Show raw response"}
+        {showRaw ? t("hide_raw_response") : t("show_raw_response")}
       </button>
       {showRaw && (
         <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-border bg-background p-3 text-xs text-foreground">
@@ -1150,35 +1163,36 @@ function ErrorResult({
   connectionId: string;
   error: { message: string; reasonCode: string | null };
 }) {
+  const { t } = useTranslation();
   const hints = errorHints(error.message, error.reasonCode);
   return (
     <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4">
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <span className="text-sm font-medium text-foreground">It didn't work.</span>
+        <span className="text-sm font-medium text-foreground">{t("it_didnt_work")}</span>
       </div>
       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Clock className="h-3 w-3" />
-        Tried as {outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
+        {t("tried_as")} {outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
       </p>
       <div className="mt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What {appName} said</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("what")} {appName}{t("zhPages.fb46c79b7eb7")}</p>
         <p className="mt-1 break-words text-sm text-foreground">{error.message}</p>
-        {error.reasonCode && <p className="mt-0.5 text-xs text-muted-foreground">code: {error.reasonCode}</p>}
+        {error.reasonCode && <p className="mt-0.5 text-xs text-muted-foreground">{t("code_4fc19d")} {error.reasonCode}</p>}
       </div>
       <div className="mt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What to try</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("what_to_try")}</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-foreground">
           {hints.map((hint) => (
             <li key={hint}>{hint}</li>
           ))}
         </ul>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Adjust the input above and try again.</p>
+      <p className="mt-3 text-xs text-muted-foreground">{t("adjust_the_input_above_and_try_again")}</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Also visible in the{" "}
+        {t("also_visible_in_the")}{" "}
         <Link className="text-primary hover:underline" to={appTabHref(connectionId, "activity")}>
-          Activity tab
+          {t("activity_tab")}
         </Link>
         .
       </p>
@@ -1220,6 +1234,7 @@ function AskFirstResult({
   appName: string;
   connectionId: string;
 }) {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const queryClient = useQueryClient();
   const actionRequestId = outcome.result.actionRequestId;
@@ -1276,37 +1291,37 @@ function AskFirstResult({
   const where = formatWhere(status?.parameters);
   const statusLabel =
     phase === "running"
-      ? "Approved · running"
+      ? t("approved_running")
       : phase === "denied"
-        ? "Denied — see Review for why"
+        ? t("denied_see_review_for_why")
         : phase === "cancelled"
-          ? "Cancelled"
+          ? t("cancelled")
           : phase === "expired"
-            ? "Expired — send it again"
-            : `Waiting · ${relTime(requestedAt)}`;
+            ? t("expired_send_it_again")
+            : t("zhPages.9cdc13afdc1b", { requestedAt: relTime(requestedAt) });
   const settled = phase === "denied" || phase === "cancelled" || phase === "expired";
 
   return (
     <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4">
       <div className="flex items-center gap-2">
         <ShieldQuestion className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <span className="text-sm font-medium text-foreground">Sent for your OK.</span>
+        <span className="text-sm font-medium text-foreground">{t("sent_for_your_ok")}</span>
       </div>
-      <p className="mt-0.5 text-xs text-muted-foreground">{outcome.agentName} needs your approval before this runs.</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{outcome.agentName} {t("needs_your_approval_before_this_runs")}</p>
 
       <dl className="mt-3 space-y-1.5 text-sm">
         <div className="flex gap-3">
-          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</dt>
+          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("action")}</dt>
           <dd className="text-foreground">{entry.title ?? entry.toolName}</dd>
         </div>
         {where && (
           <div className="flex gap-3">
-            <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Where</dt>
+            <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("where")}</dt>
             <dd className="break-words text-foreground">{where}</dd>
           </div>
         )}
         <div className="flex gap-3">
-          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</dt>
+          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("status")}</dt>
           <dd className={cn("flex items-center gap-1.5 text-foreground", settled && "text-muted-foreground")}>
             {phase === "running" && <Loader2 className="h-3 w-3 animate-spin" />}
             {statusLabel}
@@ -1316,21 +1331,21 @@ function AskFirstResult({
 
       {!settled && (
         <p className="mt-3 text-sm text-foreground">
-          Approve it in the{" "}
+          {t("approve_it_in_the")}{" "}
           <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "review")}>
-            Review tab
+            {t("review_tab")}
           </Link>{" "}
-          to finish the test. You can also cancel the request.
+          {t("to_finish_the_test_you_can_also_cancel_the_reque")}
         </p>
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button asChild size="sm" variant="outline">
-          <Link to={appTabHref(connectionId, "review")}>Open Review tab</Link>
+          <Link to={appTabHref(connectionId, "review")}>{t("open_review_tab")}</Link>
         </Button>
         {phase === "waiting" && actionRequestId && selectedCompanyId && (
           <Button size="sm" variant="ghost" onClick={() => cancel.mutate()} disabled={cancel.isPending}>
-            {cancel.isPending ? "Cancelling…" : "Cancel this request"}
+            {cancel.isPending ? t("cancelling_cee184") : t("cancel_this_request")}
           </Button>
         )}
       </div>
@@ -1354,6 +1369,7 @@ function OffExplanation({
   allAgents: ToolConnectionTestAgent[];
   onSelectAgent: (agentId: string) => void;
 }) {
+  const { t } = useTranslation();
   const title = entry.title ?? entry.toolName;
   const permHref = `${appTabHref(connectionId, "permissions")}?focus=${encodeURIComponent(entry.id)}`;
 
@@ -1363,8 +1379,8 @@ function OffExplanation({
   const others = allAgents.filter((a) => a.id !== agent.id);
 
   const whyBody = entry.status === "quarantined"
-    ? "This action is new and hasn't been turned on yet."
-    : `${agent.name}'s access profile sets this action to Off.`;
+    ? t("this_action_is_new_and_hasnt_been_turned_on_yet")
+    : t("zhPages.115fa5fa87a0", { name: agent.name });
 
   // "Last changed by {Actor} · {relativeTime}" — only the access config carries
   // this; a quarantined action has never been configured, so there's nothing to
@@ -1372,7 +1388,7 @@ function OffExplanation({
   const { lastChangedAt, lastChangedByName } = agent.effectiveAccess;
   const auditHint =
     entry.status !== "quarantined" && lastChangedAt
-      ? `Last changed${lastChangedByName ? ` by ${lastChangedByName}` : ""} · ${relTime(new Date(lastChangedAt))}`
+      ? t("zhPages.c65f8db29ed8", { value: lastChangedByName ? t("zhPages.c238cbfbcc27", { lastChangedByName: lastChangedByName }) : "", detail: relTime(new Date(lastChangedAt)) })
       : null;
 
   return (
@@ -1381,30 +1397,30 @@ function OffExplanation({
         <div className="flex items-start gap-2">
           <Ban className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
           <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">{title} is off for {agent.name}.</p>
-            <p className="mt-0.5">It won't run here, and it won't run from a task either.</p>
+            <p className="font-medium text-foreground">{title} {t("is_off_for")} {agent.name}.</p>
+            <p className="mt-0.5">{t("it_wont_run_here_and_it_wont_run_from_a_task_eit")}</p>
             <p className="mt-2">
-              Want to test it? Turn it on for {agent.name} in{" "}
+              {t("want_to_test_it_turn_it_on_for")} {agent.name}{t("zhPages.582967534d0f")}{" "}
               <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
-                Permissions
+                {t("permissions")}
               </Link>{" "}
-              — set it to Allowed or Ask first.
+              {t("set_it_to_allowed_or_ask_first")}
             </p>
           </div>
         </div>
         <Button asChild size="sm">
-          <Link to={permHref}>Open Permissions →</Link>
+          <Link to={permHref}>{t("open_permissions_4f6ff2")}</Link>
         </Button>
-        <p className="text-xs text-muted-foreground">No call will be made — this action is off for {agent.name}.</p>
+        <p className="text-xs text-muted-foreground">{t("no_call_will_be_made_this_action_is_off_for")} {agent.name}.</p>
       </div>
 
       <aside>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Why this is off</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("why_this_is_off")}</p>
         <p className="mt-1.5 text-xs text-muted-foreground">{whyBody}</p>
         {auditHint && <p className="mt-1.5 text-(length:--text-micro) text-muted-foreground">{auditHint}</p>}
         {others.length > 0 && (
           <div className="mt-3">
-            <p className="text-(length:--text-micro) font-medium text-muted-foreground">Try as a different agent:</p>
+            <p className="text-(length:--text-micro) font-medium text-muted-foreground">{t("try_as_a_different_agent")}</p>
             <div className="mt-1 flex flex-wrap gap-1.5">
               {others.slice(0, 4).map((other) => (
                 <button
@@ -1445,25 +1461,25 @@ export function errorHints(message: string, reasonCode: string | null | undefine
   const haystack = `${reasonCode ?? ""} ${message}`.toUpperCase();
   if (haystack.includes("NOT_FOUND")) {
     return [
-      "Double-check the ID or name you entered — pick it from a dropdown if one is offered.",
-      "Make sure this agent has access to that resource in the connected account.",
+      t("double_check_the_id_or_name_you_entered_pick_it"),
+      t("make_sure_this_agent_has_access_to_that_resource"),
     ];
   }
   if (haystack.includes("PERMISSION") || haystack.includes("FORBIDDEN") || haystack.includes("UNAUTHORIZED")) {
     return [
-      "The connected account may not have permission for this action.",
-      "Reconnect the app from Setup if its access was recently changed.",
+      t("the_connected_account_may_not_have_permission_fo"),
+      t("reconnect_the_app_from_setup_if_its_access_was_r"),
     ];
   }
   if (haystack.includes("INVALID_ARGUMENT") || haystack.includes("INVALID") || haystack.includes("BAD_REQUEST")) {
     return [
-      "Check the field formats above — a value may be the wrong type or shape.",
-      "Open “More options” to confirm any advanced fields are filled in correctly.",
+      t("check_the_field_formats_above_a_value_may_be_the"),
+      t("open_more_options_to_confirm_any_advanced_fields"),
     ];
   }
   if (haystack.includes("RATE_LIMIT") || haystack.includes("RESOURCE_EXHAUSTED") || haystack.includes("429")) {
-    return ["The app is rate-limiting calls right now — wait a moment and run it again."];
+    return [t("the_app_is_rate_limiting_calls_right_now_wait_a")];
   }
   // Locked generic fallback (copy-spec decision #2).
-  return ["Check the inputs above and try again."];
+  return [t("check_the_inputs_above_and_try_again")];
 }

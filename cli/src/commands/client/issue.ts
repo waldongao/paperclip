@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../../i18n.js";
 import { Command } from "commander";
 import { readFile, writeFile } from "node:fs/promises";
 import {
@@ -168,17 +169,17 @@ interface TreeHoldListOptions extends BaseClientOptions {
 }
 
 export function registerIssueCommands(program: Command): void {
-  const issue = program.command("issue").description("Issue operations");
+  const issue = program.command("issue").description(tCli("Issue operations"));
 
   addCommonClientOptions(
     issue
       .command("list")
-      .description("List issues for a company")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--status <csv>", "Comma-separated statuses")
-      .option("--assignee-agent-id <id>", "Filter by assignee agent ID")
-      .option("--project-id <id>", "Filter by project ID")
-      .option("--match <text>", "Local text match on identifier/title/description")
+      .description(tCli("List issues for a company"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--status <csv>", tCli("Comma-separated statuses"))
+      .option("--assignee-agent-id <id>", tCli("Filter by assignee agent ID"))
+      .option("--project-id <id>", tCli("Filter by project ID"))
+      .option("--match <text>", tCli("Local text match on identifier/title/description"))
       .action(async (opts: IssueBaseOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -225,8 +226,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("get")
-      .description("Get an issue by UUID or identifier (e.g. PC-12)")
-      .argument("<idOrIdentifier>", "Issue ID or identifier")
+      .description(tCli("Get an issue by UUID or identifier (e.g. PC-12)"))
+      .argument("<idOrIdentifier>", tCli("Issue ID or identifier"))
       .action(async (idOrIdentifier: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -241,12 +242,12 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("delete")
-      .description("Delete an issue")
-      .argument("<issueId>", "Issue ID")
-      .option("--yes", "Confirm deletion")
+      .description(tCli("Delete an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .option("--yes", tCli("Confirm deletion"))
       .action(async (issueId: string, opts: IssueDeleteOptions) => {
         try {
-          if (!opts.yes) throw new Error("Refusing to delete without --yes");
+          if (!opts.yes) throw new Error(tCli("Refusing to delete without --yes"));
           const ctx = resolveCommandContext(opts);
           const deleted = await ctx.api.delete<Issue>(apiPath`/api/issues/${issueId}`);
           printOutput(deleted, { json: ctx.json });
@@ -259,8 +260,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("heartbeat-context")
-      .description("Get heartbeat context for an issue")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("Get heartbeat context for an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -275,18 +276,18 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("create")
-      .description("Create an issue")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--title <title>", "Issue title")
-      .option("--description <text>", "Issue description")
-      .option("--status <status>", "Issue status")
-      .option("--priority <priority>", "Issue priority")
-      .option("--assignee-agent-id <id>", "Assignee agent ID")
-      .option("--project-id <id>", "Project ID")
-      .option("--goal-id <id>", "Goal ID")
-      .option("--parent-id <id>", "Parent issue ID")
-      .option("--request-depth <n>", "Request depth integer")
-      .option("--billing-code <code>", "Billing code")
+      .description(tCli("Create an issue"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--title <title>", tCli("Issue title"))
+      .option("--description <text>", tCli("Issue description"))
+      .option("--status <status>", tCli("Issue status"))
+      .option("--priority <priority>", tCli("Issue priority"))
+      .option("--assignee-agent-id <id>", tCli("Assignee agent ID"))
+      .option("--project-id <id>", tCli("Project ID"))
+      .option("--goal-id <id>", tCli("Goal ID"))
+      .option("--parent-id <id>", tCli("Parent issue ID"))
+      .option("--request-depth <n>", tCli("Request depth integer"))
+      .option("--billing-code <code>", tCli("Billing code"))
       .action(async (opts: IssueCreateOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -315,20 +316,20 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("update")
-      .description("Update an issue")
-      .argument("<issueId>", "Issue ID")
-      .option("--title <title>", "Issue title")
-      .option("--description <text>", "Issue description")
-      .option("--status <status>", "Issue status")
-      .option("--priority <priority>", "Issue priority")
-      .option("--assignee-agent-id <id>", "Assignee agent ID")
-      .option("--project-id <id>", "Project ID")
-      .option("--goal-id <id>", "Goal ID")
-      .option("--parent-id <id>", "Parent issue ID")
-      .option("--request-depth <n>", "Request depth integer")
-      .option("--billing-code <code>", "Billing code")
-      .option("--comment <text>", "Optional comment to add with update")
-      .option("--hidden-at <iso8601|null>", "Set hiddenAt timestamp or literal 'null'")
+      .description(tCli("Update an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .option("--title <title>", tCli("Issue title"))
+      .option("--description <text>", tCli("Issue description"))
+      .option("--status <status>", tCli("Issue status"))
+      .option("--priority <priority>", tCli("Issue priority"))
+      .option("--assignee-agent-id <id>", tCli("Assignee agent ID"))
+      .option("--project-id <id>", tCli("Project ID"))
+      .option("--goal-id <id>", tCli("Goal ID"))
+      .option("--parent-id <id>", tCli("Parent issue ID"))
+      .option("--request-depth <n>", tCli("Request depth integer"))
+      .option("--billing-code <code>", tCli("Billing code"))
+      .option("--comment <text>", tCli("Optional comment to add with update"))
+      .option("--hidden-at <iso8601|null>", tCli("Set hiddenAt timestamp or literal 'null'"))
       .action(async (issueId: string, opts: IssueUpdateOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -358,11 +359,11 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("comment")
-      .description("Add comment to issue")
-      .argument("<issueId>", "Issue ID")
-      .requiredOption("--body <text>", "Comment body")
-      .option("--reopen", "Reopen if issue is done/cancelled")
-      .option("--resume", "Request explicit follow-up and wake the assignee when resumable")
+      .description(tCli("Add comment to issue"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .requiredOption("--body <text>", tCli("Comment body"))
+      .option("--reopen", tCli("Reopen if issue is done/cancelled"))
+      .option("--resume", tCli("Request explicit follow-up and wake the assignee when resumable"))
       .action(async (issueId: string, opts: IssueCommentOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -382,11 +383,11 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("comments")
-      .description("List issue comments")
-      .argument("<issueId>", "Issue ID")
-      .option("--after-comment-id <id>", "Only return comments after this comment ID")
-      .option("--order <order>", "asc or desc")
-      .option("--limit <n>", "Maximum comments to return")
+      .description(tCli("List issue comments"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .option("--after-comment-id <id>", tCli("Only return comments after this comment ID"))
+      .option("--order <order>", tCli("asc or desc"))
+      .option("--limit <n>", tCli("Maximum comments to return"))
       .action(async (issueId: string, opts: IssueCommentListOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -408,9 +409,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("comment:get")
-      .description("Get one issue comment")
-      .argument("<issueId>", "Issue ID")
-      .argument("<commentId>", "Comment ID")
+      .description(tCli("Get one issue comment"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<commentId>", tCli("Comment ID"))
       .action(async (issueId: string, commentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -425,9 +426,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("comment:delete")
-      .description("Delete or cancel one issue comment")
-      .argument("<issueId>", "Issue ID")
-      .argument("<commentId>", "Comment ID")
+      .description(tCli("Delete or cancel one issue comment"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<commentId>", tCli("Comment ID"))
       .action(async (issueId: string, commentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -442,8 +443,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("approvals")
-      .description("List approvals linked to an issue")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("List approvals linked to an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -458,9 +459,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("approval:link")
-      .description("Link an approval to an issue")
-      .argument("<issueId>", "Issue ID")
-      .argument("<approvalId>", "Approval ID")
+      .description(tCli("Link an approval to an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<approvalId>", tCli("Approval ID"))
       .action(async (issueId: string, approvalId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -476,9 +477,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("approval:unlink")
-      .description("Unlink an approval from an issue")
-      .argument("<issueId>", "Issue ID")
-      .argument("<approvalId>", "Approval ID")
+      .description(tCli("Unlink an approval from an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<approvalId>", tCli("Approval ID"))
       .action(async (issueId: string, approvalId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -490,16 +491,16 @@ export function registerIssueCommands(program: Command): void {
       }),
   );
 
-  addIssuePostDeleteMarkerCommand(issue, "read", "Mark an issue as read", "post", "/read");
-  addIssuePostDeleteMarkerCommand(issue, "unread", "Mark an issue as unread", "delete", "/read");
-  addIssuePostDeleteMarkerCommand(issue, "archive", "Archive an issue from the inbox", "post", "/inbox-archive");
-  addIssuePostDeleteMarkerCommand(issue, "unarchive", "Unarchive an issue from the inbox", "delete", "/inbox-archive");
+  addIssuePostDeleteMarkerCommand(issue, "read", tCli("Mark an issue as read"), "post", "/read");
+  addIssuePostDeleteMarkerCommand(issue, "unread", tCli("Mark an issue as unread"), "delete", "/read");
+  addIssuePostDeleteMarkerCommand(issue, "archive", tCli("Archive an issue from the inbox"), "post", "/inbox-archive");
+  addIssuePostDeleteMarkerCommand(issue, "unarchive", tCli("Unarchive an issue from the inbox"), "delete", "/inbox-archive");
 
   addCommonClientOptions(
     issue
       .command("recovery-actions")
-      .description("List active recovery actions for an issue")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("List active recovery actions for an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -514,12 +515,12 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("recovery:resolve")
-      .description("Resolve an issue recovery action")
-      .argument("<issueId>", "Issue ID")
-      .requiredOption("--outcome <outcome>", "restored, false_positive, blocked, or cancelled")
-      .requiredOption("--source-issue-status <status>", "todo, done, or in_review for restored outcomes; blocked is only valid for blocked outcomes")
-      .option("--action-id <id>", "Specific recovery action ID")
-      .option("--resolution-note <text>", "Resolution note")
+      .description(tCli("Resolve an issue recovery action"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .requiredOption("--outcome <outcome>", tCli("restored, false_positive, blocked, or cancelled"))
+      .requiredOption("--source-issue-status <status>", tCli("todo, done, or in_review for restored outcomes; blocked is only valid for blocked outcomes"))
+      .option("--action-id <id>", tCli("Specific recovery action ID"))
+      .option("--resolution-note <text>", tCli("Resolution note"))
       .action(async (issueId: string, opts: IssueRecoveryResolveOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -540,9 +541,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("child:create")
-      .description("Create a child issue from a JSON payload")
-      .argument("<issueId>", "Parent issue ID")
-      .requiredOption("--payload-json <json>", "CreateChildIssue JSON payload")
+      .description(tCli("Create a child issue from a JSON payload"))
+      .argument("<issueId>", tCli("Parent issue ID"))
+      .requiredOption("--payload-json <json>", tCli("CreateChildIssue JSON payload"))
       .action(async (issueId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -558,8 +559,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("force-release")
-      .description("Force-release an issue from an agent checkout")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("Force-release an issue from an agent checkout"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -574,8 +575,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("work-products")
-      .description("List issue work products")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("List issue work products"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -590,9 +591,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("work-product:create")
-      .description("Create an issue work product from JSON")
-      .argument("<issueId>", "Issue ID")
-      .requiredOption("--payload-json <json>", "CreateIssueWorkProduct JSON payload")
+      .description(tCli("Create an issue work product from JSON"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .requiredOption("--payload-json <json>", tCli("CreateIssueWorkProduct JSON payload"))
       .action(async (issueId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -608,9 +609,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("work-product:update")
-      .description("Update a work product from JSON")
-      .argument("<workProductId>", "Work product ID")
-      .requiredOption("--payload-json <json>", "UpdateIssueWorkProduct JSON payload")
+      .description(tCli("Update a work product from JSON"))
+      .argument("<workProductId>", tCli("Work product ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateIssueWorkProduct JSON payload"))
       .action(async (workProductId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -626,8 +627,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("work-product:delete")
-      .description("Delete a work product")
-      .argument("<workProductId>", "Work product ID")
+      .description(tCli("Delete a work product"))
+      .argument("<workProductId>", tCli("Work product ID"))
       .action(async (workProductId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -642,9 +643,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("documents")
-      .description("List issue documents")
-      .argument("<issueId>", "Issue ID")
-      .option("--include-system", "Include system documents")
+      .description(tCli("List issue documents"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .option("--include-system", tCli("Include system documents"))
       .action(async (issueId: string, opts: BaseClientOptions & { includeSystem?: boolean }) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -660,9 +661,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("document:get")
-      .description("Get an issue document")
-      .argument("<issueId>", "Issue ID")
-      .argument("<key>", "Document key")
+      .description(tCli("Get an issue document"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<key>", tCli("Document key"))
       .action(async (issueId: string, key: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -677,15 +678,15 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("document:put")
-      .description("Create or update an issue document")
-      .argument("<issueId>", "Issue ID")
-      .argument("<key>", "Document key")
-      .option("--title <title>", "Document title")
-      .option("--format <format>", "Document format", "markdown")
-      .option("--body <markdown>", "Document body")
-      .option("--body-file <path>", "Read document body from a file")
-      .option("--change-summary <text>", "Change summary")
-      .option("--base-revision-id <id>", "Expected base revision ID")
+      .description(tCli("Create or update an issue document"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<key>", tCli("Document key"))
+      .option("--title <title>", tCli("Document title"))
+      .option("--format <format>", tCli("Document format"), "markdown")
+      .option("--body <markdown>", tCli("Document body"))
+      .option("--body-file <path>", tCli("Read document body from a file"))
+      .option("--change-summary <text>", tCli("Change summary"))
+      .option("--base-revision-id <id>", tCli("Expected base revision ID"))
       .action(async (issueId: string, key: string, opts: IssueDocumentPutOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -708,8 +709,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("interactions")
-      .description("List issue thread interactions")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("List issue thread interactions"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -724,9 +725,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("interaction:create")
-      .description("Create an issue thread interaction from JSON")
-      .argument("<issueId>", "Issue ID")
-      .requiredOption("--payload-json <json>", "CreateIssueThreadInteraction JSON payload")
+      .description(tCli("Create an issue thread interaction from JSON"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .requiredOption("--payload-json <json>", tCli("CreateIssueThreadInteraction JSON payload"))
       .action(async (issueId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -742,11 +743,11 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("interaction:accept")
-      .description("Accept an issue thread interaction")
-      .argument("<issueId>", "Issue ID")
-      .argument("<interactionId>", "Interaction ID")
-      .option("--selected-client-keys <csv>", "Client keys to accept")
-      .option("--selected-option-ids <csv>", "Checkbox option IDs to accept")
+      .description(tCli("Accept an issue thread interaction"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<interactionId>", tCli("Interaction ID"))
+      .option("--selected-client-keys <csv>", tCli("Client keys to accept"))
+      .option("--selected-option-ids <csv>", tCli("Checkbox option IDs to accept"))
       .action(async (issueId: string, interactionId: string, opts: InteractionAcceptOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -763,16 +764,16 @@ export function registerIssueCommands(program: Command): void {
   );
 
   for (const [name, action, schema, description] of [
-    ["interaction:reject", "reject", rejectIssueThreadInteractionSchema, "Reject an issue thread interaction"],
-    ["interaction:cancel", "cancel", cancelIssueThreadInteractionSchema, "Cancel an issue thread interaction"],
+    ["interaction:reject", "reject", rejectIssueThreadInteractionSchema, tCli("Reject an issue thread interaction")],
+    ["interaction:cancel", "cancel", cancelIssueThreadInteractionSchema, tCli("Cancel an issue thread interaction")],
   ] as const) {
     addCommonClientOptions(
       issue
         .command(name)
         .description(description)
-        .argument("<issueId>", "Issue ID")
-        .argument("<interactionId>", "Interaction ID")
-        .option("--reason <text>", "Reason")
+        .argument("<issueId>", tCli("Issue ID"))
+        .argument("<interactionId>", tCli("Interaction ID"))
+        .option("--reason <text>", tCli("Reason"))
         .action(async (issueId: string, interactionId: string, opts: InteractionReasonOptions) => {
           try {
             const ctx = resolveCommandContext(opts);
@@ -789,11 +790,11 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("interaction:respond")
-      .description("Respond to an issue question interaction")
-      .argument("<issueId>", "Issue ID")
-      .argument("<interactionId>", "Interaction ID")
-      .requiredOption("--answers-json <json>", "Answers array JSON")
-      .option("--summary-markdown <markdown>", "Optional response summary")
+      .description(tCli("Respond to an issue question interaction"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<interactionId>", tCli("Interaction ID"))
+      .requiredOption("--answers-json <json>", tCli("Answers array JSON"))
+      .option("--summary-markdown <markdown>", tCli("Optional response summary"))
       .action(async (issueId: string, interactionId: string, opts: InteractionRespondOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -812,8 +813,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("tree-state")
-      .description("Get issue tree control state")
-      .argument("<issueId>", "Root issue ID")
+      .description(tCli("Get issue tree control state"))
+      .argument("<issueId>", tCli("Root issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -828,9 +829,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("tree-preview")
-      .description("Preview issue tree control changes")
-      .argument("<issueId>", "Root issue ID")
-      .requiredOption("--payload-json <json>", "PreviewIssueTreeControl JSON payload")
+      .description(tCli("Preview issue tree control changes"))
+      .argument("<issueId>", tCli("Root issue ID"))
+      .requiredOption("--payload-json <json>", tCli("PreviewIssueTreeControl JSON payload"))
       .action(async (issueId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -846,11 +847,11 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("tree-holds")
-      .description("List issue tree holds")
-      .argument("<issueId>", "Root issue ID")
-      .option("--status <status>", "active or released")
-      .option("--mode <mode>", "pause, resume, cancel, or restore")
-      .option("--include-members", "Include hold members")
+      .description(tCli("List issue tree holds"))
+      .argument("<issueId>", tCli("Root issue ID"))
+      .option("--status <status>", tCli("active or released"))
+      .option("--mode <mode>", tCli("pause, resume, cancel, or restore"))
+      .option("--include-members", tCli("Include hold members"))
       .action(async (issueId: string, opts: TreeHoldListOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -870,9 +871,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("tree-hold:create")
-      .description("Create an issue tree hold from JSON")
-      .argument("<issueId>", "Root issue ID")
-      .requiredOption("--payload-json <json>", "CreateIssueTreeHold JSON payload")
+      .description(tCli("Create an issue tree hold from JSON"))
+      .argument("<issueId>", tCli("Root issue ID"))
+      .requiredOption("--payload-json <json>", tCli("CreateIssueTreeHold JSON payload"))
       .action(async (issueId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -888,9 +889,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("tree-hold:get")
-      .description("Get an issue tree hold")
-      .argument("<issueId>", "Root issue ID")
-      .argument("<holdId>", "Hold ID")
+      .description(tCli("Get an issue tree hold"))
+      .argument("<issueId>", tCli("Root issue ID"))
+      .argument("<holdId>", tCli("Hold ID"))
       .action(async (issueId: string, holdId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -905,10 +906,10 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("tree-hold:release")
-      .description("Release an issue tree hold")
-      .argument("<issueId>", "Root issue ID")
-      .argument("<holdId>", "Hold ID")
-      .option("--payload-json <json>", "ReleaseIssueTreeHold JSON payload", "{}")
+      .description(tCli("Release an issue tree hold"))
+      .argument("<issueId>", tCli("Root issue ID"))
+      .argument("<holdId>", tCli("Hold ID"))
+      .option("--payload-json <json>", tCli("ReleaseIssueTreeHold JSON payload"), "{}")
       .action(async (issueId: string, holdId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -924,8 +925,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("attachments")
-      .description("List issue attachments")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("List issue attachments"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -940,11 +941,11 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("attachment:upload")
-      .description("Upload an issue attachment")
-      .argument("<issueId>", "Issue ID")
-      .option("-C, --company-id <id>", "Company ID")
-      .requiredOption("--file <path>", "File to upload")
-      .option("--comment-id <id>", "Attach to an issue comment")
+      .description(tCli("Upload an issue attachment"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--file <path>", tCli("File to upload"))
+      .option("--comment-id <id>", tCli("Attach to an issue comment"))
       .action(async (issueId: string, opts: IssueAttachmentUploadOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -966,9 +967,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("attachment:download")
-      .description("Download an attachment")
-      .argument("<attachmentId>", "Attachment ID")
-      .option("--out <path>", "Output file path; prints to stdout when omitted")
+      .description(tCli("Download an attachment"))
+      .argument("<attachmentId>", tCli("Attachment ID"))
+      .option("--out <path>", tCli("Output file path; prints to stdout when omitted"))
       .action(async (attachmentId: string, opts: IssueAttachmentDownloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -976,7 +977,7 @@ export function registerIssueCommands(program: Command): void {
           if (opts.out) {
             await writeFile(opts.out, bytes);
             if (ctx.json) printOutput({ out: opts.out, bytes: bytes.byteLength }, { json: true });
-            else console.log(`Wrote ${bytes.byteLength} byte(s) to ${opts.out}`);
+            else console.log(tCli("Wrote {{byteLength}} byte(s) to {{out}}", { byteLength: bytes.byteLength, out: opts.out }));
             return;
           }
           process.stdout.write(bytes);
@@ -989,8 +990,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("attachment:delete")
-      .description("Delete an attachment")
-      .argument("<attachmentId>", "Attachment ID")
+      .description(tCli("Delete an attachment"))
+      .argument("<attachmentId>", tCli("Attachment ID"))
       .action(async (attachmentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1005,8 +1006,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("label:list")
-      .description("List issue labels in a company")
-      .option("-C, --company-id <id>", "Company ID")
+      .description(tCli("List issue labels in a company"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -1022,10 +1023,10 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("label:create")
-      .description("Create an issue label")
-      .option("-C, --company-id <id>", "Company ID")
-      .requiredOption("--name <name>", "Label name")
-      .requiredOption("--color <hex>", "Label color, e.g. #4f46e5")
+      .description(tCli("Create an issue label"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--name <name>", tCli("Label name"))
+      .requiredOption("--color <hex>", tCli("Label color, e.g. #4f46e5"))
       .action(async (opts: IssueLabelCreateOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -1042,8 +1043,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("label:delete")
-      .description("Delete an issue label")
-      .argument("<labelId>", "Label ID")
+      .description(tCli("Delete an issue label"))
+      .argument("<labelId>", tCli("Label ID"))
       .action(async (labelId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1058,8 +1059,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("feedback:votes")
-      .description("List feedback votes for an issue")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("List feedback votes for an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1074,9 +1075,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("feedback:vote")
-      .description("Create or update a feedback vote")
-      .argument("<issueId>", "Issue ID")
-      .requiredOption("--payload-json <json>", "UpsertIssueFeedbackVote JSON payload")
+      .description(tCli("Create or update a feedback vote"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .requiredOption("--payload-json <json>", tCli("UpsertIssueFeedbackVote JSON payload"))
       .action(async (issueId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1090,16 +1091,16 @@ export function registerIssueCommands(program: Command): void {
   );
 
   for (const [name, pathSuffix, description] of [
-    ["document:delete", "", "Delete an issue document"],
-    ["document:lock", "/lock", "Lock an issue document"],
-    ["document:unlock", "/unlock", "Unlock an issue document"],
+    ["document:delete", "", tCli("Delete an issue document")],
+    ["document:lock", "/lock", tCli("Lock an issue document")],
+    ["document:unlock", "/unlock", tCli("Unlock an issue document")],
   ] as const) {
     addCommonClientOptions(
       issue
         .command(name)
         .description(description)
-        .argument("<issueId>", "Issue ID")
-        .argument("<key>", "Document key")
+        .argument("<issueId>", tCli("Issue ID"))
+        .argument("<key>", tCli("Document key"))
         .action(async (issueId: string, key: string, opts: BaseClientOptions) => {
           try {
             const ctx = resolveCommandContext(opts);
@@ -1116,9 +1117,9 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("document:revisions")
-      .description("List issue document revisions")
-      .argument("<issueId>", "Issue ID")
-      .argument("<key>", "Document key")
+      .description(tCli("List issue document revisions"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<key>", tCli("Document key"))
       .action(async (issueId: string, key: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1133,10 +1134,10 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("document:restore")
-      .description("Restore an issue document revision")
-      .argument("<issueId>", "Issue ID")
-      .argument("<key>", "Document key")
-      .argument("<revisionId>", "Revision ID")
+      .description(tCli("Restore an issue document revision"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .argument("<key>", tCli("Document key"))
+      .argument("<revisionId>", tCli("Revision ID"))
       .action(async (issueId: string, key: string, revisionId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1155,15 +1156,15 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("feedback:list")
-      .description("List feedback traces for an issue")
-      .argument("<issueId>", "Issue ID")
-      .option("--target-type <type>", "Filter by target type")
-      .option("--vote <vote>", "Filter by vote value")
-      .option("--status <status>", "Filter by trace status")
-      .option("--from <iso8601>", "Only include traces created at or after this timestamp")
-      .option("--to <iso8601>", "Only include traces created at or before this timestamp")
-      .option("--shared-only", "Only include traces eligible for sharing/export")
-      .option("--include-payload", "Include stored payload snapshots in the response")
+      .description(tCli("List feedback traces for an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .option("--target-type <type>", tCli("Filter by target type"))
+      .option("--vote <vote>", tCli("Filter by vote value"))
+      .option("--status <status>", tCli("Filter by trace status"))
+      .option("--from <iso8601>", tCli("Only include traces created at or after this timestamp"))
+      .option("--to <iso8601>", tCli("Only include traces created at or before this timestamp"))
+      .option("--shared-only", tCli("Only include traces eligible for sharing/export"))
+      .option("--include-payload", tCli("Include stored payload snapshots in the response"))
       .action(async (issueId: string, opts: IssueFeedbackOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1194,8 +1195,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("runs")
-      .description("List heartbeat runs associated with an issue")
-      .argument("<issueId>", "Issue ID or identifier")
+      .description(tCli("List heartbeat runs associated with an issue"))
+      .argument("<issueId>", tCli("Issue ID or identifier"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1210,8 +1211,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("live-runs")
-      .description("List queued and running heartbeat runs associated with an issue")
-      .argument("<issueId>", "Issue ID or identifier")
+      .description(tCli("List queued and running heartbeat runs associated with an issue"))
+      .argument("<issueId>", tCli("Issue ID or identifier"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1226,8 +1227,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("active-run")
-      .description("Show the active heartbeat run associated with an issue")
-      .argument("<issueId>", "Issue ID or identifier")
+      .description(tCli("Show the active heartbeat run associated with an issue"))
+      .argument("<issueId>", tCli("Issue ID or identifier"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1242,17 +1243,17 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("feedback:export")
-      .description("Export feedback traces for an issue")
-      .argument("<issueId>", "Issue ID")
-      .option("--target-type <type>", "Filter by target type")
-      .option("--vote <vote>", "Filter by vote value")
-      .option("--status <status>", "Filter by trace status")
-      .option("--from <iso8601>", "Only include traces created at or after this timestamp")
-      .option("--to <iso8601>", "Only include traces created at or before this timestamp")
-      .option("--shared-only", "Only include traces eligible for sharing/export")
-      .option("--include-payload", "Include stored payload snapshots in the export")
-      .option("--out <path>", "Write export to a file path instead of stdout")
-      .option("--format <format>", "Export format: json or ndjson", "ndjson")
+      .description(tCli("Export feedback traces for an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .option("--target-type <type>", tCli("Filter by target type"))
+      .option("--vote <vote>", tCli("Filter by vote value"))
+      .option("--status <status>", tCli("Filter by trace status"))
+      .option("--from <iso8601>", tCli("Only include traces created at or after this timestamp"))
+      .option("--to <iso8601>", tCli("Only include traces created at or before this timestamp"))
+      .option("--shared-only", tCli("Only include traces eligible for sharing/export"))
+      .option("--include-payload", tCli("Include stored payload snapshots in the export"))
+      .option("--out <path>", tCli("Write export to a file path instead of stdout"))
+      .option("--format <format>", tCli("Export format: json or ndjson"), "ndjson")
       .action(async (issueId: string, opts: IssueFeedbackOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1269,7 +1270,7 @@ export function registerIssueCommands(program: Command): void {
                 );
                 return;
               }
-              console.log(`Wrote ${traces.length} feedback trace(s) to ${opts.out}`);
+              console.log(tCli("Wrote {{count}} feedback trace(s) to {{out}}", { count: traces.length, out: opts.out }));
             return;
           }
           process.stdout.write(`${serialized}${serialized.endsWith("\n") ? "" : "\n"}`);
@@ -1282,12 +1283,12 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("checkout")
-      .description("Checkout issue for an agent")
-      .argument("<issueId>", "Issue ID")
-      .requiredOption("--agent-id <id>", "Agent ID")
+      .description(tCli("Checkout issue for an agent"))
+      .argument("<issueId>", tCli("Issue ID"))
+      .requiredOption("--agent-id <id>", tCli("Agent ID"))
       .option(
         "--expected-statuses <csv>",
-        "Expected current statuses",
+        tCli("Expected current statuses"),
         "todo,backlog,blocked",
       )
       .action(async (issueId: string, opts: IssueCheckoutOptions) => {
@@ -1308,8 +1309,8 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("release")
-      .description("Release issue back to todo and clear assignee")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("Release issue back to todo and clear assignee"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1338,7 +1339,7 @@ function addIssuePostDeleteMarkerCommand(
     issue
       .command(name)
       .description(description)
-      .argument("<issueId>", "Issue ID")
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1361,7 +1362,7 @@ function parseOptionalInt(value: string | undefined): number | undefined {
   if (value === undefined) return undefined;
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) {
-    throw new Error(`Invalid integer value: ${value}`);
+    throw new Error(tCli("Invalid integer value: {{value}}", { value: value }));
   }
   return parsed;
 }
@@ -1435,8 +1436,8 @@ async function parseFetchResponse(response: Response): Promise<unknown> {
     const message =
       typeof parsed === "object" && parsed !== null && "error" in parsed && typeof parsed.error === "string"
         ? parsed.error
-        : `Request failed with status ${response.status}`;
-    throw new Error(`API error ${response.status}: ${message}`);
+        : tCli("Request failed with status {{status}}", { status: response.status });
+    throw new Error(tCli("API error {{status}}: {{message}}", { status: response.status, message: translateCliDisplayMessage(message) }));
   }
   return parsed;
 }

@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import type { HeartbeatRun, HeartbeatRunEvent, Issue, WorkspaceOperation } from "@paperclipai/shared";
 import {
@@ -47,10 +48,10 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("list")
-      .description("List heartbeat runs for a company")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--agent-id <id>", "Filter by agent ID")
-      .option("--limit <n>", "Maximum runs to return")
+      .description(tCli("List heartbeat runs for a company"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--agent-id <id>", tCli("Filter by agent ID"))
+      .option("--limit <n>", tCli("Maximum runs to return"))
       .action(async (opts: RunListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -72,10 +73,10 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("live")
-      .description("List queued and running heartbeat runs for a company")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--limit <n>", "Maximum runs to return")
-      .option("--min-count <n>", "Pad with recent completed runs up to this count")
+      .description(tCli("List queued and running heartbeat runs for a company"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--limit <n>", tCli("Maximum runs to return"))
+      .option("--min-count <n>", tCli("Pad with recent completed runs up to this count"))
       .action(async (opts: RunLiveOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -97,8 +98,8 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("get")
-      .description("Get a heartbeat run")
-      .argument("<runId>", "Heartbeat run ID")
+      .description(tCli("Get a heartbeat run"))
+      .argument("<runId>", tCli("Heartbeat run ID"))
       .action(async (runId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -113,8 +114,8 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("cancel")
-      .description("Cancel a queued or running heartbeat run")
-      .argument("<runId>", "Heartbeat run ID")
+      .description(tCli("Cancel a queued or running heartbeat run"))
+      .argument("<runId>", tCli("Heartbeat run ID"))
       .action(async (runId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -129,10 +130,10 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("events")
-      .description("List heartbeat run events")
-      .argument("<runId>", "Heartbeat run ID")
-      .option("--after-seq <n>", "Only return events after this sequence", "0")
-      .option("--limit <n>", "Maximum events to return", "200")
+      .description(tCli("List heartbeat run events"))
+      .argument("<runId>", tCli("Heartbeat run ID"))
+      .option("--after-seq <n>", tCli("Only return events after this sequence"), "0")
+      .option("--limit <n>", tCli("Maximum events to return"), "200")
       .action(async (runId: string, opts: RunEventsOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -165,11 +166,11 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("log")
-      .description("Read heartbeat run log bytes")
-      .argument("<runId>", "Heartbeat run ID")
-      .option("--offset <bytes>", "Byte offset", "0")
-      .option("--limit-bytes <bytes>", "Maximum bytes to read")
-      .option("--text", "Print only the log text when the API returns a text field")
+      .description(tCli("Read heartbeat run log bytes"))
+      .argument("<runId>", tCli("Heartbeat run ID"))
+      .option("--offset <bytes>", tCli("Byte offset"), "0")
+      .option("--limit-bytes <bytes>", tCli("Maximum bytes to read"))
+      .option("--text", tCli("Print only the log text when the API returns a text field"))
       .action(async (runId: string, opts: RunLogOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -184,8 +185,8 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("issues")
-      .description("List issues associated with a heartbeat run")
-      .argument("<runId>", "Heartbeat run ID")
+      .description(tCli("List issues associated with a heartbeat run"))
+      .argument("<runId>", tCli("Heartbeat run ID"))
       .action(async (runId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -207,8 +208,8 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("workspace-operations")
-      .description("List workspace operations for a heartbeat run")
-      .argument("<runId>", "Heartbeat run ID")
+      .description(tCli("List workspace operations for a heartbeat run"))
+      .argument("<runId>", tCli("Heartbeat run ID"))
       .action(async (runId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -232,11 +233,11 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("workspace-log")
-      .description("Read a workspace operation log")
-      .argument("<operationId>", "Workspace operation ID")
-      .option("--offset <bytes>", "Byte offset", "0")
-      .option("--limit-bytes <bytes>", "Maximum bytes to read")
-      .option("--text", "Print only the log text when the API returns a text field")
+      .description(tCli("Read a workspace operation log"))
+      .argument("<operationId>", tCli("Workspace operation ID"))
+      .option("--offset <bytes>", tCli("Byte offset"), "0")
+      .option("--limit-bytes <bytes>", tCli("Maximum bytes to read"))
+      .option("--text", tCli("Print only the log text when the API returns a text field"))
       .action(async (operationId: string, opts: RunLogOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -251,12 +252,12 @@ export function registerRunCommands(command: Command): void {
   addCommonClientOptions(
     command
       .command("watchdog-decision")
-      .description("Record a watchdog decision for a heartbeat run")
-      .argument("<runId>", "Heartbeat run ID")
-      .requiredOption("--decision <decision>", "snooze, continue, or dismissed_false_positive")
-      .option("--reason <text>", "Decision reason")
-      .option("--snoozed-until <iso8601>", "Required for snooze decisions")
-      .option("--evaluation-issue-id <id>", "Related watchdog evaluation issue ID")
+      .description(tCli("Record a watchdog decision for a heartbeat run"))
+      .argument("<runId>", tCli("Heartbeat run ID"))
+      .requiredOption("--decision <decision>", tCli("snooze, continue, or dismissed_false_positive"))
+      .option("--reason <text>", tCli("Decision reason"))
+      .option("--snoozed-until <iso8601>", tCli("Required for snooze decisions"))
+      .option("--evaluation-issue-id <id>", tCli("Related watchdog evaluation issue ID"))
       .action(async (runId: string, opts: RunWatchdogOptions) => {
         try {
           const ctx = resolveCommandContext(opts);

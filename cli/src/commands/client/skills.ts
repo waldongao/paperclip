@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../../i18n.js";
 import { Command } from "commander";
 import {
   agentSkillAssignmentModeSchema,
@@ -90,15 +91,15 @@ export interface CompanySkillUpdateRow {
 }
 
 export function registerSkillsCommands(program: Command): void {
-  const skills = program.command("skills").description("Company and agent skill operations");
+  const skills = program.command("skills").description(tCli("Company and agent skill operations"));
 
   addCommonClientOptions(
     skills
       .command("browse")
-      .description("Browse app-shipped catalog skills without installing them")
-      .option("--kind <kind>", "Catalog kind filter (bundled or optional)")
-      .option("--category <slug>", "Catalog category filter")
-      .option("--query <text>", "Search catalog text")
+      .description(tCli("Browse app-shipped catalog skills without installing them"))
+      .option("--kind <kind>", tCli("Catalog kind filter (bundled or optional)"))
+      .option("--category <slug>", tCli("Catalog category filter"))
+      .option("--query <text>", tCli("Search catalog text"))
       .action(async (opts: CatalogBrowseOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -117,10 +118,10 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("search")
-      .description("Search app-shipped catalog skills without installing them")
-      .argument("<query>", "Search text")
-      .option("--kind <kind>", "Catalog kind filter (bundled or optional)")
-      .option("--category <slug>", "Catalog category filter")
+      .description(tCli("Search app-shipped catalog skills without installing them"))
+      .argument("<query>", tCli("Search text"))
+      .option("--kind <kind>", tCli("Catalog kind filter (bundled or optional)"))
+      .option("--category <slug>", tCli("Catalog category filter"))
       .action(async (query: string, opts: CatalogBrowseOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -139,8 +140,8 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("inspect")
-      .description("Inspect an app-shipped catalog skill before installing it")
-      .argument("<catalogRef>", "Catalog skill ID, key, or unique slug")
+      .description(tCli("Inspect an app-shipped catalog skill before installing it"))
+      .argument("<catalogRef>", tCli("Catalog skill ID, key, or unique slug"))
       .action(async (catalogRef: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -159,10 +160,10 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("install")
-      .description("Install a catalog skill into the company skill library; does not attach it to agents")
-      .argument("<catalogRef>", "Catalog skill ID, key, or unique slug")
-      .option("--as <slug>", "Company skill slug override")
-      .option("--force", "Replace a same-key catalog-managed skill when the server allows it", false)
+      .description(tCli("Install a catalog skill into the company skill library; does not attach it to agents"))
+      .argument("<catalogRef>", tCli("Catalog skill ID, key, or unique slug"))
+      .option("--as <slug>", tCli("Company skill slug override"))
+      .option("--force", tCli("Replace a same-key catalog-managed skill when the server allows it"), false)
       .action(async (catalogRef: string, opts: CatalogInstallOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -189,7 +190,7 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("list")
-      .description("List company skills")
+      .description(tCli("List company skills"))
       .action(async (opts: SkillsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -209,8 +210,8 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("show")
-      .description("Show company skill details")
-      .argument("<skillRef>", "Company skill ID, key, or unique slug")
+      .description(tCli("Show company skill details"))
+      .argument("<skillRef>", tCli("Company skill ID, key, or unique slug"))
       .action(async (skillRef: string, opts: SkillsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -229,9 +230,9 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("file")
-      .description("Print a company skill file")
-      .argument("<skillRef>", "Company skill ID, key, or unique slug")
-      .option("--path <path>", "Relative file path", "SKILL.md")
+      .description(tCli("Print a company skill file"))
+      .argument("<skillRef>", tCli("Company skill ID, key, or unique slug"))
+      .option("--path <path>", tCli("Relative file path"), "SKILL.md")
       .action(async (skillRef: string, opts: SkillFileOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -258,8 +259,8 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("import")
-      .description("Import company skills from a local path, GitHub, skills.sh, or URL source")
-      .argument("<source>", "Skill source")
+      .description(tCli("Import company skills from a local path, GitHub, skills.sh, or URL source"))
+      .argument("<source>", tCli("Skill source"))
       .action(async (source: string, opts: SkillsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -272,11 +273,11 @@ export function registerSkillsCommands(program: Command): void {
             return;
           }
           console.log(
-            `Imported ${result?.imported.length ?? 0} skill(s); warnings=${result?.warnings.length ?? 0}`,
+            tCli("Imported {{value0}} skill(s); warnings={{value1}}", { value0: result?.imported.length ?? 0, value1: result?.warnings.length ?? 0 }),
           );
           printCompanySkillRows(result?.imported ?? []);
           for (const warning of result?.warnings ?? []) {
-            console.log(`warning=${warning}`);
+            console.log(tCli("warning={{warning}}", { warning: translateCliDisplayMessage(warning) }));
           }
         } catch (err) {
           handleCommandError(err);
@@ -288,11 +289,11 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("create")
-      .description("Create a managed local company skill")
-      .requiredOption("--name <name>", "Skill name")
-      .option("--slug <slug>", "Skill slug")
-      .option("--description <text>", "Skill description")
-      .option("--body-file <path>", "Markdown body file; use - to read stdin")
+      .description(tCli("Create a managed local company skill"))
+      .requiredOption("--name <name>", tCli("Skill name"))
+      .option("--slug <slug>", tCli("Skill slug"))
+      .option("--description <text>", tCli("Skill description"))
+      .option("--body-file <path>", tCli("Markdown body file; use - to read stdin"))
       .action(async (opts: SkillCreateOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -310,7 +311,7 @@ export function registerSkillsCommands(program: Command): void {
             printOutput(created, { json: true });
             return;
           }
-          console.log(`Created skill ${created?.name ?? opts.name} (${created?.key ?? created?.id ?? "unknown"})`);
+          console.log(tCli("Created skill {{value0}} ({{value1}})", { value0: created?.name ?? opts.name, value1: created?.key ?? created?.id ?? "unknown" }));
         } catch (err) {
           handleCommandError(err);
         }
@@ -321,9 +322,9 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("scan-projects")
-      .description("Scan project workspaces for skills")
-      .option("--project-id <id>", "Project ID to scan; may be repeated", collectOptionValue, [] as string[])
-      .option("--workspace-id <id>", "Workspace ID to scan; may be repeated", collectOptionValue, [] as string[])
+      .description(tCli("Scan project workspaces for skills"))
+      .option("--project-id <id>", tCli("Project ID to scan; may be repeated"), collectOptionValue, [] as string[])
+      .option("--workspace-id <id>", tCli("Workspace ID to scan; may be repeated"), collectOptionValue, [] as string[])
       .action(async (opts: SkillScanProjectsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -339,7 +340,7 @@ export function registerSkillsCommands(program: Command): void {
             return;
           }
           console.log(
-            `Scanned projects=${result?.scannedProjects ?? 0} workspaces=${result?.scannedWorkspaces ?? 0} discovered=${result?.discovered ?? 0} imported=${result?.imported.length ?? 0} updated=${result?.updated.length ?? 0} skipped=${result?.skipped.length ?? 0} conflicts=${result?.conflicts.length ?? 0} warnings=${result?.warnings.length ?? 0}`,
+            tCli("Scanned projects={{value0}} workspaces={{value1}} discovered={{value2}} imported={{value3}} updated={{value4}} skipped={{value5}} conflicts={{value6}} warnings={{value7}}", { value0: result?.scannedProjects ?? 0, value1: result?.scannedWorkspaces ?? 0, value2: result?.discovered ?? 0, value3: result?.imported.length ?? 0, value4: result?.updated.length ?? 0, value5: result?.skipped.length ?? 0, value6: result?.conflicts.length ?? 0, value7: result?.warnings.length ?? 0 }),
           );
         } catch (err) {
           handleCommandError(err);
@@ -351,8 +352,8 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("check")
-      .description("Check company skill update status")
-      .argument("[skillRef]", "Company skill ID, key, or unique slug")
+      .description(tCli("Check company skill update status"))
+      .argument("[skillRef]", tCli("Company skill ID, key, or unique slug"))
       .action(async (skillRef: string | undefined, opts: SkillsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -372,15 +373,15 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("update")
-      .description("Install company skill updates")
-      .argument("[skillRef]", "Company skill ID, key, or unique slug")
-      .option("--all", "Check all skills and install available updates", false)
-      .option("--force", "Discard local-modification or soft-audit holds; hard-stop audit findings still fail", false)
+      .description(tCli("Install company skill updates"))
+      .argument("[skillRef]", tCli("Company skill ID, key, or unique slug"))
+      .option("--all", tCli("Check all skills and install available updates"), false)
+      .option("--force", tCli("Discard local-modification or soft-audit holds; hard-stop audit findings still fail"), false)
       .action(async (skillRef: string | undefined, opts: SkillUpdateOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           if (opts.all && skillRef?.trim()) {
-            throw new Error("Use either a skill reference or --all, not both.");
+            throw new Error(tCli("Use either a skill reference or --all, not both."));
           }
           const rows = opts.all
             ? await updateAllCompanySkills(ctx, opts)
@@ -400,8 +401,8 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("audit")
-      .description("Audit installed company skill bytes without executing them")
-      .argument("[skillRef]", "Company skill ID, key, or unique slug")
+      .description(tCli("Audit installed company skill bytes without executing them"))
+      .argument("[skillRef]", tCli("Company skill ID, key, or unique slug"))
       .action(async (skillRef: string | undefined, opts: SkillsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -421,15 +422,15 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("reset")
-      .description("Reset a catalog-managed company skill to its pinned installed origin")
-      .argument("<skillRef>", "Company skill ID, key, or unique slug")
-      .option("--yes", "Confirm reset without prompting", false)
-      .option("--force", "Discard local modifications or accept soft audit warnings; hard-stop audit findings still fail", false)
+      .description(tCli("Reset a catalog-managed company skill to its pinned installed origin"))
+      .argument("<skillRef>", tCli("Company skill ID, key, or unique slug"))
+      .option("--yes", tCli("Confirm reset without prompting"), false)
+      .option("--force", tCli("Discard local modifications or accept soft audit warnings; hard-stop audit findings still fail"), false)
       .action(async (skillRef: string, opts: ConfirmedSkillOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           const skill = await resolveCompanySkill(ctx, skillRef);
-          await confirmDangerousAction(opts.yes, `Reset catalog skill "${skill.name}" (${skill.key}) to its pinned origin?`);
+          await confirmDangerousAction(opts.yes, tCli("Reset catalog skill \"{{name}}\" ({{key}}) to its pinned origin?", { name: skill.name, key: skill.key }));
           const reset = await ctx.api.post<CompanySkill>(
             `/api/companies/${ctx.companyId}/skills/${encodeURIComponent(skill.id)}/reset`,
             { force: opts.force || undefined },
@@ -438,7 +439,7 @@ export function registerSkillsCommands(program: Command): void {
             printOutput(reset, { json: true });
             return;
           }
-          console.log(`Reset skill ${reset?.name ?? skill.name} (${reset?.key ?? skill.key}) to pinned origin.`);
+          console.log(tCli("Reset skill {{value0}} ({{value1}}) to pinned origin.", { value0: reset?.name ?? skill.name, value1: reset?.key ?? skill.key }));
         } catch (err) {
           handleCommandError(err);
         }
@@ -449,14 +450,14 @@ export function registerSkillsCommands(program: Command): void {
   addCommonClientOptions(
     skills
       .command("remove")
-      .description("Remove a company skill")
-      .argument("<skillRef>", "Company skill ID, key, or unique slug")
-      .option("--yes", "Confirm removal without prompting", false)
+      .description(tCli("Remove a company skill"))
+      .argument("<skillRef>", tCli("Company skill ID, key, or unique slug"))
+      .option("--yes", tCli("Confirm removal without prompting"), false)
       .action(async (skillRef: string, opts: ConfirmedSkillOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           const skill = await resolveCompanySkill(ctx, skillRef);
-          await confirmDangerousAction(opts.yes, `Remove company skill "${skill.name}" (${skill.key})?`);
+          await confirmDangerousAction(opts.yes, tCli("Remove company skill \"{{name}}\" ({{key}})?", { name: skill.name, key: skill.key }));
           const removed = await ctx.api.delete<CompanySkill>(
             `/api/companies/${ctx.companyId}/skills/${encodeURIComponent(skill.id)}`,
           );
@@ -464,7 +465,7 @@ export function registerSkillsCommands(program: Command): void {
             printOutput(removed, { json: true });
             return;
           }
-          console.log(`Removed skill ${removed?.name ?? skill.name} (${removed?.key ?? skill.key})`);
+          console.log(tCli("Removed skill {{value0}} ({{value1}})", { value0: removed?.name ?? skill.name, value1: removed?.key ?? skill.key }));
         } catch (err) {
           handleCommandError(err);
         }
@@ -476,13 +477,13 @@ export function registerSkillsCommands(program: Command): void {
 }
 
 function registerAgentSkillCommands(skills: Command): void {
-  const agent = skills.command("agent").description("Agent desired-skill and runtime sync operations");
+  const agent = skills.command("agent").description(tCli("Agent desired-skill and runtime sync operations"));
 
   addCommonClientOptions(
     agent
       .command("list")
-      .description("List an agent runtime skill snapshot")
-      .argument("<agentRef>", "Agent ID or shortname/url-key")
+      .description(tCli("List an agent runtime skill snapshot"))
+      .argument("<agentRef>", tCli("Agent ID or shortname/url-key"))
       .action(async (agentRef: string, opts: SkillsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -505,18 +506,18 @@ function registerAgentSkillCommands(skills: Command): void {
   addCommonClientOptions(
     agent
       .command("sync")
-      .description("Merge an agent's desired company skills and sync runtime state")
-      .argument("<agentRef>", "Agent ID or shortname/url-key")
-      .option("--skill <skillRef>", "Desired company skill ID, key, or slug; may be repeated", collectOptionValue, [] as string[])
+      .description(tCli("Merge an agent's desired company skills and sync runtime state"))
+      .argument("<agentRef>", tCli("Agent ID or shortname/url-key"))
+      .option("--skill <skillRef>", tCli("Desired company skill ID, key, or slug; may be repeated"), collectOptionValue, [] as string[])
       .requiredOption(
         "--mode <mode>",
-        "Merge mode: add keeps other skills; remove deletes only named skills; replace destructively overwrites the complete set",
+        tCli("Merge mode: add keeps other skills; remove deletes only named skills; replace destructively overwrites the complete set"),
       )
       .action(async (agentRef: string, opts: AgentSkillSyncOptions) => {
         try {
           const desiredSkills = opts.skill ?? [];
           if (desiredSkills.length === 0) {
-            throw new Error("At least one --skill value is required for skills agent sync.");
+            throw new Error(tCli("At least one --skill value is required for skills agent sync."));
           }
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           const agentRow = await resolveAgent(ctx, agentRef);
@@ -530,7 +531,7 @@ function registerAgentSkillCommands(skills: Command): void {
             return;
           }
           console.log(
-            `Desired company skills updated with ${mode} mode for ${agentRow.name} (${agentRow.id}); runtime sync returned ${snapshot?.entries.length ?? 0} entrie(s).`,
+            tCli("Desired company skills updated with {{mode}} mode for {{name}} ({{id}}); runtime sync returned {{value3}} entrie(s).", { mode: tCli(mode), name: agentRow.name, id: agentRow.id, value3: snapshot?.entries.length ?? 0 }),
           );
           printAgentSkillSnapshot(snapshot, agentRow);
         } catch (err) {
@@ -543,16 +544,16 @@ function registerAgentSkillCommands(skills: Command): void {
   addCommonClientOptions(
     agent
       .command("clear")
-      .description("Clear an agent's desired company skills and sync runtime state")
-      .argument("<agentRef>", "Agent ID or shortname/url-key")
-      .option("--yes", "Confirm clear without prompting", false)
+      .description(tCli("Clear an agent's desired company skills and sync runtime state"))
+      .argument("<agentRef>", tCli("Agent ID or shortname/url-key"))
+      .option("--yes", tCli("Confirm clear without prompting"), false)
       .action(async (agentRef: string, opts: ConfirmedSkillOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           const agentRow = await resolveAgent(ctx, agentRef);
           await confirmDangerousAction(
             opts.yes,
-            `Clear desired company skills for "${agentRow.name}" (${agentRow.id})?`,
+            tCli("Clear desired company skills for \"{{name}}\" ({{id}})?", { name: agentRow.name, id: agentRow.id }),
           );
           const snapshot = await ctx.api.post<AgentSkillSnapshot>(
             `/api/agents/${encodeURIComponent(agentRow.id)}/skills/sync`,
@@ -563,7 +564,7 @@ function registerAgentSkillCommands(skills: Command): void {
             return;
           }
           console.log(
-            `Desired company skills cleared for ${agentRow.name} (${agentRow.id}).`,
+            tCli("Desired company skills cleared for {{name}} ({{id}}).", { name: agentRow.name, id: agentRow.id }),
           );
           printAgentSkillSnapshot(snapshot, agentRow);
         } catch (err) {
@@ -593,11 +594,11 @@ async function listCatalogSkills(
 async function getCatalogSkill(ctx: ResolvedClientContext, catalogRef: string): Promise<CatalogSkill> {
   const ref = catalogRef.trim();
   if (!ref) {
-    throw new Error("Catalog skill reference is required.");
+    throw new Error(tCli("Catalog skill reference is required."));
   }
   const detail = await ctx.api.get<CatalogSkill>(`/api/skills/catalog/ref?ref=${encodeURIComponent(ref)}`);
   if (!detail) {
-    throw new Error(`Catalog skill not found: ${catalogRef}`);
+    throw new Error(tCli("Catalog skill not found: {{catalogRef}}", { catalogRef: catalogRef }));
   }
   return detail;
 }
@@ -608,7 +609,7 @@ export function resolveCompanySkillReference(
 ): CompanySkillReferenceTarget {
   const trimmed = reference.trim();
   if (!trimmed) {
-    throw new Error("Skill reference is required.");
+    throw new Error(tCli("Skill reference is required."));
   }
 
   const byId = skills.find((skill) => skill.id === trimmed);
@@ -621,10 +622,10 @@ export function resolveCompanySkillReference(
   const bySlug = skills.filter((skill) => skill.slug === normalizedSlug);
   if (bySlug.length === 1 && bySlug[0]) return bySlug[0];
   if (bySlug.length > 1) {
-    throw new Error(`Ambiguous skill slug "${trimmed}". Use a skill ID or key instead.`);
+    throw new Error(tCli("Ambiguous skill slug \"{{trimmed}}\". Use a skill ID or key instead.", { trimmed: trimmed }));
   }
 
-  throw new Error(`Skill not found: ${reference}`);
+  throw new Error(tCli("Skill not found: {{reference}}", { reference: reference }));
 }
 
 async function resolveCompanySkill(
@@ -646,7 +647,7 @@ async function checkCompanySkills(
       `/api/companies/${ctx.companyId}/skills/${encodeURIComponent(skill.id)}/update-status`,
     );
     if (!status) {
-      throw new Error(`No update status returned for skill ${skill.key}.`);
+      throw new Error(tCli("No update status returned for skill {{key}}.", { key: skill.key }));
     }
     rows.push({ skill: toSkillReferenceTarget(skill), status });
   }
@@ -679,7 +680,7 @@ async function updateAllCompanySkills(ctx: ResolvedClientContext, opts: SkillUpd
         skillRef: row.skill.key,
         action: "skipped",
         status: row.status,
-        reason: row.status.reason ?? "Update checks are not supported for this skill.",
+        reason: row.status.reason ?? tCli("Update checks are not supported for this skill."),
       });
       continue;
     }
@@ -688,7 +689,7 @@ async function updateAllCompanySkills(ctx: ResolvedClientContext, opts: SkillUpd
         skillRef: row.skill.key,
         action: "skipped",
         status: row.status,
-        reason: "Already current.",
+        reason: tCli("Already current."),
       });
       continue;
     }
@@ -728,7 +729,7 @@ async function auditCompanySkills(
       {},
     );
     if (!audit) {
-      throw new Error(`No audit result returned for skill ${skill.key}.`);
+      throw new Error(tCli("No audit result returned for skill {{key}}.", { key: skill.key }));
     }
     rows.push({ skill: toSkillReferenceTarget(skill), audit });
   }
@@ -739,7 +740,7 @@ async function resolveAgent(ctx: ResolvedClientContext, agentRef: string): Promi
   const params = new URLSearchParams({ companyId: ctx.companyId ?? "" });
   const agent = await ctx.api.get<Agent>(`/api/agents/${encodeURIComponent(agentRef)}?${params.toString()}`);
   if (!agent) {
-    throw new Error(`Agent not found: ${agentRef}`);
+    throw new Error(tCli("Agent not found: {{agentRef}}", { agentRef: agentRef }));
   }
   return agent;
 }
@@ -799,7 +800,7 @@ function printCatalogSkillDetail(skill: CatalogSkill): void {
   console.log(`description=${skill.description || "-"}`);
   console.log(`recommendedForRoles=${skill.recommendedForRoles.join(",") || "-"}`);
   console.log(`tags=${skill.tags.join(",") || "-"}`);
-  console.log("files:");
+  console.log(tCli("files:"));
   printTable(skill.files.map((file) => ({
     path: file.path,
     kind: file.kind,
@@ -810,17 +811,17 @@ function printCatalogSkillDetail(skill: CatalogSkill): void {
 
 function printCatalogInstallResult(result: CompanySkillInstallCatalogResult | null): void {
   if (!result) {
-    console.log("Catalog install returned no result.");
+    console.log(tCli("Catalog install returned no result."));
     return;
   }
   console.log(
-    `Catalog skill ${result.action}: ${result.skill.name} (${result.skill.key}) in company skill library.`,
+    tCli("Catalog skill {{action}}: {{name}} ({{key}}) in company skill library.", { action: tCli(result.action), name: result.skill.name, key: result.skill.key }),
   );
   console.log(
-    "This does not attach the skill to an agent. Use `paperclipai skills agent sync <agent> --skill <skill>` when you want an agent to use it.",
+    tCli("This does not attach the skill to an agent. Use `paperclipai skills agent sync <agent> --skill <skill>` when you want an agent to use it."),
   );
   for (const warning of result.warnings) {
-    console.log(`warning=${warning}`);
+    console.log(tCli("warning={{warning}}", { warning: translateCliDisplayMessage(warning) }));
   }
 }
 
@@ -844,7 +845,7 @@ function printCompanySkillCheckRows(rows: CompanySkillCheckRow[]): void {
         originHash: row.status.originHash,
         hold: row.status.updateHoldReason,
         audit: row.status.auditVerdict,
-        reason: row.status.reason,
+        reason: row.status.reason ? translateCliDisplayMessage(row.status.reason) : row.status.reason,
       }),
     );
   }
@@ -873,7 +874,7 @@ function printCompanySkillAuditRows(rows: Array<{ skill: CompanySkillReferenceTa
           severity: finding.severity,
           code: finding.code,
           path: finding.path,
-          message: finding.message,
+          message: translateCliDisplayMessage(finding.message),
         }),
       );
     }
@@ -889,7 +890,7 @@ function printCompanySkillUpdateRows(rows: CompanySkillUpdateRow[]): void {
         key: row.skill?.key,
         slug: row.skill?.slug,
         hasUpdate: row.status?.hasUpdate,
-        reason: row.reason,
+        reason: row.reason ? translateCliDisplayMessage(row.reason) : row.reason,
       }),
     );
   }
@@ -897,15 +898,15 @@ function printCompanySkillUpdateRows(rows: CompanySkillUpdateRow[]): void {
 
 function printAgentSkillSnapshot(snapshot: AgentSkillSnapshot | null, agent: Agent): void {
   if (!snapshot) {
-    console.log(`Agent ${agent.name} (${agent.id}) returned no skill snapshot.`);
+    console.log(tCli("Agent {{name}} ({{id}}) returned no skill snapshot.", { name: agent.name, id: agent.id }));
     return;
   }
   console.log(
-    `Agent ${agent.name} (${agent.id}) adapter=${snapshot.adapterType} supported=${snapshot.supported} mode=${snapshot.mode} desiredCompanySkills=${snapshot.desiredSkills.length}`,
+    tCli("Agent {{name}} ({{id}}) adapter={{adapterType}} supported={{supported}} mode={{mode}} desiredCompanySkills={{count}}", { name: agent.name, id: agent.id, adapterType: snapshot.adapterType, supported: snapshot.supported, mode: tCli(snapshot.mode), count: snapshot.desiredSkills.length }),
   );
   if (snapshot.warnings.length > 0) {
     for (const warning of snapshot.warnings) {
-      console.log(`warning=${warning}`);
+      console.log(tCli("warning={{warning}}", { warning: translateCliDisplayMessage(warning) }));
     }
   }
   if (snapshot.entries.length === 0) {
@@ -942,7 +943,7 @@ function normalizeSkillSlug(value: string): string {
 
 function requireSkillRef(skillRef: string | undefined): string {
   if (!skillRef?.trim()) {
-    throw new Error("Skill reference is required unless --all is used.");
+    throw new Error(tCli("Skill reference is required unless --all is used."));
   }
   return skillRef;
 }
@@ -1010,13 +1011,13 @@ async function readStdin(): Promise<string> {
 async function confirmDangerousAction(yes: boolean | undefined, message: string): Promise<void> {
   if (yes) return;
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    throw new Error("This command requires --yes when not running in an interactive terminal.");
+    throw new Error(tCli("This command requires --yes when not running in an interactive terminal."));
   }
   const rl = createInterface({ input, output });
   try {
-    const answer = (await rl.question(`${message} Type yes to continue: `)).trim().toLowerCase();
+    const answer = (await rl.question(tCli("{{message}} Type yes to continue: ", { message: message }))).trim().toLowerCase();
     if (answer !== "yes") {
-      throw new Error("Aborted.");
+      throw new Error(tCli("Aborted."));
     }
   } finally {
     rl.close();

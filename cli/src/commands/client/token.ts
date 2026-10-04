@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import { createAgentKeySchema, createBoardApiKeySchema, type Agent } from "@paperclipai/shared";
 import {
@@ -59,23 +60,23 @@ interface BoardKeyRow {
 }
 
 export function registerTokenCommands(program: Command): void {
-  const token = program.command("token").description("Manage Paperclip API tokens");
-  const agent = token.command("agent").description("Manage agent API keys");
+  const token = program.command("token").description(tCli("Manage Paperclip API tokens"));
+  const agent = token.command("agent").description(tCli("Manage agent API keys"));
 
   addCommonClientOptions(
     agent
       .command("create")
-      .description("Create an agent API key")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--agent <agent>", "Agent ID, shortname, or unambiguous name")
-      .option("--name <name>", "API key label", "cli-agent")
+      .description(tCli("Create an agent API key"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--agent <agent>", tCli("Agent ID, shortname, or unambiguous name"))
+      .option("--name <name>", tCli("API key label"), "cli-agent")
       .action(async (opts: AgentTokenOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           const agentRow = await resolveAgent(ctx.api, ctx.companyId ?? "", opts.agent ?? "");
           const payload = createAgentKeySchema.parse({ name: opts.name });
           const key = await ctx.api.post<CreatedAgentKey>(apiPath`/api/agents/${agentRow.id}/keys`, payload);
-          if (!key) throw new Error("Failed to create agent API key");
+          if (!key) throw new Error(tCli("Failed to create agent API key"));
           printOutput(
             {
               agentId: agentRow.id,
@@ -95,9 +96,9 @@ export function registerTokenCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("list")
-      .description("List agent API keys")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--agent <agent>", "Agent ID, shortname, or unambiguous name")
+      .description(tCli("List agent API keys"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--agent <agent>", tCli("Agent ID, shortname, or unambiguous name"))
       .action(async (opts: AgentTokenOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -121,10 +122,10 @@ export function registerTokenCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("revoke")
-      .description("Revoke an agent API key")
-      .argument("<keyId>", "Agent API key ID")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--agent <agent>", "Agent ID, shortname, or unambiguous name")
+      .description(tCli("Revoke an agent API key"))
+      .argument("<keyId>", tCli("Agent API key ID"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--agent <agent>", tCli("Agent ID, shortname, or unambiguous name"))
       .action(async (keyId: string, opts: AgentTokenOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -138,17 +139,17 @@ export function registerTokenCommands(program: Command): void {
     { includeCompany: false },
   );
 
-  const board = token.command("board").description("Manage board API keys");
+  const board = token.command("board").description(tCli("Manage board API keys"));
 
   addCommonClientOptions(
     board
       .command("create")
-      .description("Create a named board API key")
-      .option("-C, --company-id <id>", "Company ID used for audit context")
-      .option("--name <name>", "API key label", "cli-board")
-      .option("--expires-at <iso8601>", "Expiration timestamp")
-      .option("--ttl-days <days>", "Expiration in days from now")
-      .option("--never-expires", "Create a non-expiring key")
+      .description(tCli("Create a named board API key"))
+      .option("-C, --company-id <id>", tCli("Company ID used for audit context"))
+      .option("--name <name>", tCli("API key label"), "cli-board")
+      .option("--expires-at <iso8601>", tCli("Expiration timestamp"))
+      .option("--ttl-days <days>", tCli("Expiration in days from now"))
+      .option("--never-expires", tCli("Create a non-expiring key"))
       .action(async (opts: BoardTokenOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -159,7 +160,7 @@ export function registerTokenCommands(program: Command): void {
             expiresAt,
           });
           const key = await ctx.api.post<CreatedBoardKey>("/api/board-api-keys", payload);
-          if (!key) throw new Error("Failed to create board API key");
+          if (!key) throw new Error(tCli("Failed to create board API key"));
           printOutput({ key }, { json: ctx.json });
         } catch (err) {
           handleCommandError(err);
@@ -171,7 +172,7 @@ export function registerTokenCommands(program: Command): void {
   addCommonClientOptions(
     board
       .command("list")
-      .description("List board API keys for the current board user")
+      .description(tCli("List board API keys for the current board user"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -200,8 +201,8 @@ export function registerTokenCommands(program: Command): void {
   addCommonClientOptions(
     board
       .command("revoke")
-      .description("Revoke a board API key")
-      .argument("<keyId>", "Board API key ID")
+      .description(tCli("Revoke a board API key"))
+      .argument("<keyId>", tCli("Board API key ID"))
       .action(async (keyId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -216,15 +217,15 @@ export function registerTokenCommands(program: Command): void {
 
 async function resolveAgent(api: { get<T>(path: string): Promise<T | null> }, companyId: string, agentRef: string): Promise<Agent> {
   const trimmed = agentRef.trim();
-  if (!trimmed) throw new Error("Agent reference is required");
+  if (!trimmed) throw new Error(tCli("Agent reference is required"));
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(trimmed)) {
     const agent = await api.get<Agent>(apiPath`/api/agents/${trimmed}`);
-    if (!agent || agent.companyId !== companyId) throw new Error(`Agent not found: ${agentRef}`);
+    if (!agent || agent.companyId !== companyId) throw new Error(tCli("Agent not found: {{agentRef}}", { agentRef: agentRef }));
     return agent;
   }
   const query = new URLSearchParams({ companyId });
   const agent = await api.get<Agent>(`${apiPath`/api/agents/${trimmed}`}?${query.toString()}`);
-  if (!agent || agent.companyId !== companyId) throw new Error(`Agent not found: ${agentRef}`);
+  if (!agent || agent.companyId !== companyId) throw new Error(tCli("Agent not found: {{agentRef}}", { agentRef: agentRef }));
   return agent;
 }
 
@@ -232,12 +233,12 @@ function resolveBoardKeyExpiresAt(opts: BoardTokenOptions): Date | null | undefi
   if (opts.neverExpires) return null;
   if (opts.expiresAt?.trim()) {
     const date = new Date(opts.expiresAt.trim());
-    if (!Number.isFinite(date.getTime())) throw new Error(`Invalid --expires-at value: ${opts.expiresAt}`);
+    if (!Number.isFinite(date.getTime())) throw new Error(tCli("Invalid --expires-at value: {{expiresAt}}", { expiresAt: opts.expiresAt }));
     return date;
   }
   if (opts.ttlDays?.trim()) {
     const days = Number(opts.ttlDays);
-    if (!Number.isFinite(days) || days <= 0) throw new Error(`Invalid --ttl-days value: ${opts.ttlDays}`);
+    if (!Number.isFinite(days) || days <= 0) throw new Error(tCli("Invalid --ttl-days value: {{ttlDays}}", { ttlDays: opts.ttlDays }));
     return new Date(Date.now() + Math.floor(days * 24 * 60 * 60 * 1000));
   }
   return undefined;

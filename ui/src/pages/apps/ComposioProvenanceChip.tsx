@@ -1,8 +1,10 @@
+import { t } from "@/i18n";
 import { Blocks } from "lucide-react";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
 import { appTabHref } from "./app-tabs";
 import { composioChildParentConnectionId, composioChildToolkitSlug } from "./composio-services";
+import { useTranslation } from "@/i18n";
 
 /**
  * "via Composio" on a connection that Composio brokers (PAP-17865).
@@ -24,6 +26,7 @@ export function ConnectionProvenanceChip({
   } | null | undefined;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const chipClass = cn(
     "inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground",
     className,
@@ -33,10 +36,10 @@ export function ConnectionProvenanceChip({
     return (
       <span
         className={chipClass}
-        title={connectorUid ? `Credentials managed by Vercel Connect (${connectorUid})` : "Credentials managed by Vercel Connect"}
+        title={connectorUid ? t("zhPages.95cdd5527593", { connectorUid: connectorUid }) : t("credentials_managed_by_vercel_connect")}
       >
         <Blocks className="h-3 w-3" />
-        via Vercel Connect
+        {t("via_vercel_connect")}
       </span>
     );
   }
@@ -47,21 +50,21 @@ export function ConnectionProvenanceChip({
   const label = (
     <>
       <Blocks className="h-3 w-3" />
-      via Composio
+      {t("via_composio")}
     </>
   );
 
   // Without a parent id there is nowhere to send the reader, so the chip stays a
   // label rather than becoming a dead link.
   if (!parentConnectionId) {
-    return <span className={chipClass} title={`Brokered by Composio (${toolkitSlug})`}>{label}</span>;
+    return <span className={chipClass} title={t("zhPages.1c40bebda537", { toolkitSlug: toolkitSlug })}>{label}</span>;
   }
 
   return (
     <Link
       to={appTabHref(parentConnectionId, "services")}
       className={cn(chipClass, "transition-colors hover:bg-accent hover:text-accent-foreground")}
-      title={`Brokered by Composio (${toolkitSlug}) — open the Composio Services tab`}
+      title={t("zhPages.467e58c1cace", { toolkitSlug: toolkitSlug })}
       onClick={(event) => event.stopPropagation()}
     >
       {label}

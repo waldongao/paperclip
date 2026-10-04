@@ -18,6 +18,7 @@ import {
 } from "../api/companies-query";
 import { queryKeys } from "../lib/queryKeys";
 import type { CompanySelectionSource } from "../lib/company-selection";
+import { t, useTranslation } from "@/i18n";
 type CompanySelectionOptions = { source?: CompanySelectionSource };
 
 interface CompanyContextValue {
@@ -284,9 +285,10 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 }
 
 export function useCompany() {
+  const { t } = useTranslation();
   const ctx = useContext(CompanyContext);
   if (!ctx) {
-    throw new Error("useCompany must be used within CompanyProvider");
+    throw new Error(t("usecompany_must_be_used_within_companyprovider"));
   }
   return ctx;
 }

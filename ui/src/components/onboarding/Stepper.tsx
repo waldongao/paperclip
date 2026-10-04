@@ -1,4 +1,6 @@
 import { cn } from "../../lib/utils";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 /**
  * The agent arc — create the agent, connect it, review — is the part of the
@@ -14,9 +16,9 @@ export const AGENT_ARC_TOTAL_STEPS = 3;
  * than no number at all. The strip's own "Step N of 3" line carries the count.
  */
 export const AGENT_ARC_STEP_LABELS = [
-  "Create your first agent",
-  "Connect a model",
-  "Review",
+  t("create_your_first_agent"),
+  t("connect_a_model"),
+  t("review"),
 ] as const;
 
 /** Wizard step numbers that make up the arc, in order. */
@@ -35,10 +37,10 @@ export const ONBOARDING_WIZARD_STEPS = [1, 3, 4, 5] as const;
 
 /** Destinations for the full walk, in the same order. */
 export const ONBOARDING_STEP_LABELS = [
-  "Name your organization",
-  "Create your first agent",
-  "Connect a model",
-  "Review",
+  t("name_your_organization"),
+  t("create_your_first_agent"),
+  t("connect_a_model"),
+  t("review"),
 ] as const;
 
 /**
@@ -107,6 +109,7 @@ export function Stepper({
   canJumpToStep?: (target: number) => boolean;
   onJumpToStep?: (target: number) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="mb-11 flex items-center justify-center gap-2">
       {Array.from({ length: total }, (_, index) => index + 1).map((segment) => {
@@ -115,7 +118,7 @@ export function Stepper({
           <button
             key={segment}
             type="button"
-            aria-label={labels[segment - 1] ?? `Step ${segment}`}
+            aria-label={labels[segment - 1] ?? t("zhComponents.message_eed8e60284", { value1: segment })}
             aria-current={segment === step ? "step" : undefined}
             disabled={!jumpable}
             onClick={() => jumpable && onJumpToStep?.(segment)}
@@ -134,7 +137,7 @@ export function Stepper({
       })}
       {/* Out of flow, so it neither takes a row nor picks up the gap. */}
       <span className="sr-only">
-        Step {step} of {total}
+        {t("step")} {step} {t("zhComponents.text_de04fa0e29")} {total}
       </span>
     </div>
   );

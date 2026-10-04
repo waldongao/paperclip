@@ -1,14 +1,16 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useState } from "react";
 import type { IssueBlockerAttention } from "@paperclipai/shared";
 import { cn } from "../lib/utils";
 import { StatusGlyph, type StatusGlyphSize } from "./StatusGlyph";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { t } from "@/i18n";
 
 const allStatuses = ["backlog", "todo", "in_progress", "in_review", "done", "cancelled", "blocked"];
 
 function statusLabel(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return getDisplayLabel(status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), "raw");
 }
 
 interface StatusIconProps {
@@ -22,45 +24,45 @@ interface StatusIconProps {
 }
 
 function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | undefined) {
-  if (!blockerAttention || blockerAttention.state === "none") return "Blocked";
+  if (!blockerAttention || blockerAttention.state === "none") return t("blocked");
 
   if (blockerAttention.reason === "active_child") {
     const count = blockerAttention.coveredBlockerCount;
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
-      return `Blocked · waiting on active sub-task ${blockerAttention.sampleBlockerIdentifier}`;
+      return t("zhComponents.message_e0df262018", { value1: blockerAttention.sampleBlockerIdentifier });
     }
-    if (count === 1) return "Blocked · waiting on 1 active sub-task";
-    return `Blocked · waiting on ${count} active sub-tasks`;
+    if (count === 1) return t("blocked_waiting_on_1_active_sub_task");
+    return t("zhComponents.message_58e4c4e689", { value1: count });
   }
 
   if (blockerAttention.reason === "active_dependency") {
     const count = blockerAttention.coveredBlockerCount;
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
-      return `Blocked · covered by active dependency ${blockerAttention.sampleBlockerIdentifier}`;
+      return t("zhComponents.message_1586e187da", { value1: blockerAttention.sampleBlockerIdentifier });
     }
-    if (count === 1) return "Blocked · covered by 1 active dependency";
-    return `Blocked · covered by ${count} active dependencies`;
+    if (count === 1) return t("blocked_covered_by_1_active_dependency");
+    return t("zhComponents.message_83ca6366b6", { value1: count });
   }
 
   if (blockerAttention.reason === "stalled_review") {
     const count = blockerAttention.stalledBlockerCount;
     const leaf = blockerAttention.sampleStalledBlockerIdentifier ?? blockerAttention.sampleBlockerIdentifier;
-    if (count === 1 && leaf) return `Blocked · review stalled on ${leaf}`;
-    if (count === 1) return "Blocked · review stalled with no clear next step";
-    return `Blocked · ${count} reviews stalled with no clear next step`;
+    if (count === 1 && leaf) return t("zhComponents.message_e96022e6b1", { value1: leaf });
+    if (count === 1) return t("blocked_review_stalled_with_no_clear_next_step");
+    return t("zhComponents.message_e40e1785a5", { value1: count });
   }
 
   if (blockerAttention.reason === "attention_required") {
     const count = blockerAttention.attentionBlockerCount || blockerAttention.unresolvedBlockerCount;
-    const attentionCopy = `${count} ${count === 1 ? "blocker needs" : "blockers need"} attention`;
+    const attentionCopy = t("zhComponents.message_b23783f112", { count: count, value1: count });
     const coveredCount = blockerAttention.coveredBlockerCount;
     if (coveredCount > 0) {
-      return `Blocked · ${attentionCopy}; ${coveredCount} covered by active work`;
+      return t("zhComponents.message_3e1ae9ec4c", { value1: attentionCopy, value2: coveredCount });
     }
-    return `Blocked · ${attentionCopy}`;
+    return t("zhComponents.message_f1bf9aaf34", { value1: attentionCopy });
   }
 
-  return "Blocked";
+  return t("blocked");
 }
 
 /**
@@ -104,7 +106,7 @@ export function StatusIcon({ status, blockerAttention, onChange, className, show
   const trigger = showLabel ? (
     <button
       type="button"
-      aria-label={`Change status (current: ${ariaLabel})`}
+      aria-label={t("zhComponents.message_8e4edeb331", { value1: ariaLabel })}
       className="inline-flex min-h-5 items-center gap-1.5 cursor-pointer hover:bg-accent/50 rounded px-1 -mx-1 py-0.5 transition-colors"
     >
       {glyph}
@@ -114,7 +116,7 @@ export function StatusIcon({ status, blockerAttention, onChange, className, show
     <button
       type="button"
       data-slot="icon-button"
-      aria-label={`Change status (current: ${ariaLabel})`}
+      aria-label={t("zhComponents.message_8e4edeb331", { value1: ariaLabel })}
       className="inline-flex cursor-pointer items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring"
     >
       {glyph}

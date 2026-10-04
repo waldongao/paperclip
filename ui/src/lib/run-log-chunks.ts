@@ -52,6 +52,7 @@ export interface ChunkRetentionBudget {
  * collapsed out of the retained window. Rendered as an ordinary system line by
  * `buildTranscript`, so the affordance is adapter-agnostic.
  */
+// This marker is part of chunk identification; localize only its displayed entry.
 export const TRIMMED_OUTPUT_MARKER_TEXT =
   "⋯ earlier output trimmed to stay within the live transcript buffer ⋯";
 

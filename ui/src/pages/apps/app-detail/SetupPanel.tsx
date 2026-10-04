@@ -1,3 +1,4 @@
+import { translateDisplayMessage } from "@/i18n/display-message";
 import { useState, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import type { ToolCatalogEntry, ToolConnection } from "@paperclipai/shared";
@@ -7,6 +8,8 @@ import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { appDefinitionSlug } from "../app-definition-display";
 import type { AppDetailSectionProps } from "./types";
 import { googleSheetsConfigWithAllowlist, parseGoogleSheetIds } from "../google-sheets";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 export function SetupPanel({
   connection,
@@ -34,13 +37,14 @@ export function SetupPanel({
   permissionsLoading: boolean;
   onOpenPermissions: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-10">
       {identities}
-      <SetupLinkSection title="Agents" summary={agentsSummary} onClick={onOpenPermissions} />
+      <SetupLinkSection title={t("agents")} summary={agentsSummary} onClick={onOpenPermissions} />
       <SetupLinkSection
-        title="Actions"
-        summary={permissionsLoading ? "Loading permissions…" : permissionsSummary ?? "Manage permissions"}
+        title={t("actions")}
+        summary={permissionsLoading ? t("loading_permissions") : permissionsSummary ?? t("manage_permissions")}
         onClick={onOpenPermissions}
       />
       {appDefinitionSlug(galleryEntry) === "google-sheets" && (
@@ -91,39 +95,40 @@ export function connectionProviderName(
 ): string {
   switch (appDefinitionSlug(galleryEntry)) {
     case "notion":
-      return "Notion";
+      return t("notion");
     case "posthog":
-      return "PostHog";
+      return t("posthog");
     case "gmail":
-      return "Gmail";
+      return t("gmail");
     case "google-sheets":
-      return "Google Sheets";
+      return t("google_sheets");
     default:
       return fallback;
   }
 }
 
 function PostHogConfigurationSection({ connection }: { connection: ToolConnection }) {
+  const { t } = useTranslation();
   const raw = connection.config?.methodConfig;
   const config = raw && typeof raw === "object" && !Array.isArray(raw)
     ? raw as Record<string, unknown>
     : {};
-  const method = connection.config?.connectionMethodKey === "mcp-oauth" ? "PostHog sign-in" : "Personal API key";
-  const features = typeof config.features === "string" ? config.features : "None";
-  const tools = typeof config.tools === "string" && config.tools ? config.tools : "None";
+  const method = connection.config?.connectionMethodKey === "mcp-oauth" ? t("posthog_sign_in") : t("personal_api_key");
+  const features = typeof config.features === "string" ? config.features : t("none");
+  const tools = typeof config.tools === "string" && config.tools ? config.tools : t("none");
   const rows = [
-    ["Connection method", method],
-    ["Project pin", typeof config.projectId === "string" ? config.projectId : "Use active project"],
-    ["Read-only mode", config.readOnly === true ? "On" : "Off"],
-    ["Feature groups", features],
-    ["Individual tools", tools],
-    ["Response mode", typeof config.mode === "string" ? config.mode : "tools"],
+    [t("connection_method"), method],
+    [t("project_pin"), typeof config.projectId === "string" ? config.projectId : t("use_active_project")],
+    [t("read_only_mode"), config.readOnly === true ? t("on") : t("off")],
+    [t("feature_groups"), features],
+    [t("individual_tools"), tools],
+    [t("response_mode"), typeof config.mode === "string" ? config.mode : "tools"],
   ];
   return (
     <section>
-      <h2 className="text-sm font-bold text-foreground">PostHog access scope</h2>
+      <h2 className="text-sm font-bold text-foreground">{t("posthog_access_scope")}</h2>
       <p className="mt-0.5 text-sm text-muted-foreground">
-        PostHog uses its normal account defaults unless you narrow the optional controls below.
+        {t("posthog_uses_its_normal_account_defaults_unless")}
       </p>
       <dl className="mt-4 divide-y divide-border">
         {rows.map(([label, value]) => (
@@ -155,6 +160,7 @@ function GoogleSheetsAllowlistSection({
   disabled: boolean;
   onUpdateConfig: (config: Record<string, unknown>) => void;
 }) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const ids = currentSpreadsheetIds(connection);
@@ -164,15 +170,15 @@ function GoogleSheetsAllowlistSection({
   return (
     <section>
       <div>
-        <h2 className="text-sm font-bold text-foreground">Sheets agents can use</h2>
+        <h2 className="text-sm font-bold text-foreground">{t("sheets_agents_can_use")}</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Agents can only use the sheets listed here.
+          {t("agents_can_only_use_the_sheets_listed_here")}
         </p>
       </div>
 
       <div className="mt-4 space-y-2">
         {ids.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No sheets are connected yet.</div>
+          <div className="text-sm text-muted-foreground">{t("no_sheets_are_connected_yet")}</div>
         ) : (
           ids.map((id) => {
             const sheetUrl = googleSheetsUrlForId(id);
@@ -184,12 +190,12 @@ function GoogleSheetsAllowlistSection({
                   rel="noreferrer"
                   className="min-w-0 flex-1 text-sm font-medium text-foreground underline-offset-2 hover:underline"
                 >
-                  <span className="block truncate">Open sheet</span>
+                  <span className="block truncate">{t("open_sheet")}</span>
                   <span className="block truncate font-mono text-xs font-normal text-muted-foreground">
                     {sheetUrl}
                   </span>
                   <span className="block truncate font-mono text-(length:--text-micro) font-normal text-muted-foreground/80">
-                    ID: {id}
+                    {t("id_d789a1")} {id}
                   </span>
                 </a>
                 <Button
@@ -197,10 +203,10 @@ function GoogleSheetsAllowlistSection({
                   size="sm"
                   variant="outline"
                   disabled={disabled || ids.length <= 1}
-                  title={ids.length <= 1 ? "Add another sheet before removing this one." : undefined}
+                  title={ids.length <= 1 ? t("add_another_sheet_before_removing_this_one") : undefined}
                   onClick={() => saveIds(ids.filter((current) => current !== id))}
                 >
-                  Remove
+                  {t("remove")}
                 </Button>
               </div>
             );
@@ -225,18 +231,18 @@ function GoogleSheetsAllowlistSection({
           onClick={() => {
             const parsed = parseGoogleSheetIds(draft);
             if (parsed.ids.length === 0) {
-              setError("Paste a Google Sheets link.");
+              setError(t("paste_a_google_sheets_link"));
               return;
             }
             if (parsed.invalidCount > 0) {
-              setError("That doesn't look like a Google Sheets link.");
+              setError(t("that_doesnt_look_like_a_google_sheets_link"));
               return;
             }
             saveIds(Array.from(new Set([...ids, ...parsed.ids])));
             setDraft("");
           }}
         >
-          Add sheet
+          {t("add_sheet")}
         </Button>
       </div>
       {error && <div className="mt-2 text-xs text-destructive">{error}</div>}
@@ -253,6 +259,7 @@ export function QuarantinedActionsReview({
   disabled: boolean;
   onSubmit: (enabledIds: string[]) => void;
 }) {
+  const { t } = useTranslation();
   const [enabledIds, setEnabledIds] = useState<Set<string>>(new Set());
   const count = entries.length;
   const selectedIds = entries.filter((entry) => enabledIds.has(entry.id)).map((entry) => entry.id);
@@ -261,10 +268,10 @@ export function QuarantinedActionsReview({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-amber-800 dark:text-amber-200">
-            Review {count} new {count === 1 ? "action" : "actions"}
+            {t("zhSupport.appsFinal.reviewNewActions", { count })}
           </div>
           <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-            Turn on the actions agents may use. Anything left off stays blocked when you save.
+            {t("turn_on_the_actions_agents_may_use_anything_left")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -274,7 +281,7 @@ export function QuarantinedActionsReview({
             disabled={disabled}
             onClick={() => setEnabledIds(new Set(entries.map((entry) => entry.id)))}
           >
-            Turn all on
+            {t("turn_all_on")}
           </button>
           <button
             type="button"
@@ -282,7 +289,7 @@ export function QuarantinedActionsReview({
             disabled={disabled}
             onClick={() => setEnabledIds(new Set())}
           >
-            Turn all off
+            {t("turn_all_off")}
           </button>
         </div>
       </div>
@@ -295,11 +302,11 @@ export function QuarantinedActionsReview({
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-foreground">{label}</div>
                 {entry.description && (
-                  <div className="truncate text-xs text-muted-foreground">{entry.description}</div>
+                  <div className="truncate text-xs text-muted-foreground">{translateDisplayMessage(entry.description)}</div>
                 )}
               </div>
               <ToggleSwitch
-                aria-label={`${label} allowed`}
+                aria-label={t("zhPages.09bec1d0143d", { label: label })}
                 checked={enabled}
                 disabled={disabled}
                 onCheckedChange={(next) => {
@@ -317,10 +324,10 @@ export function QuarantinedActionsReview({
       </div>
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-amber-700 dark:text-amber-300">
-          {selectedIds.length} of {count} will be on
+          {selectedIds.length}{t("zhPages.28391d3bc64e")}{count} {t("will_be_on")}
         </span>
         <Button size="sm" disabled={disabled} onClick={() => onSubmit(selectedIds)}>
-          {disabled ? "Saving…" : "Save choices"}
+          {disabled ? t("saving_56a228") : t("save_choices")}
         </Button>
       </div>
     </section>

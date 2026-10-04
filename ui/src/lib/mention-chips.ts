@@ -10,6 +10,7 @@ import {
 import { getAgentIcon } from "./agent-icons";
 import { hexToRgb, pickTextColorForPillBg } from "./color-contrast";
 
+
 export type ParsedMentionChip =
   | {
       kind: "agent";

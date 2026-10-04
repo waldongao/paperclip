@@ -18,7 +18,7 @@ describe("locale validation", () => {
     }
   });
 
-  it("rejects missing and extra nested keys", () => {
+  it("rejects extra nested keys", () => {
     expect(
       validateLocaleMessages({
         app: {
@@ -29,12 +29,21 @@ describe("locale validation", () => {
           },
         },
       }),
-    ).toEqual(
-      expect.arrayContaining([
-        "app.noCompanies.newCompany is missing",
-        "app.noCompanies.unexpected is not defined in English",
-      ]),
-    );
+    ).toEqual(["app.noCompanies.unexpected is not defined in English"]);
+  });
+
+  it("allows missing keys so locales can be translated incrementally", () => {
+    expect(
+      validateLocaleMessages({
+        app: {
+          noCompanies: {
+            title: en.app.noCompanies.title,
+          },
+        },
+      }),
+    ).toEqual([]);
+
+    expect(validateLocaleMessages({})).toEqual([]);
   });
 
   it("rejects non-string leaves", () => {

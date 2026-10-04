@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 import type {
   HeartbeatRun,
   HeartbeatRunEvent,
@@ -169,7 +171,7 @@ export const heartbeatsApi = {
         error?: string;
       } | null;
       throw new Error(
-        body?.error ?? `Trace download failed: ${response.status}`,
+        translateDisplayMessage(body?.error ?? t("zhSupport.traceDownloadFailed", { status: response.status })),
       );
     }
     return response.blob();

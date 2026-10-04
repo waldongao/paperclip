@@ -1,21 +1,22 @@
+import { tCli } from "../i18n.js";
 import * as p from "@clack/prompts";
 import type { LlmConfig } from "../config/schema.js";
 
 export async function promptLlm(): Promise<LlmConfig | undefined> {
   const configureLlm = await p.confirm({
-    message: "Configure an LLM provider now?",
+    message: tCli("Configure an LLM provider now?"),
     initialValue: false,
   });
 
   if (p.isCancel(configureLlm)) {
-    p.cancel("Setup cancelled.");
+    p.cancel(tCli("Setup cancelled."));
     process.exit(0);
   }
 
   if (!configureLlm) return undefined;
 
   const provider = await p.select({
-    message: "LLM provider",
+    message: tCli("LLM provider"),
     options: [
       { value: "claude" as const, label: "Claude (Anthropic)" },
       { value: "openai" as const, label: "OpenAI" },
@@ -23,19 +24,19 @@ export async function promptLlm(): Promise<LlmConfig | undefined> {
   });
 
   if (p.isCancel(provider)) {
-    p.cancel("Setup cancelled.");
+    p.cancel(tCli("Setup cancelled."));
     process.exit(0);
   }
 
   const apiKey = await p.password({
-    message: `${provider === "claude" ? "Anthropic" : "OpenAI"} API key`,
+    message: tCli("{{providerName}} API key", { providerName: String(provider === "claude" ? "Anthropic" : "OpenAI") }),
     validate: (val) => {
-      if (!val) return "API key is required";
+      if (!val) return tCli("API key is required");
     },
   });
 
   if (p.isCancel(apiKey)) {
-    p.cancel("Setup cancelled.");
+    p.cancel(tCli("Setup cancelled."));
     process.exit(0);
   }
 

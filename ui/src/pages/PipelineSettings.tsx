@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -112,6 +114,7 @@ import {
   type BreakdownCopyNames,
 } from "../lib/pipeline-breakdown";
 import { getPipelineStageColumnTone } from "../lib/pipeline-stage-presentation";
+import { t, useTranslation } from "@/i18n";
 
 type StageSectionKey = "instructions" | "advanced" | "secrets" | "activity" | "history";
 type ApproverKind = "any_human" | "user" | "agent";
@@ -166,28 +169,28 @@ const STAGE_NAV_GROUPS: Array<{
   items: Array<{ id: StageSectionKey; label: string; icon: typeof Circle }>;
 }> = [
   {
-    label: "Stage",
+    label: t("stage"),
     items: [
-      { id: "instructions", label: "Automation", icon: LayoutGrid },
-      { id: "advanced", label: "Advanced", icon: SlidersHorizontal },
-      { id: "secrets", label: "Secrets", icon: KeyRound },
+      { id: "instructions", label: t("automation"), icon: LayoutGrid },
+      { id: "advanced", label: t("advanced"), icon: SlidersHorizontal },
+      { id: "secrets", label: t("secrets"), icon: KeyRound },
     ],
   },
   {
-    label: "Operate",
+    label: t("operate"),
     items: [
-      { id: "activity", label: "Activity", icon: ActivityIcon },
-      { id: "history", label: "History", icon: HistoryIcon },
+      { id: "activity", label: t("activity"), icon: ActivityIcon },
+      { id: "history", label: t("history"), icon: HistoryIcon },
     ],
   },
 ];
 
 const STAGE_SECTION_TITLES: Record<StageSectionKey, string> = {
-  instructions: "Automation",
-  secrets: "Secrets",
-  activity: "Activity",
-  history: "History",
-  advanced: "Advanced",
+  instructions: t("automation"),
+  secrets: t("secrets"),
+  activity: t("activity"),
+  history: t("history"),
+  advanced: t("advanced"),
 };
 
 function parseStageSectionKey(value: string | null): StageSectionKey | null {
@@ -221,26 +224,26 @@ const STAGE_KIND_OPTIONS: Array<{
 }> = [
   {
     value: "working",
-    label: "Working",
-    description: "Items wait here while work happens. An agent or a person moves them forward.",
+    label: t("working_3b4dfc"),
+    description: t("items_wait_here_while_work_happens_an_agent_or_a"),
     icon: Hammer,
   },
   {
     value: "review",
-    label: "Review",
-    description: "Someone has to approve before items leave. Use this when a person or an agent has to say yes or no.",
+    label: t("review"),
+    description: t("someone_has_to_approve_before_items_leave_use_th"),
     icon: BadgeCheck,
   },
   {
     value: "done",
-    label: "Done",
-    description: "The final step. Items that reach here are finished.",
+    label: t("done"),
+    description: t("the_final_step_items_that_reach_here_are_finishe"),
     icon: CircleCheck,
   },
   {
     value: "cancelled",
-    label: "Cancelled",
-    description: "The dead end. Items that reach here are dropped or rejected.",
+    label: t("cancelled"),
+    description: t("the_dead_end_items_that_reach_here_are_dropped_o"),
     icon: Ban,
   },
 ];
@@ -310,9 +313,9 @@ function stageConfig(stage: PipelineStage | null | undefined): StageConfig {
 }
 
 const STAGE_EXECUTION_WORKSPACE_OPTIONS = [
-  { value: "shared_workspace", label: "Project default" },
-  { value: "isolated_workspace", label: "New isolated workspace" },
-  { value: "reuse_existing", label: "Reuse existing workspace" },
+  { value: "shared_workspace", label: t("project_default") },
+  { value: "isolated_workspace", label: t("new_isolated_workspace") },
+  { value: "reuse_existing", label: t("reuse_existing_workspace") },
 ] as const;
 
 function nullableString(value: unknown) {
@@ -536,10 +539,10 @@ function readVariableField(variable: unknown): { key: string; label: string; req
 }
 
 function fieldOriginLabel(depth: number, pipelineName: string) {
-  if (depth === 0) return "This item";
-  if (depth === 1) return `Parent: ${pipelineName}`;
-  if (depth === 2) return `Grandparent: ${pipelineName}`;
-  return `Ancestor ${depth}: ${pipelineName}`;
+  if (depth === 0) return t("this_item_895305");
+  if (depth === 1) return t("zhPages.3c1482391da1", { pipelineName: pipelineName });
+  if (depth === 2) return t("zhPages.4b3822922bc1", { pipelineName: pipelineName });
+  return t("zhPages.dafd65af0384", { depth: depth, pipelineName: pipelineName });
 }
 
 function pipelineCarryOverFields(source: { pipeline: PipelineWithOptionalConnections; depth: number }): CarryOverFieldOption[] {
@@ -928,12 +931,12 @@ function automationVariableKind(value: unknown) {
 
 function automationVariablePreviewTitle(variable: AutomationVariableOption) {
   const preview = primitiveAutomationVariablePreview(variable.example);
-  const size = typeof variable.example === "string" ? `${variable.example.length} chars` : `${preview.length} chars`;
+  const size = typeof variable.example === "string" ? t("zhPages.d2527c4d3a5b", { length: variable.example.length }) : t("zhPages.d2527c4d3a5b", { length: preview.length });
   const lines = [
     variable.description,
-    `Example: ${automationVariableKind(variable.example)}, ${size}`,
+    t("zhPages.ccfa65b19f5c", { value: automationVariableKind(variable.example), size: size }),
   ];
-  if (variable.exampleSource) lines.push(`From ${variable.exampleSource}`);
+  if (variable.exampleSource) lines.push(t("zhPages.03735375ad54", { exampleSource: variable.exampleSource }));
   if (preview) lines.push(preview.length > 500 ? `${preview.slice(0, 500)}...` : preview);
   return lines.join("\n");
 }
@@ -953,43 +956,43 @@ function buildAutomationVariableGroups(input: {
   const pipelineVariables: AutomationVariableOption[] = [
     {
       key: "pipeline_id",
-      label: "Pipeline ID",
-      description: "ID of the pipeline this automation runs in.",
+      label: t("pipeline_id"),
+      description: t("id_of_the_pipeline_this_automation_runs_in"),
       example: input.pipeline.id,
       exampleSource: null,
     },
     {
       key: "pipeline_key",
-      label: "Pipeline key",
-      description: "Stable key of the pipeline this automation runs in.",
+      label: t("pipeline_key"),
+      description: t("stable_key_of_the_pipeline_this_automation_runs"),
       example: input.pipeline.key,
       exampleSource: null,
     },
     {
       key: "pipeline_name",
-      label: "Pipeline name",
-      description: "Display name of the pipeline this automation runs in.",
+      label: t("pipeline_name"),
+      description: t("display_name_of_the_pipeline_this_automation_run"),
       example: input.pipeline.name,
       exampleSource: null,
     },
     {
       key: "stage_id",
-      label: "Stage ID",
-      description: "ID of this automation stage.",
+      label: t("stage_id"),
+      description: t("id_of_this_automation_stage"),
       example: input.stage.id,
       exampleSource: null,
     },
     {
       key: "stage_key",
-      label: "Stage key",
-      description: "Stable key of this automation stage.",
+      label: t("stage_key"),
+      description: t("stable_key_of_this_automation_stage"),
       example: input.stage.key,
       exampleSource: null,
     },
     {
       key: "stage_name",
-      label: "Stage name",
-      description: "Display name of this automation stage.",
+      label: t("stage_name"),
+      description: t("display_name_of_this_automation_stage"),
       example: input.stage.name,
       exampleSource: null,
     },
@@ -997,43 +1000,43 @@ function buildAutomationVariableGroups(input: {
   const itemVariables: AutomationVariableOption[] = [
     {
       key: "title",
-      label: "Item title",
-      description: "Title of the item being automated.",
+      label: t("item_title"),
+      description: t("title_of_the_item_being_automated"),
       example: sampleCase?.title ?? "",
       exampleSource,
     },
     {
       key: "body",
-      label: "Item body",
-      description: "Body text of the item being automated.",
+      label: t("item_body"),
+      description: t("body_text_of_the_item_being_automated"),
       example: sampleCase?.summary ?? "",
       exampleSource,
     },
     {
       key: "case_id",
-      label: "Item ID",
-      description: "ID of the item being automated.",
+      label: t("item_id"),
+      description: t("id_of_the_item_being_automated"),
       example: sampleCase?.id ?? "",
       exampleSource,
     },
     {
       key: "case_key",
-      label: "Item key",
-      description: "Stable key of the item being automated.",
+      label: t("item_key"),
+      description: t("stable_key_of_the_item_being_automated"),
       example: sampleCase?.caseKey ?? "",
       exampleSource,
     },
     {
       key: "case_title",
-      label: "Item title alias",
-      description: "Compatibility alias for the item title.",
+      label: t("item_title_alias"),
+      description: t("compatibility_alias_for_the_item_title"),
       example: sampleCase?.title ?? "",
       exampleSource,
     },
     {
       key: "case_version",
-      label: "Item version",
-      description: "Current item version when the automation runs.",
+      label: t("item_version"),
+      description: t("current_item_version_when_the_automation_runs"),
       example: sampleCase?.version ?? "",
       exampleSource,
     },
@@ -1047,17 +1050,17 @@ function buildAutomationVariableGroups(input: {
     fieldVariables.push({
       key,
       label: key.replace(/[_-]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2"),
-      description: `Field copied from the current item data.`,
+      description: t("zhPages.ac44d98a5598"),
       example: value,
       exampleSource,
     });
   }
   const groups: AutomationVariableGroup[] = [
-    { id: "pipeline", label: "Pipeline and stage", variables: pipelineVariables },
-    { id: "item", label: "Current item", variables: itemVariables },
+    { id: "pipeline", label: t("pipeline_and_stage"), variables: pipelineVariables },
+    { id: "item", label: t("current_item"), variables: itemVariables },
   ];
   if (fieldVariables.length > 0) {
-    groups.push({ id: "fields", label: "Item fields", variables: fieldVariables });
+    groups.push({ id: "fields", label: t("item_fields"), variables: fieldVariables });
   }
   return groups;
 }
@@ -1088,12 +1091,13 @@ function CarriedFieldTokenHelper({
   groups: CarryOverFieldGroup[];
   onInsert: (fieldKey: string) => void;
 }) {
+  const { t } = useTranslation();
   if (groups.length === 0) return null;
   return (
     <div className="rounded-md border border-dashed border-border bg-muted/25 px-3 py-2">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase text-muted-foreground">
-          Already available on child items
+          {t("already_available_on_child_items")}
         </span>
       </div>
       <div className="space-y-2">
@@ -1110,8 +1114,8 @@ function CarriedFieldTokenHelper({
                   type="button"
                   onClick={() => onInsert(field.key)}
                   className="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground transition-colors hover:bg-accent"
-                  title={`Insert {{${field.key}}}`}
-                  aria-label={`Insert {{${field.key}}}`}
+                  title={t("zhPages.a6b536f9f264", { value: '{{' + field.key + '}}' })}
+                  aria-label={t("zhPages.a6b536f9f264", { value: '{{' + field.key + '}}' })}
                 >
                   {`{{${field.key}}}`}
                 </button>
@@ -1127,7 +1131,7 @@ function CarriedFieldTokenHelper({
 function AutomationVariableTokenHelper({
   groups,
   onInsert,
-  label = "Available variables",
+  label = t("available_variables"),
 }: {
   groups: AutomationVariableGroup[];
   onInsert: (fieldKey: string) => void;
@@ -1153,7 +1157,7 @@ function AutomationVariableTokenHelper({
                   onClick={() => onInsert(variable.key)}
                   className="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground transition-colors hover:bg-accent"
                   title={automationVariablePreviewTitle(variable)}
-                  aria-label={`Insert {{${variable.key}}}`}
+                  aria-label={t("zhPages.a6b536f9f264", { value: '{{' + variable.key + '}}' })}
                 >
                   {`{{${variable.key}}}`}
                 </button>
@@ -1175,11 +1179,12 @@ function StageSubSidebar({
   stageKind: string;
   onSectionChange: (section: StageSectionKey) => void;
 }) {
+  const { t } = useTranslation();
   const groups = stageNavGroups(stageKind);
   return (
     <>
       <div className="md:hidden">
-        <label className="sr-only" htmlFor="stage-section-picker">Stage section</label>
+        <label className="sr-only" htmlFor="stage-section-picker">{t("stage_section")}</label>
         <select
           id="stage-section-picker"
           value={activeSection}
@@ -1196,7 +1201,7 @@ function StageSubSidebar({
         </select>
       </div>
       <nav
-        aria-label="Stage sections"
+        aria-label={t("stage_sections")}
         className="sticky top-14 hidden max-h-(--sz-calc-39) w-52 shrink-0 flex-col gap-4 self-start overflow-y-auto border-r border-border bg-sidebar/30 px-3 py-4 md:flex"
       >
         {groups.map((group) => (
@@ -1251,7 +1256,7 @@ function StageEventsList({
           key={event.id}
           className="grid min-h-11 grid-cols-(--gtc-15) items-center gap-3 border-b border-border/70 px-3 py-2 text-sm last:border-b-0"
         >
-          <span className="text-xs text-muted-foreground" title={new Date(event.createdAt).toLocaleString()}>
+          <span className="text-xs text-muted-foreground" title={new Date(event.createdAt).toLocaleString(i18n.resolvedLanguage ?? i18n.language)}>
             {relativeTime(event.createdAt)}
           </span>
           <div className="min-w-0">
@@ -1263,7 +1268,7 @@ function StageEventsList({
             </Link>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {formatPipelineItemEvent(event, stages)}
-              {event.actorAgent ? ` by ${event.actorAgent.name}` : null}
+              {event.actorAgent ? t("zhPages.e0c3a38641df", { name: event.actorAgent.name }) : null}
             </p>
           </div>
         </div>
@@ -1273,6 +1278,7 @@ function StageEventsList({
 }
 
 export function PipelineSettings() {
+  const { t } = useTranslation();
   const { pipelineId } = useParams<{ pipelineId: string }>();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -1391,7 +1397,7 @@ export function PipelineSettings() {
 
   const createSecret = useMutation({
     mutationFn: (input: { name: string; value: string }) => {
-      if (!selectedCompanyId) throw new Error("Select an organization to create secrets");
+      if (!selectedCompanyId) throw new Error(t("select_an_organization_to_create_secrets"));
       return secretsApi.create(selectedCompanyId, input);
     },
     onSuccess: () => {
@@ -1643,9 +1649,9 @@ export function PipelineSettings() {
   useEffect(() => {
     if (!pipeline) return;
     setBreadcrumbs([
-      { label: "Pipelines", href: "/pipelines" },
+      { label: t("pipelines"), href: "/pipelines" },
       { label: pipeline.name, href: `/pipelines/${pipeline.id}` },
-      { label: "Settings" },
+      { label: t("settings_") },
     ]);
   }, [pipeline, setBreadcrumbs]);
 
@@ -1775,7 +1781,7 @@ export function PipelineSettings() {
         stageExecutionWorkspacePreference === "reuse_existing" &&
         !stageExecutionWorkspaceId
       ) {
-        throw new Error("Choose an existing workspace before saving this stage.");
+        throw new Error(t("choose_an_existing_workspace_before_saving_this"));
       }
       const parsedApproval = parseApprovalValue(selectedApproval);
       const nextRequiresApproval = stageKind === "review";
@@ -1899,12 +1905,12 @@ export function PipelineSettings() {
         ]);
       }
       await refreshPipeline();
-      pushToast({ title: "Stage saved", tone: "success" });
+      pushToast({ title: t("stage_saved"), tone: "success" });
     },
     onError: async (error) => {
       pushToast({
-        title: "Failed to save stage",
-        body: error instanceof Error ? error.message : "Paperclip could not save the stage.",
+        title: t("failed_to_save_stage"),
+        body: error instanceof Error ? error.message : t("paperclip_could_not_save_the_stage"),
         tone: "error",
       });
     },
@@ -1928,16 +1934,16 @@ export function PipelineSettings() {
       if (selectedCompanyId) {
         await queryClient.invalidateQueries({ queryKey: queryKeys.secrets.list(selectedCompanyId) });
       }
-      pushToast({ title: "Stage secrets saved", tone: "success" });
+      pushToast({ title: t("stage_secrets_saved"), tone: "success" });
     },
     onError: async (error) => {
       pushToast({
-        title: "Failed to save secrets",
+        title: t("failed_to_save_secrets"),
         body: error instanceof ApiError
           ? error.message
           : error instanceof Error
             ? error.message
-            : "Paperclip could not save the stage secrets.",
+            : t("paperclip_could_not_save_the_stage_secrets"),
         tone: "error",
       });
     },
@@ -1954,8 +1960,8 @@ export function PipelineSettings() {
       const existingKeys = new Set(stages.map((stage) => stage.key));
       const autoAdvanceTarget = nextStageForInsert(stages, insertPosition);
       const created = await pipelinesApi.createStage(pipelineId, {
-        key: nextStageKey("New stage", existingKeys),
-        name: "New stage",
+        key: nextStageKey(t("new_stage"), existingKeys),
+        name: t("new_stage"),
         kind: "working",
         position: insertPosition,
         config: {
@@ -1990,7 +1996,7 @@ export function PipelineSettings() {
       if (created) {
         setSelectedStageId(created.id);
       }
-      pushToast({ title: "Stage added", tone: "success" });
+      pushToast({ title: t("stage_added"), tone: "success" });
     },
   });
 
@@ -2009,12 +2015,12 @@ export function PipelineSettings() {
       if (selectedCompanyId) {
         await queryClient.invalidateQueries({ queryKey: queryKeys.pipelines.list(selectedCompanyId) });
       }
-      pushToast({ title: "Stage deleted", tone: "success" });
+      pushToast({ title: t("stage_deleted"), tone: "success" });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to delete stage",
-        body: error instanceof Error ? error.message : "Paperclip could not delete the stage.",
+        title: t("failed_to_delete_stage"),
+        body: error instanceof Error ? error.message : t("paperclip_could_not_delete_the_stage"),
         tone: "error",
       });
     },
@@ -2031,7 +2037,7 @@ export function PipelineSettings() {
       if (selectedCompanyId) {
         await queryClient.invalidateQueries({ queryKey: queryKeys.pipelines.list(selectedCompanyId) });
       }
-      pushToast({ title: "Pipeline updated", tone: "success" });
+      pushToast({ title: t("pipeline_updated"), tone: "success" });
     },
   });
 
@@ -2040,13 +2046,13 @@ export function PipelineSettings() {
       pipelinesApi.update(pipelineId!, { enforceTransitions }),
     onSuccess: async () => {
       await refreshPipeline();
-      pushToast({ title: "Transition rules updated", tone: "success" });
+      pushToast({ title: t("transition_rules_updated"), tone: "success" });
     },
     onError: (error) => {
       setStrictTransitionsEnabled(pipeline?.enforceTransitions ?? false);
       pushToast({
-        title: "Failed to update transition rules",
-        body: error instanceof Error ? error.message : "Paperclip could not update transition rules.",
+        title: t("failed_to_update_transition_rules"),
+        body: error instanceof Error ? error.message : t("paperclip_could_not_update_transition_rules"),
         tone: "error",
       });
     },
@@ -2064,7 +2070,7 @@ export function PipelineSettings() {
         navigate("/pipelines");
       } else {
         await refreshPipeline();
-        pushToast({ title: "Pipeline restored", tone: "success" });
+        pushToast({ title: t("pipeline_restored"), tone: "success" });
       }
     },
   });
@@ -2119,11 +2125,11 @@ export function PipelineSettings() {
   };
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Hexagon} message="Select an organization to edit pipeline settings." />;
+    return <EmptyState icon={Hexagon} message={t("select_an_organization_to_edit_pipeline_settings")} />;
   }
 
   if (!pipelineId) {
-    return <EmptyState icon={Hexagon} message="No pipeline selected." />;
+    return <EmptyState icon={Hexagon} message={t("no_pipeline_selected")} />;
   }
 
   if (pipelineQuery.isLoading) {
@@ -2135,7 +2141,7 @@ export function PipelineSettings() {
   }
 
   if (!pipeline) {
-    return <EmptyState icon={Hexagon} message="Pipeline not found." />;
+    return <EmptyState icon={Hexagon} message={t("pipeline_not_found")} />;
   }
 
   const isArchived = Boolean(pipeline.archivedAt);
@@ -2265,7 +2271,7 @@ export function PipelineSettings() {
     ? breakdownSummarySentence(breakdownConfigForCopy, breakdownCopyNames)
     : null;
   const transitionTargetsControl = !isReviewStage && !isPipelineTerminalStageKind(stageKind) ? (
-    <FieldRow label="Allowed next steps">
+    <FieldRow label={t("allowed_next_steps")}>
       <div className="space-y-2">
         {otherStages.map((stage) => {
           const isCancelled = stage.kind === "cancelled";
@@ -2294,7 +2300,7 @@ export function PipelineSettings() {
               />
               <span className="flex-1">{stage.name}</span>
               {isCancelled ? (
-                <span className="text-xs text-muted-foreground">Always available</span>
+                <span className="text-xs text-muted-foreground">{t("always_available")}</span>
               ) : null}
             </label>
           );
@@ -2306,13 +2312,13 @@ export function PipelineSettings() {
     <div className="rounded-lg border border-border">
       <div className="flex items-start justify-between gap-4 border-b border-border p-4">
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-foreground">Break into smaller pieces</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("break_into_smaller_pieces")}</h3>
           <p className="max-w-md text-sm text-muted-foreground">
-            The agent decides what the pieces are. Paperclip creates and tracks them.
+            {t("the_agent_decides_what_the_pieces_are_paperclip")}
           </p>
         </div>
         <ToggleSwitch
-          aria-label="Break into smaller pieces"
+          aria-label={t("break_into_smaller_pieces")}
           checked={breakdownEnabled}
           onCheckedChange={(checked) => {
             setBreakdownEnabled(checked);
@@ -2324,11 +2330,11 @@ export function PipelineSettings() {
       </div>
       {breakdownEnabled ? (
         <div className="divide-y divide-border px-4">
-          <FieldRow label="Create each piece in">
+          <FieldRow label={t("create_each_piece_in")}>
             <div className="space-y-1">
               <div className="flex w-full max-w-sm items-center">
                 <select
-                  aria-label="Create each piece in"
+                  aria-label={t("create_each_piece_in")}
                   value={breakdownTargetPipelineId}
                   onChange={(event) => {
                     setBreakdownTargetPipelineId(event.target.value);
@@ -2336,7 +2342,7 @@ export function PipelineSettings() {
                   }}
                   className="h-10 min-w-0 flex-1 rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Choose a pipeline</option>
+                  <option value="">{t("choose_a_pipeline")}</option>
                   {breakdownTargetOptions.map((candidate) => (
                     <option key={candidate.id} value={candidate.id}>{candidate.name}</option>
                   ))}
@@ -2344,8 +2350,8 @@ export function PipelineSettings() {
                 {breakdownTargetPipelineId ? (
                   <Link
                     to={`/pipelines/${breakdownTargetPipelineId}`}
-                    aria-label={`Open ${breakdownTargetPipeline?.name ?? "selected"} pipeline`}
-                    title={`Open ${breakdownTargetPipeline?.name ?? "selected"} pipeline`}
+                    aria-label={t("zhPages.0893c4be7f2c", { value: breakdownTargetPipeline?.name ?? t("zhPages.selectedFallback") })}
+                    title={t("zhPages.0893c4be7f2c", { value: breakdownTargetPipeline?.name ?? t("zhPages.selectedFallback") })}
                     className="ml-2 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <ArrowUpRight className="h-4 w-4" />
@@ -2353,52 +2359,52 @@ export function PipelineSettings() {
                 ) : null}
               </div>
               {!breakdownTargetPipelineId ? (
-                <p className="text-xs text-muted-foreground">A pipeline in this workspace</p>
+                <p className="text-xs text-muted-foreground">{t("a_pipeline_in_this_workspace")}</p>
               ) : null}
             </div>
           </FieldRow>
-          <FieldRow label="starting at">
+          <FieldRow label={t("starting_at")}>
             <div className="space-y-1">
               <select
-                aria-label="Starting stage for each piece"
+                aria-label={t("starting_stage_for_each_piece")}
                 value={breakdownTargetStageKey}
                 onChange={(event) => setBreakdownTargetStageKey(event.target.value)}
                 disabled={!breakdownTargetPipelineId}
                 className="h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50"
               >
-                <option value="">Choose a stage</option>
+                <option value="">{t("choose_a_stage")}</option>
                 {breakdownTargetStages.map((stage) => (
                   <option key={stage.id} value={stage.key}>{stage.name}</option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">The stage every new piece starts in</p>
+              <p className="text-xs text-muted-foreground">{t("the_stage_every_new_piece_starts_in")}</p>
             </div>
           </FieldRow>
-          <FieldRow label="Call each piece a">
+          <FieldRow label={t("call_each_piece_a")}>
             <div className="space-y-1">
               <Input
-                aria-label="Call each piece a"
+                aria-label={t("call_each_piece_a")}
                 value={breakdownPieceNoun}
                 onChange={(event) => setBreakdownPieceNoun(event.target.value)}
                 placeholder="piece"
                 className="h-10 w-full max-w-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Drives copy on this case (e.g. “3 of 5 {breakdownPieceNounPlural} finished”)
+                {t("drives_copy_on_this_case_e_g_3_of_5")} {breakdownPieceNounPlural} {t("finished_c6f4ea")}
               </p>
             </div>
           </FieldRow>
-          <FieldRow label="Carry over">
+          <FieldRow label={t("carry_over")}>
             <div className="space-y-2">
               <div className="space-y-1 rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-xs">
                 <p className="text-muted-foreground">
-                  Values are copied from this item and its ancestors. New eligible fields stay on unless you uncheck them.
+                  {t("values_are_copied_from_this_item_and_its_ancesto")}
                 </p>
                 {breakdownTargetPipelineId ? (
                   <div className="flex flex-wrap items-center gap-1 text-muted-foreground">
-                    <span>Destination validation:</span>
+                    <span>{t("destination_validation")}</span>
                     <span className="font-medium text-foreground">
-                      {breakdownTargetPipeline?.name ?? "selected pipeline"}
+                      {breakdownTargetPipeline?.name ?? t("selected_pipeline")}
                     </span>
                     {breakdownIntakeStageName ? (
                       <>
@@ -2413,14 +2419,14 @@ export function PipelineSettings() {
                     to={breakdownIntakeSettingsHref}
                     className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
                   >
-                    Review destination fields
+                    {t("review_destination_fields")}
                     <ArrowUpRight className="h-3 w-3" />
                   </Link>
                 ) : null}
                 {breakdownTargetArchived ? (
                   <p className="flex items-center gap-1 text-amber-700 dark:text-amber-300">
                     <Archive className="h-3 w-3 shrink-0" />
-                    This destination pipeline is archived, so its validation fields can't be edited until it's restored.
+                    {t("this_destination_pipeline_is_archived_so_its_val")}
                   </p>
                 ) : null}
               </div>
@@ -2460,11 +2466,11 @@ export function PipelineSettings() {
                               <span className="flex-1">{field.label}</span>
                               {targetField?.required ? (
                                 <span className="text-xs text-muted-foreground">
-                                  Required by {breakdownTargetPipeline?.name ?? "destination"}
+                                  {t("zhPages.requiredByDestination", { destination: breakdownTargetPipeline?.name ?? t("zhPages.destinationLower") })}
                                 </span>
                               ) : targetField ? (
                                 <span className="text-xs text-muted-foreground">
-                                  Validated by {breakdownTargetPipeline?.name ?? "destination"}
+                                  {t("zhPages.validatedByDestination", { destination: breakdownTargetPipeline?.name ?? t("zhPages.destinationLower") })}
                                 </span>
                               ) : null}
                             </label>
@@ -2477,31 +2483,31 @@ export function PipelineSettings() {
               ) : null}
               {breakdownCarryOverFieldGroups.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  This pipeline and its ancestors do not define any fields that can be carried over yet.
+                  {t("this_pipeline_and_its_ancestors_do_not_define_an")}
                 </p>
               ) : null}
               <p className="text-xs text-muted-foreground">
-                Name and title fields are kept unique for each new {breakdownPieceNoun.trim() || "piece"}.
+                {t("name_and_title_fields_are_kept_unique_for_each_n")} {breakdownPieceNoun.trim() || "piece"}.
               </p>
             </div>
           </FieldRow>
-          <FieldRow label="Then move this case to">
+          <FieldRow label={t("then_move_this_case_to")}>
             <div className="space-y-1">
               <select
-                aria-label="Then move this case to"
+                aria-label={t("then_move_this_case_to")}
                 value={breakdownAdvanceTo}
                 onChange={(event) => setBreakdownAdvanceTo(event.target.value)}
                 className="h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 text-sm"
               >
-                <option value="">Stay on this step</option>
+                <option value="">{t("stay_on_this_step")}</option>
                 {otherStages.map((stage) => (
                   <option key={stage.id} value={stage.key}>{stage.name}</option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">As soon as the pieces are created</p>
+              <p className="text-xs text-muted-foreground">{t("as_soon_as_the_pieces_are_created")}</p>
             </div>
           </FieldRow>
-          <FieldRow label="Wait">
+          <FieldRow label={t("wait")}>
             <div className="space-y-2">
               <label className="flex items-start gap-2 text-sm">
                 <input
@@ -2517,24 +2523,24 @@ export function PipelineSettings() {
                   }}
                 />
                 <span className="font-medium text-foreground">
-                  Wait until all {breakdownPieceNounPlural} are finished, then move it to
+                  {t("wait_until_all")} {breakdownPieceNounPlural} {t("are_finished_then_move_it_to")}
                 </span>
               </label>
               <select
-                aria-label="Move this case when all pieces finish"
+                aria-label={t("move_this_case_when_all_pieces_finish")}
                 value={breakdownWhenFinishedMoveTo}
                 onChange={(event) => setBreakdownWhenFinishedMoveTo(event.target.value)}
                 disabled={!breakdownWaitForPieces}
                 className="h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50"
               >
-                <option value="">Choose a stage</option>
+                <option value="">{t("choose_a_stage")}</option>
                 {otherStages.map((stage) => (
                   <option key={stage.id} value={stage.key}>{stage.name}</option>
                 ))}
               </select>
               {breakdownAdvanceTo ? (
                 <p className="text-xs text-muted-foreground">
-                  If nothing is worth splitting, this case still moves to {breakdownCopyNames.advanceToName}.
+                  {t("if_nothing_is_worth_splitting_this_case_still_mo")} {breakdownCopyNames.advanceToName}.
                 </p>
               ) : null}
             </div>
@@ -2562,11 +2568,11 @@ export function PipelineSettings() {
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <Link to={`/pipelines/${pipeline.id}`} className="text-sm text-muted-foreground hover:text-foreground">
-            Back to board
+            {t("back_to_board")}
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="outline" size="icon" className="h-8 w-8" title="Pipeline actions">
+              <Button type="button" variant="outline" size="icon" className="h-8 w-8" title={t("pipeline_actions")}>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -2574,12 +2580,12 @@ export function PipelineSettings() {
               {isArchived ? (
                 <DropdownMenuItem onSelect={() => archivePipeline.mutate(false)}>
                   <Archive className="h-4 w-4" />
-                  Restore pipeline
+                  {t("restore_pipeline")}
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem variant="destructive" onSelect={() => setArchiveDialogOpen(true)}>
                   <Archive className="h-4 w-4" />
-                  Archive pipeline
+                  {t("archive_pipeline")}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -2588,9 +2594,9 @@ export function PipelineSettings() {
         <div className="grid gap-3 md:grid-cols-(--gtc-13) md:items-end">
           <div className="space-y-3">
             <label className="block space-y-1.5 text-sm font-medium">
-              <span className="sr-only">Pipeline name</span>
+              <span className="sr-only">{t("pipeline_name")}</span>
               <Input
-                aria-label="Pipeline name"
+                aria-label={t("pipeline_name")}
                 value={pipelineName}
                 onChange={(event) => setPipelineName(event.target.value)}
                 required
@@ -2598,13 +2604,13 @@ export function PipelineSettings() {
               />
             </label>
             <label className="block space-y-1.5 text-sm font-medium">
-              <span className="sr-only">Pipeline description</span>
+              <span className="sr-only">{t("pipeline_description")}</span>
               <Textarea
-                aria-label="Pipeline description"
+                aria-label={t("pipeline_description")}
                 value={pipelineDescription}
                 onChange={(event) => setPipelineDescription(event.target.value)}
                 rows={2}
-                placeholder="Add a description"
+                placeholder={t("add_a_description_901fa4")}
                 className="min-h-0 resize-none border-0 bg-transparent px-0 py-0 text-sm text-muted-foreground shadow-none focus-visible:ring-0"
               />
             </label>
@@ -2612,7 +2618,7 @@ export function PipelineSettings() {
           {detailsDirty || savePipelineDetails.isPending ? (
             <Button type="submit" disabled={savePipelineDetails.isPending || !pipelineName.trim()}>
               <Save className="h-4 w-4" />
-              {savePipelineDetails.isPending ? "Saving..." : "Save details"}
+              {savePipelineDetails.isPending ? t("saving") : t("save_details")}
             </Button>
           ) : null}
         </div>
@@ -2625,8 +2631,8 @@ export function PipelineSettings() {
           {stages.length === 0 ? (
             <EmptyState
               icon={GitBranch}
-              message="No stages configured."
-              action="Add first stage"
+              message={t("no_stages_configured")}
+              action={t("add_first_stage")}
               onAction={() => addStage.mutate(null)}
             />
           ) : (
@@ -2660,15 +2666,15 @@ export function PipelineSettings() {
                             {warningCount > 0 ? (
                               <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
                                 <AlertTriangle className="h-3.5 w-3.5" />
-                                {warningCount} {warningCount === 1 ? "warning" : "warnings"}
+                                {t("zhPages.warningCount", { count: warningCount })}
                               </span>
                             ) : null}
                           </span>
-                          <span className="mt-1 block text-xs text-muted-foreground">Step {index + 1}</span>
+                          <span className="mt-1 block text-xs text-muted-foreground">{t("step")} {index + 1}</span>
                           {stageNewEntriesDisabled(stage) ? (
                             <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300">
                               <AlertTriangle className="h-3 w-3" />
-                              New entries paused
+                              {t("new_entries_paused")}
                             </span>
                           ) : null}
                         </button>
@@ -2676,14 +2682,14 @@ export function PipelineSettings() {
                           to={`/pipelines/${pipelineId}`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                         >
-                          View queue
+                          {t("view_queue")}
                           <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
                         </Link>
                       </div>
                       {canInsertAfter ? (
                         <button
                           type="button"
-                          aria-label={`Insert stage after ${stage.name}`}
+                          aria-label={t("zhPages.00e316312726", { name: stage.name })}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-dashed border-border text-muted-foreground hover:border-foreground hover:text-foreground"
                           onClick={() => addStage.mutate(stage)}
                           disabled={addStage.isPending}
@@ -2731,8 +2737,8 @@ export function PipelineSettings() {
                             newEntriesDisabled &&
                               "border-amber-500/50 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300",
                           )}
-                          title={newEntriesDisabled ? "Resume new entries" : "Pause new entries"}
-                          aria-label={newEntriesDisabled ? "Resume new entries" : "Pause new entries"}
+                          title={newEntriesDisabled ? t("resume_new_entries") : t("pause_new_entries")}
+                          aria-label={newEntriesDisabled ? t("resume_new_entries") : t("pause_new_entries")}
                           onClick={() => setNewEntriesDisabled((value) => !value)}
                         >
                           {newEntriesDisabled ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
@@ -2742,8 +2748,8 @@ export function PipelineSettings() {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
-                          title={`Delete ${selectedStage.name}`}
-                          aria-label={`Delete ${selectedStage.name}`}
+                          title={t("zhPages.b939ca9d78e6", { name: selectedStage.name })}
+                          aria-label={t("zhPages.b939ca9d78e6", { name: selectedStage.name })}
                           onClick={() => setDeleteStageDialogOpen(true)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -2760,17 +2766,17 @@ export function PipelineSettings() {
                   {activeStageSection === "instructions" ? (
                     <div className="w-full max-w-3xl">
                       <div className="divide-y divide-border border-b border-border">
-                        <FieldRow label="Name">
+                        <FieldRow label={t("name")}>
                           <Input value={stageName} onChange={(event) => setStageName(event.target.value)} required />
                         </FieldRow>
-                        <FieldRow label="Step type">
+                        <FieldRow label={t("step_type")}>
                           <div className="max-w-xl space-y-2">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   type="button"
                                   variant="outline"
-                                  aria-label="Step type"
+                                  aria-label={t("step_type")}
                                   className="h-auto min-h-10 w-full justify-between whitespace-normal px-3 py-2 text-left"
                                 >
                                   <span className="flex min-w-0 items-center gap-2">
@@ -2810,18 +2816,18 @@ export function PipelineSettings() {
                         </FieldRow>
 
                         {stageKind === "review" ? (
-                          <FieldRow label="Approver">
+                          <FieldRow label={t("approver")}>
                             <InlineEntitySelector
                               value={selectedApproval === "any_human" ? "" : selectedApproval}
                               options={approvalOptions}
                               recentOptionIds={recentAssigneeOptionIds}
-                              placeholder="Approver"
-                              noneLabel="Any human"
-                              searchPlaceholder="Search approvers..."
-                              emptyMessage="No approvers found."
+                              placeholder={t("approver")}
+                              noneLabel={t("any_human")}
+                              searchPlaceholder={t("search_approvers")}
+                              emptyMessage={t("no_approvers_found")}
                               onChange={(value) => setSelectedApproval(approverValueFromOption(value))}
                               renderTriggerValue={(option) => {
-                                if (!option) return <span className="text-muted-foreground">Any human</span>;
+                                if (!option) return <span className="text-muted-foreground">{t("any_human")}</span>;
                                 const agent = option.id.startsWith("agent:") ? agentById.get(option.id.slice("agent:".length)) : null;
                                 return (
                                   <>
@@ -2845,12 +2851,12 @@ export function PipelineSettings() {
                         ) : null}
 
                         {stageKind === "review" ? (
-                          <FieldRow label="Review outcomes">
+                          <FieldRow label={t("review_outcomes")}>
                             <div className="space-y-2">
                               {([
-                                ["Approved items move to", approveTarget, setApproveTarget, "Choose a stage"],
-                                ["Declined items move to", rejectTarget, setRejectTarget, "Choose a stage"],
-                                ["Items needing changes move to", requestChangesTarget, setRequestChangesTarget, "Stay in review"],
+                                [t("approved_items_move_to"), approveTarget, setApproveTarget, t("choose_a_stage")],
+                                [t("declined_items_move_to"), rejectTarget, setRejectTarget, t("choose_a_stage")],
+                                [t("items_needing_changes_move_to"), requestChangesTarget, setRequestChangesTarget, t("stay_in_review")],
                               ] as const).map(([label, value, setValue, emptyLabel]) => (
                                 <div
                                   key={label}
@@ -2871,13 +2877,13 @@ export function PipelineSettings() {
                                 </div>
                               ))}
                               <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-(--gtc-42)">
-                                <span className="text-sm font-medium">Ask for a note when requesting changes</span>
+                                <span className="text-sm font-medium">{t("ask_for_a_note_when_requesting_changes")}</span>
                                 <div className="sm:justify-self-start">
                                   <ToggleSwitch checked={requireRequestChangesReason} onCheckedChange={setRequireRequestChangesReason} />
                                 </div>
                               </div>
                               <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-(--gtc-42)">
-                                <span className="text-sm font-medium">Ask for a note when declining</span>
+                                <span className="text-sm font-medium">{t("ask_for_a_note_when_declining")}</span>
                                 <div className="sm:justify-self-start">
                                   <ToggleSwitch checked={requireRejectReason} onCheckedChange={setRequireRejectReason} />
                                 </div>
@@ -2885,7 +2891,7 @@ export function PipelineSettings() {
                             </div>
                             {reviewTargetsMissing ? (
                               <p className="mt-2 text-sm text-muted-foreground">
-                                Pick where approved and declined items should go before saving.
+                                {t("pick_where_approved_and_declined_items_should_go")}
                               </p>
                             ) : null}
                           </FieldRow>
@@ -2899,18 +2905,18 @@ export function PipelineSettings() {
                     <div className="mt-8 w-full max-w-3xl space-y-6">
                       <div className="overflow-x-auto overscroll-x-contain">
                         <div className="inline-flex min-w-full flex-wrap items-center gap-2 text-sm text-muted-foreground sm:min-w-max sm:flex-nowrap">
-                          <span>When an item enters this step</span>
+                          <span>{t("when_an_item_enters_this_step")}</span>
                           <InlineEntitySelector
                             value={stageAssigneeOptionId(stageAssigneeAgentId)}
                             options={stageAssigneeOptions}
                             recentOptionIds={recentAssigneeOptionIds}
-                            placeholder="Pick agent"
-                            noneLabel="No automation"
-                            searchPlaceholder="Search agents..."
-                            emptyMessage="No agents found."
+                            placeholder={t("pick_agent")}
+                            noneLabel={t("no_automation")}
+                            searchPlaceholder={t("search_agents")}
+                            emptyMessage={t("no_agents_found")}
                             onChange={(value) => setStageAssigneeAgentId(stageAssigneeIdFromOption(value))}
                             renderTriggerValue={(option) => {
-                              if (!option) return <span className="text-muted-foreground">Pick agent</span>;
+                              if (!option) return <span className="text-muted-foreground">{t("pick_agent")}</span>;
                               const agent = stageAssigneeIdFromOption(option.id)
                                 ? agentById.get(stageAssigneeIdFromOption(option.id))
                                 : null;
@@ -2933,23 +2939,23 @@ export function PipelineSettings() {
                               );
                             }}
                           />
-                          <span>runs these instructions, then moves the item to the next step.</span>
+                          <span>{t("runs_these_instructions_then_moves_the_item_to_t")}</span>
                         </div>
                       </div>
 
                       {selectedAutomationAgent ? (
                         <>
                           <div className="divide-y divide-border border-y border-border">
-                            <FieldRow label="Project context">
+                            <FieldRow label={t("project_context")}>
                               <div className="grid gap-2 sm:grid-cols-(--gtc-43)">
                                 <InlineEntitySelector
                                   value={stageProjectId}
                                   options={projectOptions}
                                   recentOptionIds={recentProjectIds}
-                                  placeholder="Project"
-                                  noneLabel="No project"
-                                  searchPlaceholder="Search projects..."
-                                  emptyMessage="No projects found."
+                                  placeholder={t("project")}
+                                  noneLabel={t("no_project")}
+                                  searchPlaceholder={t("search_projects")}
+                                  emptyMessage={t("no_projects_found")}
                                   onChange={handleAutomationProjectChange}
                                   renderTriggerValue={(option) =>
                                     option && selectedAutomationProject ? (
@@ -2961,7 +2967,7 @@ export function PipelineSettings() {
                                         <span className="truncate">{option.label}</span>
                                       </>
                                     ) : (
-                                      <span className="text-muted-foreground">Project</span>
+                                      <span className="text-muted-foreground">{t("project")}</span>
                                     )
                                   }
                                   renderOption={(option) => {
@@ -2980,36 +2986,36 @@ export function PipelineSettings() {
                                 />
                                 {selectedAutomationProject ? (
                                   <select
-                                    aria-label="Project workspace"
+                                    aria-label={t("project_workspace")}
                                     value={stageProjectWorkspaceId}
                                     onChange={(event) => handleAutomationProjectWorkspaceChange(event.target.value)}
                                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                                   >
-                                    <option value="">Project fallback</option>
+                                    <option value="">{t("project_fallback")}</option>
                                     {(selectedAutomationProject.workspaces ?? []).map((workspace) => (
                                       <option key={workspace.id} value={workspace.id}>
-                                        {workspace.name}{workspace.isPrimary ? " · primary" : ""}
+                                        {workspace.name}{workspace.isPrimary ? t("primary_6dc949") : ""}
                                       </option>
                                     ))}
                                   </select>
                                 ) : (
                                   <div className="flex h-10 items-center rounded-md border border-dashed border-border px-3 text-sm text-muted-foreground">
-                                    Project workspace
+                                    {t("project_workspace")}
                                   </div>
                                 )}
                               </div>
                               {selectedAutomationProject && !selectedAutomationProjectWorkspace ? (
                                 <p className="mt-2 text-xs text-muted-foreground">
-                                  This project has no saved workspace default. Paperclip will use the project fallback when automation runs.
+                                  {t("this_project_has_no_saved_workspace_default_pape")}
                                 </p>
                               ) : null}
                             </FieldRow>
 
                             {selectedAutomationProject && selectedProjectSupportsExecutionWorkspace ? (
-                              <FieldRow label="Execution workspace">
+                              <FieldRow label={t("execution_workspace")}>
                                 <div className="grid gap-2 sm:grid-cols-(--gtc-43)">
                                   <select
-                                    aria-label="Execution workspace mode"
+                                    aria-label={t("execution_workspace_mode")}
                                     value={stageExecutionWorkspacePreference || "shared_workspace"}
                                     onChange={(event) => handleAutomationExecutionWorkspacePreferenceChange(event.target.value)}
                                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -3022,34 +3028,34 @@ export function PipelineSettings() {
                                   </select>
                                   {stageExecutionWorkspacePreference === "reuse_existing" ? (
                                     <select
-                                      aria-label="Existing execution workspace"
+                                      aria-label={t("existing_execution_workspace_003d73")}
                                       value={stageExecutionWorkspaceId}
                                       onChange={(event) => handleAutomationExecutionWorkspaceIdChange(event.target.value)}
                                       className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                                     >
-                                      <option value="">Choose an existing workspace</option>
+                                      <option value="">{t("choose_an_existing_workspace")}</option>
                                       {deduplicatedReusableWorkspaces.map((workspace) => (
                                         <option key={workspace.id} value={workspace.id}>
-                                          {workspace.name} · {workspace.status} · {workspace.branchName ?? workspace.cwd ?? workspace.id.slice(0, 8)}
+                                          {workspace.name} · {getDisplayLabel(workspace.status)} · {workspace.branchName ?? workspace.cwd ?? workspace.id.slice(0, 8)}
                                         </option>
                                       ))}
                                     </select>
                                   ) : (
                                     <div className="flex h-10 items-center rounded-md border border-dashed border-border px-3 text-sm text-muted-foreground">
                                       {stageExecutionWorkspacePreference === "isolated_workspace"
-                                        ? "A new workspace will be created"
-                                        : "Project default workspace"}
+                                        ? t("a_new_workspace_will_be_created")
+                                        : t("project_default_workspace")}
                                     </div>
                                   )}
                                 </div>
                                 {stageExecutionWorkspacePreference === "reuse_existing" && selectedReusableExecutionWorkspace ? (
                                   <p className="mt-2 text-xs text-muted-foreground">
-                                    Reusing {selectedReusableExecutionWorkspace.name} from {selectedReusableExecutionWorkspace.branchName ?? selectedReusableExecutionWorkspace.cwd ?? "existing workspace"}.
+                                    {t("reusing_37161b")} {selectedReusableExecutionWorkspace.name}{t("zhPages.75857a458999")}{selectedReusableExecutionWorkspace.branchName ?? selectedReusableExecutionWorkspace.cwd ?? t("existing_workspace")}.
                                   </p>
                                 ) : null}
                                 {!canSaveAutomationWorkspace ? (
                                   <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                                    Choose an existing workspace before saving reuse mode.
+                                    {t("choose_an_existing_workspace_before_saving_reuse")}
                                   </p>
                                 ) : null}
                               </FieldRow>
@@ -3057,12 +3063,12 @@ export function PipelineSettings() {
                           </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <AgentIcon icon={selectedAutomationAgent.icon} className="h-4 w-4 shrink-0" />
-                            <span>{selectedAutomationAgent.name} runs this step automatically.</span>
+                            <span>{selectedAutomationAgent.name} {t("runs_this_step_automatically")}</span>
                           </div>
-                          <FieldRow label="Issue title">
+                          <FieldRow label={t("issue_title")}>
                             <Input
                               ref={issueTitleTemplateInputRef}
-                              aria-label="Issue title template"
+                              aria-label={t("issue_title_template")}
                               value={issueTitleTemplate}
                               onChange={(event) => setIssueTitleTemplate(event.target.value)}
                               placeholder={PIPELINE_AUTOMATION_DEFAULT_TITLE_TEMPLATE}
@@ -3072,13 +3078,13 @@ export function PipelineSettings() {
                           <AutomationVariableTokenHelper
                             groups={automationVariableGroups}
                             onInsert={insertIssueTitleVariableToken}
-                            label="Issue title variables"
+                            label={t("issue_title_variables")}
                           />
                           {breakdownEnabled ? (
                             <div className="space-y-1">
-                              <h3 className="text-sm font-semibold text-foreground">What should the agent decide?</h3>
+                              <h3 className="text-sm font-semibold text-foreground">{t("what_should_the_agent_decide")}</h3>
                               <p className="text-sm text-muted-foreground">
-                                The mechanics are handled below. Write only the judgment.
+                                {t("the_mechanics_are_handled_below_write_only_the_j")}
                               </p>
                             </div>
                           ) : null}
@@ -3089,8 +3095,8 @@ export function PipelineSettings() {
                               onChange={setInstructionsBody}
                               placeholder={
                                 breakdownEnabled
-                                  ? "Describe the judgment the agent should make — what counts as a piece worth splitting out?"
-                                  : "Tell the agent exactly what to do when an item enters this step..."
+                                  ? t("describe_the_judgment_the_agent_should_make_what")
+                                  : t("tell_the_agent_exactly_what_to_do_when_an_item_e")
                               }
                               bordered={false}
                               contentClassName="min-h-(--sz-120px) text-sm leading-7"
@@ -3114,7 +3120,7 @@ export function PipelineSettings() {
                       ) : (
                         <EmptyState
                           icon={Pause}
-                          message="Nothing runs here automatically. Items wait until a person moves them, or you can pick an agent to run this step."
+                          message={t("nothing_runs_here_automatically_items_wait_until")}
                         />
                       )}
                       <div className="space-y-3">
@@ -3162,13 +3168,13 @@ export function PipelineSettings() {
                     <div className="w-full max-w-3xl space-y-8">
                       <div className="divide-y divide-border border-b border-border">
                         <div className="py-3">
-                          <h3 className="text-sm font-semibold text-foreground">Transitions</h3>
+                          <h3 className="text-sm font-semibold text-foreground">{t("transitions")}</h3>
                         </div>
-                        <FieldRow label="Strict mode">
+                        <FieldRow label={t("strict_mode")}>
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-3">
                               <ToggleSwitch
-                                aria-label="Strictly enforce transitions"
+                                aria-label={t("strictly_enforce_transitions")}
                                 checked={strictTransitionsEnabled}
                                 disabled={saveStrictTransitions.isPending}
                                 onCheckedChange={(checked) => {
@@ -3177,13 +3183,13 @@ export function PipelineSettings() {
                                 }}
                               />
                               <span className="text-sm font-medium text-foreground">
-                                Strictly enforce transitions
+                                {t("strictly_enforce_transitions")}
                               </span>
                             </div>
                             <p className="max-w-2xl text-sm text-muted-foreground">
                               {strictTransitionsEnabled
-                                ? "Items can only move to configured next steps. Operators can force an off-path move by giving a reason."
-                                : "Items can move to any step. Saved allowed-next-step choices are kept, but they are not enforced."}
+                                ? t("items_can_only_move_to_configured_next_steps_ope")
+                                : t("items_can_move_to_any_step_saved_allowed_next_st")}
                             </p>
                           </div>
                         </FieldRow>
@@ -3192,14 +3198,14 @@ export function PipelineSettings() {
                       {isPipelineTerminalStageKind(stageKind) ? null : breakdownEnabled ? (
                         <EmptyState
                           icon={SlidersHorizontal}
-                          message="Advanced child settings are hidden while Break into smaller pieces is enabled. Configure that workflow in Automation."
+                          message={t("advanced_child_settings_are_hidden_while_break_i")}
                         />
                       ) : (
                         <div className="divide-y divide-border border-b border-border">
                           <div className="py-3">
-                            <h3 className="text-sm font-semibold text-foreground">Children</h3>
+                            <h3 className="text-sm font-semibold text-foreground">{t("children")}</h3>
                           </div>
-                          <FieldRow label="Block children">
+                          <FieldRow label={t("block_children")}>
                             <div className="space-y-1.5">
                               <div className="flex items-center gap-3">
                                 <ToggleSwitch
@@ -3207,15 +3213,15 @@ export function PipelineSettings() {
                                   onCheckedChange={setRequireChildrenTerminal}
                                 />
                                 <span className="text-sm font-medium text-foreground">
-                                  Block until all child items are done or cancelled
+                                  {t("block_until_all_child_items_are_done_or_cancelle")}
                                 </span>
                               </div>
                               <p className="max-w-2xl text-sm text-muted-foreground">
-                                When on, this step can't move forward while any child item is still open. When off, items can move through even with open children.
+                                {t("when_on_this_step_cant_move_forward_while_any_ch")}
                               </p>
                             </div>
                           </FieldRow>
-                          <FieldRow label="Advance children">
+                          <FieldRow label={t("advance_children")}>
                             <div className="space-y-3">
                               <div className="flex items-center gap-3">
                                 <ToggleSwitch
@@ -3225,26 +3231,26 @@ export function PipelineSettings() {
                                   }}
                                 />
                                 <span className="text-sm font-medium text-foreground">
-                                  Advance when the last child is done
+                                  {t("advance_when_the_last_child_is_done")}
                                 </span>
                               </div>
                               <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-(--gtc-44)">
-                                <span className="text-sm font-medium text-muted-foreground">Move to</span>
+                                <span className="text-sm font-medium text-muted-foreground">{t("move_to_349f80")}</span>
                                 <select
-                                  aria-label="Move to stage when children finish"
+                                  aria-label={t("move_to_stage_when_children_finish")}
                                   value={autoAdvanceOnChildrenTerminal}
                                   onChange={(event) => setAutoAdvanceOnChildrenTerminal(event.target.value)}
                                   disabled={!autoAdvanceOnChildrenTerminal}
                                   className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50"
                                 >
-                                  <option value="">Choose a stage</option>
+                                  <option value="">{t("choose_a_stage")}</option>
                                   {otherStages.map((stage) => (
                                     <option key={stage.id} value={stage.key}>{stage.name}</option>
                                   ))}
                                 </select>
                               </div>
                               <p className="max-w-2xl text-sm text-muted-foreground">
-                                When on and every child is done, this step moves the item forward automatically. When off, someone has to move it.
+                                {t("when_on_and_every_child_is_done_this_step_moves")}
                               </p>
                             </div>
                           </FieldRow>
@@ -3261,7 +3267,7 @@ export function PipelineSettings() {
                         <StageEventsList
                           events={stageEvents}
                           stages={stages}
-                          emptyMessage="No stage activity yet."
+                          emptyMessage={t("no_stage_activity_yet")}
                         />
                       )}
                     </div>
@@ -3291,14 +3297,14 @@ export function PipelineSettings() {
               {stageDirty || saveStage.isPending ? (
                 <div className="sticky bottom-0 z-10 -mx-6 mt-6 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-6 py-3 backdrop-blur motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2">
                   <span className="text-sm text-muted-foreground">
-                    {saveStage.isPending ? "Saving changes…" : "You have unsaved changes."}
+                    {saveStage.isPending ? t("saving_changes") : t("you_have_unsaved_changes")}
                   </span>
                   <Button
                     type="submit"
                     disabled={saveStage.isPending || !stageName.trim() || reviewTargetsMissing || !canSaveAutomationWorkspace}
                   >
                     {saveStage.isPending ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-                    {saveStage.isPending ? "Saving..." : "Save stage"}
+                    {saveStage.isPending ? t("saving") : t("save_stage")}
                   </Button>
                 </div>
               ) : null}
@@ -3311,17 +3317,17 @@ export function PipelineSettings() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete stage</DialogTitle>
+            <DialogTitle>{t("delete_stage")}</DialogTitle>
             <DialogDescription>
-              Delete {selectedStage?.name ?? "this stage"} from this pipeline. Connected stage transitions are removed.
+              {t("delete_f6fdbe")} {selectedStage?.name ?? t("this_stage")} {t("from_this_pipeline_connected_stage_transitions_a")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             {stages.length > 1 ? (
               <label className="block space-y-1.5 text-sm font-medium">
-                <span>Move existing items to</span>
+                <span>{t("move_existing_items_to")}</span>
                 <select
-                  aria-label="Move existing items to"
+                  aria-label={t("move_existing_items_to")}
                   value={deleteMoveTargetStageId}
                   onChange={(event) => setDeleteMoveTargetStageId(event.target.value)}
                   className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -3335,7 +3341,7 @@ export function PipelineSettings() {
               </label>
             ) : (
               <p className="text-sm text-muted-foreground">
-                This is the only stage. Deletion succeeds only if it has no items.
+                {t("this_is_the_only_stage_deletion_succeeds_only_if")}
               </p>
             )}
             {deleteStage.error ? (
@@ -3349,7 +3355,7 @@ export function PipelineSettings() {
               onClick={() => setDeleteStageDialogOpen(false)}
               disabled={deleteStage.isPending}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="button"
@@ -3358,7 +3364,7 @@ export function PipelineSettings() {
               onClick={() => deleteStage.mutate()}
             >
               <Trash2 className="h-4 w-4" />
-              {deleteStage.isPending ? "Deleting..." : "Delete stage"}
+              {deleteStage.isPending ? t("deleting") : t("delete_stage")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -3373,16 +3379,16 @@ export function PipelineSettings() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Archive pipeline</DialogTitle>
+            <DialogTitle>{t("archive_pipeline")}</DialogTitle>
             <DialogDescription>
-              Archiving hides this pipeline from everyday views. Its stages and items are kept and can be restored later.
+              {t("archiving_hides_this_pipeline_from_everyday_view")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <label className="block space-y-1.5 text-sm font-medium">
-              <span>Type {pipeline.name} to confirm</span>
+              <span>{t("type")} {pipeline.name} {t("to_confirm_836e41")}</span>
               <Input
-                aria-label="Archive confirmation"
+                aria-label={t("archive_confirmation")}
                 value={archiveConfirmation}
                 onChange={(event) => setArchiveConfirmation(event.target.value)}
                 autoComplete="off"
@@ -3399,7 +3405,7 @@ export function PipelineSettings() {
               onClick={() => setArchiveDialogOpen(false)}
               disabled={archivePipeline.isPending}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="button"
@@ -3408,7 +3414,7 @@ export function PipelineSettings() {
               onClick={() => archivePipeline.mutate(true)}
             >
               <Archive className="h-4 w-4" />
-              {archivePipeline.isPending ? "Archiving..." : "Archive pipeline"}
+              {archivePipeline.isPending ? t("archiving") : t("archive_pipeline")}
             </Button>
           </DialogFooter>
         </DialogContent>

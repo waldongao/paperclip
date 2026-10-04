@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 /**
  * Live adapter: normalize the existing IssueChatComment stream (including
  * optimistic echoes) into the redesign's TaskChatItem[] model. This is the
@@ -11,6 +12,7 @@ import type { Agent } from "@paperclipai/shared";
 import type { IssueChatComment } from "@/lib/issue-chat-messages";
 import { resolveCommentAttribution } from "@/lib/comment-attribution";
 import type { TaskChatAuthorKind, TaskChatItem, TaskChatMessageItem } from "./task-chat-model";
+import { t } from "@/i18n";
 
 export interface TaskChatAdapterContext {
   agentMap?: Map<string, Agent>;
@@ -43,7 +45,7 @@ export function formatTaskChatTimestamp(value: unknown): string | undefined {
   if (!value) return undefined;
   const d = value instanceof Date ? value : new Date(value as string);
   if (Number.isNaN(d.getTime())) return undefined;
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString(i18n.resolvedLanguage ?? i18n.language, { hour: "numeric", minute: "2-digit" });
 }
 
 export function commentsToTaskChatItems(
@@ -59,7 +61,7 @@ export function commentsToTaskChatItems(
     let onBehalfOfUserName: string | undefined;
     if (kind === "agent") {
       const agentId = effectiveAgentId(comment);
-      authorName = (agentId && ctx.agentMap?.get(agentId)?.name) || "Agent";
+      authorName = (agentId && ctx.agentMap?.get(agentId)?.name) || t("agent_5ce2e6");
       agentIcon = agentId ? ctx.agentMap?.get(agentId)?.icon : undefined;
       onBehalfOfUserName = resolveCommentAttribution({
         authorAgentId: agentId,

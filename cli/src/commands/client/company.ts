@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../../i18n.js";
 import { Command } from "commander";
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -125,11 +126,11 @@ const IMPORT_INCLUDE_OPTIONS: Array<{
   label: string;
   hint: string;
 }> = [
-  { value: "company", label: "Company", hint: "name, branding, and company settings" },
-  { value: "projects", label: "Projects", hint: "projects and workspace metadata" },
-  { value: "issues", label: "Tasks", hint: "tasks and recurring routines" },
-  { value: "agents", label: "Agents", hint: "agent records and org structure" },
-  { value: "skills", label: "Skills", hint: "company skill packages and references" },
+  { value: "company", label: tCli("Company"), hint: tCli("name, branding, and company settings") },
+  { value: "projects", label: tCli("Projects"), hint: tCli("projects and workspace metadata") },
+  { value: "issues", label: tCli("Tasks"), hint: tCli("tasks and recurring routines") },
+  { value: "agents", label: tCli("Agents"), hint: tCli("agent records and org structure") },
+  { value: "skills", label: tCli("Skills"), hint: tCli("company skill packages and references") },
 ];
 
 const IMPORT_PREVIEW_SAMPLE_LIMIT = 6;
@@ -183,7 +184,7 @@ function parseInclude(
     skills: values.includes("skills"),
   };
   if (!include.company && !include.agents && !include.projects && !include.issues && !include.skills) {
-    throw new Error("Invalid --include value. Use one or more of: company,agents,projects,issues,tasks,skills");
+    throw new Error(tCli("Invalid --include value. Use one or more of: company,agents,projects,issues,tasks,skills"));
   }
   return include;
 }
@@ -340,19 +341,19 @@ function countTotal(catalog: ImportSelectionCatalog, group: ImportSelectableGrou
 }
 
 function summarizeGroupSelection(catalog: ImportSelectionCatalog, state: ImportSelectionState, group: ImportSelectableGroup): string {
-  return `${countSelected(state, group)}/${countTotal(catalog, group)} selected`;
+  return tCli("{{value0}}/{{value1}} selected", { value0: countSelected(state, group), value1: countTotal(catalog, group) });
 }
 
 function getGroupLabel(group: ImportSelectableGroup): string {
   switch (group) {
     case "projects":
-      return "Projects";
+      return tCli("Projects");
     case "issues":
-      return "Tasks";
+      return tCli("Tasks");
     case "agents":
-      return "Agents";
+      return tCli("Agents");
     case "skills":
-      return "Skills";
+      return tCli("Skills");
   }
 }
 
@@ -412,7 +413,7 @@ function buildDefaultImportAdapterMessages(
     .map((adapterType) => adapterType.replace(/_/g, "-"));
   const agentCount = Object.keys(overrides).length;
   return [
-    `Using ${adapterTypes.join(", ")} adapter${adapterTypes.length === 1 ? "" : "s"} for ${agentCount} imported ${pluralize(agentCount, "agent")} without an explicit adapter.`,
+    tCli("Using {{value0}} adapter{{value1}} for {{agentCount}} imported {{value3}} without an explicit adapter.", { value0: adapterTypes.join(", "), value1: adapterTypes.length === 1 ? "" : tCli("s"), agentCount: agentCount, value3: pluralize(agentCount, "agent") }),
   ];
 }
 
@@ -422,51 +423,51 @@ async function promptForImportSelection(preview: CompanyPortabilityPreviewResult
 
   while (true) {
     const choice = await p.select<ImportSelectableGroup | "company" | "confirm">({
-      message: "Select what Paperclip should import",
+      message: tCli("Select what Paperclip should import"),
       options: [
         {
           value: "company",
-          label: state.company ? "Company: included" : "Company: skipped",
-          hint: catalog.company.files.length > 0 ? "toggle company metadata" : "no company metadata in package",
+          label: state.company ? tCli("Company: included") : tCli("Company: skipped"),
+          hint: catalog.company.files.length > 0 ? tCli("toggle company metadata") : tCli("no company metadata in package"),
         },
         {
           value: "projects",
-          label: "Select Projects",
+          label: tCli("Select Projects"),
           hint: summarizeGroupSelection(catalog, state, "projects"),
         },
         {
           value: "issues",
-          label: "Select Tasks",
+          label: tCli("Select Tasks"),
           hint: summarizeGroupSelection(catalog, state, "issues"),
         },
         {
           value: "agents",
-          label: "Select Agents",
+          label: tCli("Select Agents"),
           hint: summarizeGroupSelection(catalog, state, "agents"),
         },
         {
           value: "skills",
-          label: "Select Skills",
+          label: tCli("Select Skills"),
           hint: summarizeGroupSelection(catalog, state, "skills"),
         },
         {
           value: "confirm",
-          label: "Confirm",
-          hint: `${buildSelectedFilesFromImportSelection(catalog, state).length} files selected`,
+          label: tCli("Confirm"),
+          hint: tCli("{{value0}} files selected", { value0: buildSelectedFilesFromImportSelection(catalog, state).length }),
         },
       ],
       initialValue: "confirm",
     });
 
     if (p.isCancel(choice)) {
-      p.cancel("Import cancelled.");
+      p.cancel(tCli("Import cancelled."));
       process.exit(0);
     }
 
     if (choice === "confirm") {
       const selectedFiles = buildSelectedFilesFromImportSelection(catalog, state);
       if (selectedFiles.length === 0) {
-        p.note("Select at least one import target before confirming.", "Nothing selected");
+        p.note(tCli("Select at least one import target before confirming."), tCli("Nothing selected"));
         continue;
       }
       return selectedFiles;
@@ -474,7 +475,7 @@ async function promptForImportSelection(preview: CompanyPortabilityPreviewResult
 
     if (choice === "company") {
       if (catalog.company.files.length === 0) {
-        p.note("This package does not include company metadata to toggle.", "No company metadata");
+        p.note(tCli("This package does not include company metadata to toggle."), tCli("No company metadata"));
         continue;
       }
       state.company = !state.company;
@@ -484,12 +485,12 @@ async function promptForImportSelection(preview: CompanyPortabilityPreviewResult
     const group = choice;
     const groupItems = catalog[group];
     if (groupItems.length === 0) {
-      p.note(`This package does not include any ${getGroupLabel(group).toLowerCase()}.`, `No ${getGroupLabel(group)}`);
+      p.note(tCli("This package does not include any {{value0}}.", { value0: getGroupLabel(group).toLowerCase() }), tCli("No {{value0}}", { value0: getGroupLabel(group) }));
       continue;
     }
 
     const selection = await p.multiselect<string>({
-      message: `${getGroupLabel(group)} to import. Space toggles, enter returns to the main menu.`,
+      message: tCli("{{value0}} to import. Space toggles, enter returns to the main menu.", { value0: getGroupLabel(group) }),
       options: groupItems.map((item) => ({
         value: item.key,
         label: item.label,
@@ -499,7 +500,7 @@ async function promptForImportSelection(preview: CompanyPortabilityPreviewResult
     });
 
     if (p.isCancel(selection)) {
-      p.cancel("Import cancelled.");
+      p.cancel(tCli("Import cancelled."));
       process.exit(0);
     }
 
@@ -511,14 +512,14 @@ function summarizeInclude(include: CompanyPortabilityInclude): string {
   const labels = IMPORT_INCLUDE_OPTIONS
     .filter((option) => include[option.value])
     .map((option) => option.label.toLowerCase());
-  return labels.length > 0 ? labels.join(", ") : "nothing selected";
+  return labels.length > 0 ? labels.join(", ") : tCli("nothing selected");
 }
 
 function formatSourceLabel(source: { type: "inline"; rootPath?: string | null } | { type: "github"; url: string }): string {
   if (source.type === "github") {
     return `GitHub: ${source.url}`;
   }
-  return `Local package: ${source.rootPath?.trim() || "(current folder)"}`;
+  return tCli("Local package: {{value0}}", { value0: source.rootPath?.trim() || tCli("(current folder)") });
 }
 
 function formatTargetLabel(
@@ -530,77 +531,77 @@ function formatTargetLabel(
     const targetId = preview?.targetCompanyId?.trim() || target.companyId?.trim() || "unknown-company";
     return targetName ? `${targetName} (${targetId})` : targetId;
   }
-  return target.newCompanyName?.trim() || preview?.manifest.company?.name || "new company";
+  return target.newCompanyName?.trim() || preview?.manifest.company?.name || tCli("new company");
 }
 
 function pluralize(count: number, singular: string, plural = `${singular}s`): string {
-  return count === 1 ? singular : plural;
+  return tCli(count === 1 ? singular : plural);
 }
 
 function summarizePlanCounts(
   plans: Array<{ action: "create" | "update" | "skip" }>,
   noun: string,
 ): string {
-  if (plans.length === 0) return `0 ${pluralize(0, noun)} selected`;
+  if (plans.length === 0) return tCli("0 {{value0}} selected", { value0: pluralize(0, noun) });
   const createCount = plans.filter((plan) => plan.action === "create").length;
   const updateCount = plans.filter((plan) => plan.action === "update").length;
   const skipCount = plans.filter((plan) => plan.action === "skip").length;
   const parts: string[] = [];
-  if (createCount > 0) parts.push(`${createCount} create`);
-  if (updateCount > 0) parts.push(`${updateCount} update`);
-  if (skipCount > 0) parts.push(`${skipCount} skip`);
-  return `${plans.length} ${pluralize(plans.length, noun)} total (${parts.join(", ")})`;
+  if (createCount > 0) parts.push(tCli("{{value0}} create", { value0: createCount }));
+  if (updateCount > 0) parts.push(tCli("{{value0}} update", { value0: updateCount }));
+  if (skipCount > 0) parts.push(tCli("{{value0}} skip", { value0: skipCount }));
+  return tCli("{{value0}} {{value1}} total ({{value2}})", { value0: plans.length, value1: pluralize(plans.length, noun), value2: parts.join(", ") });
 }
 
 function summarizeImportAgentResults(agents: CompanyPortabilityImportResult["agents"]): string {
-  if (agents.length === 0) return "0 agents changed";
+  if (agents.length === 0) return tCli("0 agents changed");
   const created = agents.filter((agent) => agent.action === "created").length;
   const updated = agents.filter((agent) => agent.action === "updated").length;
   const skipped = agents.filter((agent) => agent.action === "skipped").length;
   const parts: string[] = [];
-  if (created > 0) parts.push(`${created} created`);
-  if (updated > 0) parts.push(`${updated} updated`);
-  if (skipped > 0) parts.push(`${skipped} skipped`);
-  return `${agents.length} ${pluralize(agents.length, "agent")} total (${parts.join(", ")})`;
+  if (created > 0) parts.push(tCli("{{value0}} created", { value0: created }));
+  if (updated > 0) parts.push(tCli("{{value0}} updated", { value0: updated }));
+  if (skipped > 0) parts.push(tCli("{{value0}} skipped", { value0: skipped }));
+  return tCli("{{value0}} {{value1}} total ({{value2}})", { value0: agents.length, value1: pluralize(agents.length, "agent"), value2: parts.join(", ") });
 }
 
 function summarizeImportSkillResults(skills: CompanyPortabilityImportResult["skills"]): string {
-  if (skills.length === 0) return "0 skills changed";
+  if (skills.length === 0) return tCli("0 skills changed");
   const actions = ["created", "renamed", "replaced", "skipped"] as const;
   const parts = actions.flatMap((action) => {
     const count = skills.filter((skill) => skill.action === action).length;
-    return count > 0 ? [`${count} ${action}`] : [];
+    return count > 0 ? [`${count} ${tCli(action)}`] : [];
   });
-  return `${skills.length} ${pluralize(skills.length, "skill")} total (${parts.join(", ")})`;
+  return tCli("{{value0}} {{value1}} total ({{value2}})", { value0: skills.length, value1: pluralize(skills.length, "skill"), value2: parts.join(", ") });
 }
 
 function summarizeImportProjectResults(projects: CompanyPortabilityImportResult["projects"]): string {
-  if (projects.length === 0) return "0 projects changed";
+  if (projects.length === 0) return tCli("0 projects changed");
   const created = projects.filter((project) => project.action === "created").length;
   const updated = projects.filter((project) => project.action === "updated").length;
   const skipped = projects.filter((project) => project.action === "skipped").length;
   const parts: string[] = [];
-  if (created > 0) parts.push(`${created} created`);
-  if (updated > 0) parts.push(`${updated} updated`);
-  if (skipped > 0) parts.push(`${skipped} skipped`);
-  return `${projects.length} ${pluralize(projects.length, "project")} total (${parts.join(", ")})`;
+  if (created > 0) parts.push(tCli("{{value0}} created", { value0: created }));
+  if (updated > 0) parts.push(tCli("{{value0}} updated", { value0: updated }));
+  if (skipped > 0) parts.push(tCli("{{value0}} skipped", { value0: skipped }));
+  return tCli("{{value0}} {{value1}} total ({{value2}})", { value0: projects.length, value1: pluralize(projects.length, "project"), value2: parts.join(", ") });
 }
 
 function actionChip(action: string): string {
   switch (action) {
     case "create":
     case "created":
-      return pc.green(action);
+      return pc.green(tCli(action));
     case "update":
     case "updated":
-      return pc.yellow(action);
+      return pc.yellow(tCli(action));
     case "skip":
     case "skipped":
     case "none":
     case "unchanged":
-      return pc.dim(action);
+      return pc.dim(tCli(action));
     default:
-      return action;
+      return tCli(action);
   }
 }
 
@@ -614,11 +615,11 @@ function appendPreviewExamples(
   lines.push(pc.bold(title));
   const shown = entries.slice(0, IMPORT_PREVIEW_SAMPLE_LIMIT);
   for (const entry of shown) {
-    const reason = entry.reason?.trim() ? pc.dim(` (${entry.reason.trim()})`) : "";
+    const reason = entry.reason?.trim() ? pc.dim(` (${translateCliDisplayMessage(entry.reason.trim())})`) : "";
     lines.push(`- ${actionChip(entry.action)} ${entry.label}${reason}`);
   }
   if (entries.length > shown.length) {
-    lines.push(pc.dim(`- +${entries.length - shown.length} more`));
+    lines.push(pc.dim(tCli("- +{{value0}} more", { value0: entries.length - shown.length })));
   }
 }
 
@@ -627,7 +628,7 @@ function appendMessageBlock(lines: string[], title: string, messages: string[]):
   lines.push("");
   lines.push(pc.bold(title));
   for (const message of messages) {
-    lines.push(`- ${message}`);
+    lines.push(`- ${translateCliDisplayMessage(message)}`);
   }
 }
 
@@ -640,37 +641,37 @@ export function renderCompanyImportPreview(
   },
 ): string {
   const lines: string[] = [
-    `${pc.bold("Source")}  ${meta.sourceLabel}`,
-    `${pc.bold("Target")}  ${meta.targetLabel}`,
-    `${pc.bold("Include")} ${summarizeInclude(preview.include)}`,
-    `${pc.bold("Mode")}    ${preview.collisionStrategy} collisions`,
+    `${pc.bold(tCli("Source"))}  ${meta.sourceLabel}`,
+    `${pc.bold(tCli("Target"))}  ${meta.targetLabel}`,
+    `${pc.bold(tCli("Include"))} ${summarizeInclude(preview.include)}`,
+    tCli("{{mode}}    {{strategy}} collisions", { mode: pc.bold(tCli("Mode")), strategy: tCli(preview.collisionStrategy) }),
     "",
-    pc.bold("Package"),
-    `- company: ${preview.manifest.company?.name ?? preview.manifest.source?.companyName ?? "not included"}`,
-    `- agents: ${preview.manifest.agents.length}`,
-    `- projects: ${preview.manifest.projects.length}`,
-    `- tasks: ${preview.manifest.issues.length}`,
-    `- skills: ${preview.manifest.skills.length}`,
+    pc.bold(tCli("Package")),
+    tCli("- company: {{value0}}", { value0: preview.manifest.company?.name ?? preview.manifest.source?.companyName ?? tCli("not included") }),
+    tCli("- agents: {{value0}}", { value0: preview.manifest.agents.length }),
+    tCli("- projects: {{value0}}", { value0: preview.manifest.projects.length }),
+    tCli("- tasks: {{value0}}", { value0: preview.manifest.issues.length }),
+    tCli("- skills: {{value0}}", { value0: preview.manifest.skills.length }),
   ];
 
   if (preview.envInputs.length > 0) {
     const requiredCount = preview.envInputs.filter((item) => item.requirement === "required").length;
-    lines.push(`- env inputs: ${preview.envInputs.length} (${requiredCount} required)`);
+    lines.push(tCli("- env inputs: {{count}} ({{requiredCount}} required)", { count: preview.envInputs.length, requiredCount: requiredCount }));
   }
 
   lines.push("");
-  lines.push(pc.bold("Plan"));
-  lines.push(`- company: ${actionChip(preview.plan.companyAction === "none" ? "unchanged" : preview.plan.companyAction)}`);
-  lines.push(`- agents: ${summarizePlanCounts(preview.plan.agentPlans, "agent")}`);
-  lines.push(`- projects: ${summarizePlanCounts(preview.plan.projectPlans, "project")}`);
-  lines.push(`- tasks: ${summarizePlanCounts(preview.plan.issuePlans, "task")}`);
+  lines.push(pc.bold(tCli("Plan")));
+  lines.push(tCli("- company: {{value0}}", { value0: actionChip(preview.plan.companyAction === "none" ? "unchanged" : preview.plan.companyAction) }));
+  lines.push(tCli("- agents: {{value0}}", { value0: summarizePlanCounts(preview.plan.agentPlans, "agent") }));
+  lines.push(tCli("- projects: {{value0}}", { value0: summarizePlanCounts(preview.plan.projectPlans, "project") }));
+  lines.push(tCli("- tasks: {{value0}}", { value0: summarizePlanCounts(preview.plan.issuePlans, "task") }));
   if (preview.include.skills) {
-    lines.push(`- skills: ${preview.manifest.skills.length} ${pluralize(preview.manifest.skills.length, "skill")} packaged`);
+    lines.push(tCli("- skills: {{value0}} {{value1}} packaged", { value0: preview.manifest.skills.length, value1: pluralize(preview.manifest.skills.length, "skill") }));
   }
 
   appendPreviewExamples(
     lines,
-    "Agent examples",
+    tCli("Agent examples"),
     preview.plan.agentPlans.map((plan) => ({
       action: plan.action,
       label: `${plan.slug} -> ${plan.plannedName}`,
@@ -679,7 +680,7 @@ export function renderCompanyImportPreview(
   );
   appendPreviewExamples(
     lines,
-    "Project examples",
+    tCli("Project examples"),
     preview.plan.projectPlans.map((plan) => ({
       action: plan.action,
       label: `${plan.slug} -> ${plan.plannedName}`,
@@ -688,7 +689,7 @@ export function renderCompanyImportPreview(
   );
   appendPreviewExamples(
     lines,
-    "Task examples",
+    tCli("Task examples"),
     preview.plan.issuePlans.map((plan) => ({
       action: plan.action,
       label: `${plan.slug} -> ${plan.plannedTitle}`,
@@ -696,9 +697,9 @@ export function renderCompanyImportPreview(
     })),
   );
 
-  appendMessageBlock(lines, pc.cyan("Info"), meta.infoMessages ?? []);
-  appendMessageBlock(lines, pc.yellow("Warnings"), preview.warnings);
-  appendMessageBlock(lines, pc.red("Errors"), preview.errors);
+  appendMessageBlock(lines, pc.cyan(tCli("Info")), meta.infoMessages ?? []);
+  appendMessageBlock(lines, pc.yellow(tCli("Warnings")), preview.warnings);
+  appendMessageBlock(lines, pc.red(tCli("Errors")), preview.errors);
 
   return lines.join("\n");
 }
@@ -709,11 +710,11 @@ export function renderCompanyImportResult(
 ): string {
   const skills = result.skills ?? [];
   const lines: string[] = [
-    `${pc.bold("Target")}  ${meta.targetLabel}`,
-    `${pc.bold("Company")} ${result.company.name} (${actionChip(result.company.action)})`,
-    `${pc.bold("Agents")}  ${summarizeImportAgentResults(result.agents)}`,
-    `${pc.bold("Skills")}  ${summarizeImportSkillResults(skills)}`,
-    `${pc.bold("Projects")} ${summarizeImportProjectResults(result.projects)}`,
+    `${pc.bold(tCli("Target"))}  ${meta.targetLabel}`,
+    `${pc.bold(tCli("Company"))} ${result.company.name} (${actionChip(result.company.action)})`,
+    `${pc.bold(tCli("Agents"))}  ${summarizeImportAgentResults(result.agents)}`,
+    `${pc.bold(tCli("Skills"))}  ${summarizeImportSkillResults(skills)}`,
+    `${pc.bold(tCli("Projects"))} ${summarizeImportProjectResults(result.projects)}`,
   ];
 
   if (meta.companyUrl) {
@@ -722,7 +723,7 @@ export function renderCompanyImportResult(
 
   appendPreviewExamples(
     lines,
-    "Agent results",
+    tCli("Agent results"),
     result.agents.map((agent) => ({
       action: agent.action,
       label: `${agent.slug} -> ${agent.name}`,
@@ -731,7 +732,7 @@ export function renderCompanyImportResult(
   );
   appendPreviewExamples(
     lines,
-    "Skill results",
+    tCli("Skill results"),
     skills.map((skill) => ({
       action: skill.action,
       label: `${skill.originalSlug} -> ${skill.slug}`,
@@ -740,7 +741,7 @@ export function renderCompanyImportResult(
   );
   appendPreviewExamples(
     lines,
-    "Project results",
+    tCli("Project results"),
     result.projects.map((project) => ({
       action: project.action,
       label: `${project.slug} -> ${project.name}`,
@@ -750,14 +751,14 @@ export function renderCompanyImportResult(
 
   if (result.envInputs.length > 0) {
     lines.push("");
-    lines.push(pc.bold("Env inputs"));
+    lines.push(pc.bold(tCli("Env inputs")));
     lines.push(
-      `- ${result.envInputs.length} ${pluralize(result.envInputs.length, "input")} may need values after import`,
+      tCli("- {{count}} {{value1}} may need values after import", { count: result.envInputs.length, value1: pluralize(result.envInputs.length, "input") }),
     );
   }
 
-  appendMessageBlock(lines, pc.cyan("Info"), meta.infoMessages ?? []);
-  appendMessageBlock(lines, pc.yellow("Warnings"), result.warnings);
+  appendMessageBlock(lines, pc.cyan(tCli("Info")), meta.infoMessages ?? []);
+  appendMessageBlock(lines, pc.yellow(tCli("Warnings")), result.warnings);
 
   return lines.join("\n");
 }
@@ -779,7 +780,7 @@ export function resolveCompanyImportApiPath(input: {
   if (input.targetMode === "existing_company") {
     const companyId = input.companyId?.trim();
     if (!companyId) {
-      throw new Error("Existing-company imports require a companyId to resolve the API route.");
+      throw new Error(tCli("Existing-company imports require a companyId to resolve the API route."));
     }
     return input.dryRun
       ? apiPath`/api/companies/${companyId}/imports/preview`
@@ -808,12 +809,12 @@ export function resolveCompanyImportApplyConfirmationMode(input: {
   }
   if (input.json) {
     throw new Error(
-      "Applying a company import with --json requires --yes. Use --dry-run first to inspect the preview.",
+      tCli("Applying a company import with --json requires --yes. Use --dry-run first to inspect the preview."),
     );
   }
   if (!input.interactive) {
     throw new Error(
-      "Applying a company import from a non-interactive terminal requires --yes. Use --dry-run first to inspect the preview.",
+      tCli("Applying a company import from a non-interactive terminal requires --yes. Use --dry-run first to inspect the preview."),
     );
   }
   return "prompt";
@@ -902,7 +903,7 @@ export function normalizeGithubImportSource(input: string, refOverride?: string)
   }
 
   if (!looksLikeRepoUrl(trimmed)) {
-    throw new Error("GitHub source must be a GitHub or GitHub Enterprise URL, or owner/repo[/path] shorthand.");
+    throw new Error(tCli("GitHub source must be a GitHub or GitHub Enterprise URL, or owner/repo[/path] shorthand."));
   }
   if (!ref) {
     return trimmed;
@@ -912,7 +913,7 @@ export function normalizeGithubImportSource(input: string, refOverride?: string)
   const hostname = url.hostname;
   const parts = url.pathname.split("/").filter(Boolean);
   if (parts.length < 2) {
-    throw new Error("Invalid GitHub URL.");
+    throw new Error(tCli("Invalid GitHub URL."));
   }
 
   const owner = parts[0]!;
@@ -1156,7 +1157,7 @@ export async function uploadCompanyImportTransfer(
     manifest,
   );
   if (!created) {
-    throw new Error("Import transfer declaration returned no data.");
+    throw new Error(tCli("Import transfer declaration returned no data."));
   }
   if (created.alreadyCompleted) {
     // The server keys transfers by content, and this exact zip already
@@ -1193,7 +1194,7 @@ export async function uploadCompanyImportTransfer(
       // import resumes from them instead of starting over.
       throw lastError instanceof Error
         ? lastError
-        : new Error(`Import transfer part ${part.index} failed to upload.`);
+        : new Error(tCli("Import transfer part {{index}} failed to upload.", { index: part.index }));
     }
     uploadedParts += 1;
     uploadedBytes += part.byteSize;
@@ -1228,7 +1229,7 @@ export function resolveExportOutputPath(root: string, relativePath: string): str
   const filePath = path.resolve(resolvedRoot, relativePath);
   const rootPrefix = resolvedRoot.endsWith(path.sep) ? resolvedRoot : `${resolvedRoot}${path.sep}`;
   if (filePath !== resolvedRoot && !filePath.startsWith(rootPrefix)) {
-    throw new Error(`Refusing to write export file outside output directory: ${relativePath}`);
+    throw new Error(tCli("Refusing to write export file outside output directory: {{relativePath}}", { relativePath: relativePath }));
   }
   return filePath;
 }
@@ -1241,7 +1242,7 @@ export async function confirmOverwriteExportDirectory(
   const stats = await stat(root).catch(() => null);
   if (!stats) return;
   if (!stats.isDirectory()) {
-    throw new Error(`Export output path ${root} exists and is not a directory.`);
+    throw new Error(tCli("Export output path {{root}} exists and is not a directory.", { root: root }));
   }
 
   const entries = await readdir(root);
@@ -1253,16 +1254,16 @@ export async function confirmOverwriteExportDirectory(
   if (opts.force) return;
 
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    throw new Error(`Export output directory ${root} already contains files. Re-run interactively, pass --force, or choose an empty directory.`);
+    throw new Error(tCli("Export output directory {{root}} already contains files. Re-run interactively, pass --force, or choose an empty directory.", { root: root }));
   }
 
   const confirmed = await p.confirm({
-    message: `Overwrite existing files in ${root}?`,
+    message: tCli("Overwrite existing files in {{root}}?", { root: root }),
     initialValue: false,
   });
 
   if (p.isCancel(confirmed) || !confirmed) {
-    throw new Error("Export cancelled.");
+    throw new Error(tCli("Export cancelled."));
   }
 }
 
@@ -1277,7 +1278,7 @@ export function resolveCompanyForDeletion(
 ): Company {
   const selector = normalizeSelector(selectorRaw);
   if (!selector) {
-    throw new Error("Company selector is required.");
+    throw new Error(tCli("Company selector is required."));
   }
 
   const idMatch = companies.find((company) => company.id === selector);
@@ -1285,21 +1286,21 @@ export function resolveCompanyForDeletion(
 
   if (by === "id") {
     if (!idMatch) {
-      throw new Error(`No company found by ID '${selector}'.`);
+      throw new Error(tCli("No company found by ID '{{selector}}'.", { selector: selector }));
     }
     return idMatch;
   }
 
   if (by === "prefix") {
     if (!prefixMatch) {
-      throw new Error(`No company found by shortname/prefix '${selector}'.`);
+      throw new Error(tCli("No company found by shortname/prefix '{{selector}}'.", { selector: selector }));
     }
     return prefixMatch;
   }
 
   if (idMatch && prefixMatch && idMatch.id !== prefixMatch.id) {
     throw new Error(
-      `Selector '${selector}' is ambiguous (matches both an ID and a shortname). Re-run with --by id or --by prefix.`,
+      tCli("Selector '{{selector}}' is ambiguous (matches both an ID and a shortname). Re-run with --by id or --by prefix.", { selector: selector }),
     );
   }
 
@@ -1307,19 +1308,19 @@ export function resolveCompanyForDeletion(
   if (prefixMatch) return prefixMatch;
 
   throw new Error(
-    `No company found for selector '${selector}'. Use company ID or issue prefix (for example PAP).`,
+    tCli("No company found for selector '{{selector}}'. Use company ID or issue prefix (for example PAP).", { selector: selector }),
   );
 }
 
 export function assertDeleteConfirmation(company: Company, opts: CompanyDeleteOptions): void {
   if (!opts.yes) {
-    throw new Error("Deletion requires --yes.");
+    throw new Error(tCli("Deletion requires --yes."));
   }
 
   const confirm = opts.confirm?.trim();
   if (!confirm) {
     throw new Error(
-      "Deletion requires --confirm <value> where value matches the company ID or issue prefix.",
+      tCli("Deletion requires --confirm <value> where value matches the company ID or issue prefix."),
     );
   }
 
@@ -1327,29 +1328,29 @@ export function assertDeleteConfirmation(company: Company, opts: CompanyDeleteOp
   const confirmsByPrefix = confirm.toUpperCase() === company.issuePrefix.toUpperCase();
   if (!confirmsById && !confirmsByPrefix) {
     throw new Error(
-      `Confirmation '${confirm}' does not match target company. Expected ID '${company.id}' or prefix '${company.issuePrefix}'.`,
+      tCli("Confirmation '{{confirm}}' does not match target company. Expected ID '{{id}}' or prefix '{{issuePrefix}}'.", { confirm: confirm, id: company.id, issuePrefix: company.issuePrefix }),
     );
   }
 }
 
 function assertDeleteFlags(opts: CompanyDeleteOptions): void {
   if (!opts.yes) {
-    throw new Error("Deletion requires --yes.");
+    throw new Error(tCli("Deletion requires --yes."));
   }
   if (!opts.confirm?.trim()) {
     throw new Error(
-      "Deletion requires --confirm <value> where value matches the company ID or issue prefix.",
+      tCli("Deletion requires --confirm <value> where value matches the company ID or issue prefix."),
     );
   }
 }
 
 export function registerCompanyCommands(program: Command): void {
-  const company = program.command("company").description("Company operations");
+  const company = program.command("company").description(tCli("Company operations"));
 
   addCommonClientOptions(
     company
       .command("list")
-      .description("List companies")
+      .description(tCli("List companies"))
       .action(async (opts: CompanyCommandOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1384,8 +1385,8 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("get")
-      .description("Get one company")
-      .argument("<companyId>", "Company ID")
+      .description(tCli("Get one company"))
+      .argument("<companyId>", tCli("Company ID"))
       .action(async (companyId: string, opts: CompanyCommandOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1400,7 +1401,7 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("current")
-      .description("Get the current scoped company from --company-id, context, env, or agent authentication")
+      .description(tCli("Get the current scoped company from --company-id, context, env, or agent authentication"))
       .action(async (opts: CompanyCommandOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1417,7 +1418,7 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("stats")
-      .description("Get company stats")
+      .description(tCli("Get company stats"))
       .action(async (opts: CompanyCommandOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1431,8 +1432,8 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("create")
-      .description("Create a company")
-      .requiredOption("--payload-json <json>", "CreateCompany JSON payload")
+      .description(tCli("Create a company"))
+      .requiredOption("--payload-json <json>", tCli("CreateCompany JSON payload"))
       .action(async (opts: CompanyJsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1446,9 +1447,9 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("update")
-      .description("Update a company")
-      .argument("<companyId>", "Company ID")
-      .requiredOption("--payload-json <json>", "UpdateCompany JSON payload")
+      .description(tCli("Update a company"))
+      .argument("<companyId>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateCompany JSON payload"))
       .action(async (companyId: string, opts: CompanyJsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1462,9 +1463,9 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("branding:update")
-      .description("Update company branding")
-      .argument("<companyId>", "Company ID")
-      .requiredOption("--payload-json <json>", "UpdateCompanyBranding JSON payload")
+      .description(tCli("Update company branding"))
+      .argument("<companyId>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateCompanyBranding JSON payload"))
       .action(async (companyId: string, opts: CompanyJsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1478,8 +1479,8 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("archive")
-      .description("Archive a company")
-      .argument("<companyId>", "Company ID")
+      .description(tCli("Archive a company"))
+      .argument("<companyId>", tCli("Company ID"))
       .action(async (companyId: string, opts: CompanyCommandOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -1490,25 +1491,25 @@ export function registerCompanyCommands(program: Command): void {
       }),
   );
 
-  addCompanyJsonPost(company, "export:preview", "Preview a portable company export", "exports/preview");
-  addCompanyJsonPost(company, "export:api", "Export a company through the raw API route", "exports");
-  addCompanyJsonPost(company, "import:preview", "Preview a safe company import through the raw API route", "imports/preview");
-  addCompanyJsonPost(company, "import:apply", "Apply a safe company import through the raw API route", "imports/apply");
+  addCompanyJsonPost(company, "export:preview", tCli("Preview a portable company export"), "exports/preview");
+  addCompanyJsonPost(company, "export:api", tCli("Export a company through the raw API route"), "exports");
+  addCompanyJsonPost(company, "import:preview", tCli("Preview a safe company import through the raw API route"), "imports/preview");
+  addCompanyJsonPost(company, "import:apply", tCli("Apply a safe company import through the raw API route"), "imports/apply");
 
   addCommonClientOptions(
     company
       .command("feedback:list")
-      .description("List feedback traces for a company")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--target-type <type>", "Filter by target type")
-      .option("--vote <vote>", "Filter by vote value")
-      .option("--status <status>", "Filter by trace status")
-      .option("--project-id <id>", "Filter by project ID")
-      .option("--issue-id <id>", "Filter by issue ID")
-      .option("--from <iso8601>", "Only include traces created at or after this timestamp")
-      .option("--to <iso8601>", "Only include traces created at or before this timestamp")
-      .option("--shared-only", "Only include traces eligible for sharing/export")
-      .option("--include-payload", "Include stored payload snapshots in the response")
+      .description(tCli("List feedback traces for a company"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--target-type <type>", tCli("Filter by target type"))
+      .option("--vote <vote>", tCli("Filter by vote value"))
+      .option("--status <status>", tCli("Filter by trace status"))
+      .option("--project-id <id>", tCli("Filter by project ID"))
+      .option("--issue-id <id>", tCli("Filter by issue ID"))
+      .option("--from <iso8601>", tCli("Only include traces created at or after this timestamp"))
+      .option("--to <iso8601>", tCli("Only include traces created at or before this timestamp"))
+      .option("--shared-only", tCli("Only include traces eligible for sharing/export"))
+      .option("--include-payload", tCli("Include stored payload snapshots in the response"))
       .action(async (opts: CompanyFeedbackOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -1540,19 +1541,19 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("feedback:export")
-      .description("Export feedback traces for a company")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--target-type <type>", "Filter by target type")
-      .option("--vote <vote>", "Filter by vote value")
-      .option("--status <status>", "Filter by trace status")
-      .option("--project-id <id>", "Filter by project ID")
-      .option("--issue-id <id>", "Filter by issue ID")
-      .option("--from <iso8601>", "Only include traces created at or after this timestamp")
-      .option("--to <iso8601>", "Only include traces created at or before this timestamp")
-      .option("--shared-only", "Only include traces eligible for sharing/export")
-      .option("--include-payload", "Include stored payload snapshots in the export")
-      .option("--out <path>", "Write export to a file path instead of stdout")
-      .option("--format <format>", "Export format: json or ndjson", "ndjson")
+      .description(tCli("Export feedback traces for a company"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--target-type <type>", tCli("Filter by target type"))
+      .option("--vote <vote>", tCli("Filter by vote value"))
+      .option("--status <status>", tCli("Filter by trace status"))
+      .option("--project-id <id>", tCli("Filter by project ID"))
+      .option("--issue-id <id>", tCli("Filter by issue ID"))
+      .option("--from <iso8601>", tCli("Only include traces created at or after this timestamp"))
+      .option("--to <iso8601>", tCli("Only include traces created at or before this timestamp"))
+      .option("--shared-only", tCli("Only include traces eligible for sharing/export"))
+      .option("--include-payload", tCli("Include stored payload snapshots in the export"))
+      .option("--out <path>", tCli("Write export to a file path instead of stdout"))
+      .option("--format <format>", tCli("Export format: json or ndjson"), "ndjson")
       .action(async (opts: CompanyFeedbackOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -1569,7 +1570,7 @@ export function registerCompanyCommands(program: Command): void {
               );
               return;
             }
-            console.log(`Wrote ${traces.length} feedback trace(s) to ${opts.out}`);
+            console.log(tCli("Wrote {{count}} feedback trace(s) to {{out}}", { count: traces.length, out: opts.out }));
             return;
           }
           process.stdout.write(`${serialized}${serialized.endsWith("\n") ? "" : "\n"}`);
@@ -1583,18 +1584,18 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("export")
-      .description("Export a company into a portable markdown package")
-      .argument("<companyId>", "Company ID")
-      .requiredOption("--out <path>", "Output directory")
-      .option("--include <values>", "Comma-separated include set: company,agents,projects,issues,tasks,skills", "company,agents")
-      .option("--skills <values>", "Comma-separated skill slugs/keys to export")
-      .option("--projects <values>", "Comma-separated project shortnames/ids to export")
-      .option("--issues <values>", "Comma-separated issue identifiers/ids to export")
-      .option("--project-issues <values>", "Comma-separated project shortnames/ids whose issues should be exported")
-      .option("--expand-referenced-skills", "Vendor skill contents instead of exporting upstream references", false)
+      .description(tCli("Export a company into a portable markdown package"))
+      .argument("<companyId>", tCli("Company ID"))
+      .requiredOption("--out <path>", tCli("Output directory"))
+      .option("--include <values>", tCli("Comma-separated include set: company,agents,projects,issues,tasks,skills"), "company,agents")
+      .option("--skills <values>", tCli("Comma-separated skill slugs/keys to export"))
+      .option("--projects <values>", tCli("Comma-separated project shortnames/ids to export"))
+      .option("--issues <values>", tCli("Comma-separated issue identifiers/ids to export"))
+      .option("--project-issues <values>", tCli("Comma-separated project shortnames/ids whose issues should be exported"))
+      .option("--expand-referenced-skills", tCli("Vendor skill contents instead of exporting upstream references"), false)
       .option(
         "--force",
-        "Overwrite a non-empty output directory without the interactive confirmation (required for non-interactive/automated runs such as the nightly backup routine)",
+        tCli("Overwrite a non-empty output directory without the interactive confirmation (required for non-interactive/automated runs such as the nightly backup routine)"),
         false,
       )
       .action(async (companyId: string, opts: CompanyExportOptions) => {
@@ -1613,7 +1614,7 @@ export function registerCompanyCommands(program: Command): void {
             },
           );
           if (!exported) {
-            throw new Error("Export request returned no data");
+            throw new Error(tCli("Export request returned no data"));
           }
           await confirmOverwriteExportDirectory(opts.out!, { force: Boolean(opts.force) });
           await writeExportToFolder(opts.out!, exported);
@@ -1630,7 +1631,7 @@ export function registerCompanyCommands(program: Command): void {
           );
           if (!ctx.json && exported.warnings.length > 0) {
             for (const warning of exported.warnings) {
-              console.log(`warning=${warning}`);
+              console.log(tCli("warning={{warning}}", { warning: translateCliDisplayMessage(warning) }));
             }
           }
         } catch (err) {
@@ -1642,18 +1643,18 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("import")
-      .description("Import a portable markdown company package from local path, URL, or GitHub")
-      .argument("<fromPathOrUrl>", "Source path or URL")
-      .option("--include <values>", "Comma-separated include set: company,agents,projects,issues,tasks,skills")
-      .option("--target <mode>", "Target mode: new | existing")
-      .option("-C, --company-id <id>", "Existing target company ID")
-      .option("--new-company-name <name>", "Name override for --target new")
-      .option("--agents <list>", "Comma-separated agent slugs to import, or all", "all")
-      .option("--collision <mode>", "Collision strategy: rename | skip | replace", "rename")
-      .option("--ref <value>", "Git ref to use for GitHub imports (branch, tag, or commit)")
-      .option("--paperclip-url <url>", "Alias for --api-base on this command")
-      .option("--yes", "Accept default selection and skip the pre-import confirmation prompt", false)
-      .option("--dry-run", "Run preview only without applying", false)
+      .description(tCli("Import a portable markdown company package from local path, URL, or GitHub"))
+      .argument("<fromPathOrUrl>", tCli("Source path or URL"))
+      .option("--include <values>", tCli("Comma-separated include set: company,agents,projects,issues,tasks,skills"))
+      .option("--target <mode>", tCli("Target mode: new | existing"))
+      .option("-C, --company-id <id>", tCli("Existing target company ID"))
+      .option("--new-company-name <name>", tCli("Name override for --target new"))
+      .option("--agents <list>", tCli("Comma-separated agent slugs to import, or all"), "all")
+      .option("--collision <mode>", tCli("Collision strategy: rename | skip | replace"), "rename")
+      .option("--ref <value>", tCli("Git ref to use for GitHub imports (branch, tag, or commit)"))
+      .option("--paperclip-url <url>", tCli("Alias for --api-base on this command"))
+      .option("--yes", tCli("Accept default selection and skip the pre-import confirmation prompt"), false)
+      .option("--dry-run", tCli("Run preview only without applying"), false)
       .action(async (fromPathOrUrl: string, opts: CompanyImportOptions) => {
         try {
           if (!opts.apiBase?.trim() && opts.paperclipUrl?.trim()) {
@@ -1663,20 +1664,20 @@ export function registerCompanyCommands(program: Command): void {
           const interactiveView = isInteractiveTerminal() && !ctx.json;
           const from = fromPathOrUrl.trim();
           if (!from) {
-            throw new Error("Source path or URL is required.");
+            throw new Error(tCli("Source path or URL is required."));
           }
 
           const include = resolveImportInclude(opts.include);
           const agents = parseAgents(opts.agents);
           const collision = (opts.collision ?? "rename").toLowerCase() as CompanyCollisionMode;
           if (!["rename", "skip", "replace"].includes(collision)) {
-            throw new Error("Invalid --collision value. Use: rename, skip, replace");
+            throw new Error(tCli("Invalid --collision value. Use: rename, skip, replace"));
           }
 
           const inferredTarget = opts.target ?? (opts.companyId || ctx.companyId ? "existing" : "new");
           const target = inferredTarget.toLowerCase() as CompanyImportTargetMode;
           if (!["new", "existing"].includes(target)) {
-            throw new Error("Invalid --target value. Use: new | existing");
+            throw new Error(tCli("Invalid --target value. Use: new | existing"));
           }
 
           const existingTargetCompanyId = opts.companyId?.trim() || ctx.companyId;
@@ -1692,7 +1693,7 @@ export function registerCompanyCommands(program: Command): void {
                 };
 
           if (targetPayload.mode === "existing_company" && !targetPayload.companyId) {
-            throw new Error("Target existing company requires --company-id (or context default companyId).");
+            throw new Error(tCli("Target existing company requires --company-id (or context default companyId)."));
           }
 
           let sourcePayload:
@@ -1706,14 +1707,14 @@ export function registerCompanyCommands(program: Command): void {
           if (isHttpUrl(from) || isGithubSource) {
             if (!looksLikeRepoUrl(from) && !isGithubShorthand(from)) {
               throw new Error(
-                "Only GitHub URLs and local paths are supported for import. " +
-                "Generic HTTP URLs are not supported. Use a GitHub or GitHub Enterprise URL (https://github.com/... or https://ghe.example.com/...) or a local directory path.",
+                tCli("Only GitHub URLs and local paths are supported for import. ") +
+                tCli("Generic HTTP URLs are not supported. Use a GitHub or GitHub Enterprise URL (https://github.com/... or https://ghe.example.com/...) or a local directory path."),
               );
             }
             sourcePayload = { type: "github", url: normalizeGithubImportSource(from, opts.ref) };
           } else {
             if (opts.ref?.trim()) {
-              throw new Error("--ref is only supported for GitHub import sources.");
+              throw new Error(tCli("--ref is only supported for GitHub import sources."));
             }
             chunkedZip = await resolveChunkedImportZip(
               from,
@@ -1759,7 +1760,7 @@ export function registerCompanyCommands(program: Command): void {
                 : ({ uploadedParts, totalParts, uploadedBytes, totalBytes }) => {
                     console.log(
                       pc.dim(
-                        `Uploaded part ${uploadedParts}/${totalParts} (${Math.round(uploadedBytes / (1024 * 1024))} of ${Math.round(totalBytes / (1024 * 1024))} MB)`,
+                        tCli("Uploaded part {{uploadedParts}}/{{totalParts}} ({{value2}} of {{value3}} MB)", { uploadedParts: uploadedParts, totalParts: totalParts, value2: Math.round(uploadedBytes / (1024 * 1024)), value3: Math.round(totalBytes / (1024 * 1024)) }),
                       ),
                     );
                   },
@@ -1778,7 +1779,7 @@ export function registerCompanyCommands(program: Command): void {
                   ...transferMeta,
                 });
             if (!initialPreview) {
-              throw new Error("Import preview returned no data.");
+              throw new Error(tCli("Import preview returned no data."));
             }
             selectedFiles = await promptForImportSelection(initialPreview);
           }
@@ -1795,7 +1796,7 @@ export function registerCompanyCommands(program: Command): void {
               })
             : await ctx.api.post<CompanyPortabilityPreviewResult>(previewApiPath, previewPayload);
           if (!preview) {
-            throw new Error("Import preview returned no data.");
+            throw new Error(tCli("Import preview returned no data."));
           }
           const adapterOverrides = buildDefaultImportAdapterOverrides(preview);
           const adapterMessages = buildDefaultImportAdapterMessages(adapterOverrides);
@@ -1805,7 +1806,7 @@ export function registerCompanyCommands(program: Command): void {
               printOutput(preview, { json: true });
             } else {
               printCompanyImportView(
-                "Import Preview",
+                tCli("Import Preview"),
                 renderCompanyImportPreview(preview, {
                   sourceLabel,
                   targetLabel: formatTargetLabel(targetPayload, preview),
@@ -1819,7 +1820,7 @@ export function registerCompanyCommands(program: Command): void {
 
           if (!ctx.json) {
             printCompanyImportView(
-              "Import Preview",
+              tCli("Import Preview"),
               renderCompanyImportPreview(preview, {
                 sourceLabel,
                 targetLabel: formatTargetLabel(targetPayload, preview),
@@ -1836,11 +1837,11 @@ export function registerCompanyCommands(program: Command): void {
           });
           if (confirmationMode === "prompt") {
             const confirmed = await p.confirm({
-              message: "Apply this import? (y/N)",
+              message: tCli("Apply this import? (y/N)"),
               initialValue: false,
             });
             if (p.isCancel(confirmed) || !confirmed) {
-              p.log.warn("Import cancelled.");
+              p.log.warn(tCli("Import cancelled."));
               return;
             }
           }
@@ -1860,7 +1861,7 @@ export function registerCompanyCommands(program: Command): void {
                 adapterOverrides,
               });
           if (!imported) {
-            throw new Error("Import request returned no data.");
+            throw new Error(tCli("Import request returned no data."));
           }
           const tc = getTelemetryClient();
           if (tc) {
@@ -1884,7 +1885,7 @@ export function registerCompanyCommands(program: Command): void {
             printOutput(imported, { json: true });
           } else {
             printCompanyImportView(
-              "Import Result",
+              tCli("Import Result"),
               renderCompanyImportResult(imported, {
                 targetLabel,
                 companyUrl,
@@ -1894,14 +1895,14 @@ export function registerCompanyCommands(program: Command): void {
             );
             if (interactiveView && companyUrl) {
               const openImportedCompany = await p.confirm({
-                message: "Open the imported company in your browser?",
+                message: tCli("Open the imported company in your browser?"),
                 initialValue: true,
               });
               if (!p.isCancel(openImportedCompany) && openImportedCompany) {
                 if (await openUrl(companyUrl)) {
-                  p.log.info(`Opened ${companyUrl}`);
+                  p.log.info(tCli("Opened {{value0}}", { value0: companyUrl }));
                 } else {
-                  p.log.warn(`Could not open your browser automatically. Open this URL manually:\n${companyUrl}`);
+                  p.log.warn(tCli("Could not open your browser automatically. Open this URL manually:\n{{companyUrl}}", { companyUrl: companyUrl }));
                 }
               }
             }
@@ -1915,23 +1916,23 @@ export function registerCompanyCommands(program: Command): void {
   addCommonClientOptions(
     company
       .command("delete")
-      .description("Delete a company by ID or shortname/prefix (destructive)")
-      .argument("<selector>", "Company ID or issue prefix (for example PAP)")
+      .description(tCli("Delete a company by ID or shortname/prefix (destructive)"))
+      .argument("<selector>", tCli("Company ID or issue prefix (for example PAP)"))
       .option(
         "--by <mode>",
-        "Selector mode: auto | id | prefix",
+        tCli("Selector mode: auto | id | prefix"),
         "auto",
       )
-      .option("--yes", "Required safety flag to confirm destructive action", false)
+      .option("--yes", tCli("Required safety flag to confirm destructive action"), false)
       .option(
         "--confirm <value>",
-        "Required safety value: target company ID or shortname/prefix",
+        tCli("Required safety value: target company ID or shortname/prefix"),
       )
       .action(async (selector: string, opts: CompanyDeleteOptions) => {
         try {
           const by = (opts.by ?? "auto").trim().toLowerCase() as CompanyDeleteSelectorMode;
           if (!["auto", "id", "prefix"].includes(by)) {
-            throw new Error(`Invalid --by mode '${opts.by}'. Expected one of: auto, id, prefix.`);
+            throw new Error(tCli("Invalid --by mode '{{by}}'. Expected one of: auto, id, prefix.", { by: opts.by }));
           }
 
           const ctx = resolveCommandContext(opts);
@@ -1945,7 +1946,7 @@ export function registerCompanyCommands(program: Command): void {
             if (byId) {
               target = byId;
             } else if (by === "id") {
-              throw new Error(`No company found by ID '${normalizedSelector}'.`);
+              throw new Error(tCli("No company found by ID '{{selector}}'.", { selector: normalizedSelector }));
             }
           }
 
@@ -1965,9 +1966,9 @@ export function registerCompanyCommands(program: Command): void {
               const companies = (await ctx.api.get<Company[]>("/api/companies")) ?? [];
               target = resolveCompanyForDeletion(companies, normalizedSelector, by);
             } catch (error) {
-              if (error instanceof ApiRequestError && error.status === 403 && error.message.includes("Board access required")) {
+              if (error instanceof ApiRequestError && error.status === 403 && error.rawMessage.includes("Board access required")) {
                 throw new Error(
-                  "Board access is required to resolve companies across the instance. Use a company ID/prefix for your current company, or run with board authentication.",
+                  tCli("Board access is required to resolve companies across the instance. Use a company ID/prefix for your current company, or run with board authentication."),
                 );
               }
               throw error;
@@ -1975,7 +1976,7 @@ export function registerCompanyCommands(program: Command): void {
           }
 
           if (!target) {
-            throw new Error(`No company found for selector '${normalizedSelector}'.`);
+            throw new Error(tCli("No company found for selector '{{normalizedSelector}}'.", { normalizedSelector: normalizedSelector }));
           }
 
           assertDeleteConfirmation(target, opts);
@@ -2023,7 +2024,7 @@ async function createCompanyForContext(ctx: {
   } catch (error) {
     if (isBoardAccessRequiredError(error) || isInstanceAdminRequiredError(error)) {
       throw new Error(
-        "Creating companies requires board/instance-admin authentication. Agent API keys are scoped to one company; use `paperclipai company list --json` or `paperclipai company current --json` to select the scoped company, or rerun create with a board token/login.",
+        tCli("Creating companies requires board/instance-admin authentication. Agent API keys are scoped to one company; use `paperclipai company list --json` or `paperclipai company current --json` to select the scoped company, or rerun create with a board token/login."),
       );
     }
     throw error;
@@ -2040,7 +2041,7 @@ async function resolveCurrentCompanyId(ctx: { companyId?: string; api: { get<T>(
   } catch (error) {
     if (error instanceof ApiRequestError && (error.status === 401 || error.status === 403)) {
       throw new Error(
-        "Current company is not available. Pass --company-id, set PAPERCLIP_COMPANY_ID, set a context profile companyId, or authenticate with an agent API key.",
+        tCli("Current company is not available. Pass --company-id, set PAPERCLIP_COMPANY_ID, set a context profile companyId, or authenticate with an agent API key."),
       );
     }
     throw error;
@@ -2049,16 +2050,16 @@ async function resolveCurrentCompanyId(ctx: { companyId?: string; api: { get<T>(
   const fromAgent = agent?.companyId?.trim();
   if (fromAgent) return fromAgent;
   throw new Error(
-    "Current company is not available. Pass --company-id, set PAPERCLIP_COMPANY_ID, set a context profile companyId, or authenticate with an agent API key.",
+    tCli("Current company is not available. Pass --company-id, set PAPERCLIP_COMPANY_ID, set a context profile companyId, or authenticate with an agent API key."),
   );
 }
 
 function isBoardAccessRequiredError(error: unknown): error is ApiRequestError {
-  return error instanceof ApiRequestError && error.status === 403 && error.message.toLowerCase().includes("board access required");
+  return error instanceof ApiRequestError && error.status === 403 && error.rawMessage.toLowerCase().includes("board access required");
 }
 
 function isInstanceAdminRequiredError(error: unknown): error is ApiRequestError {
-  return error instanceof ApiRequestError && error.status === 403 && error.message.toLowerCase().includes("instance admin");
+  return error instanceof ApiRequestError && error.status === 403 && error.rawMessage.toLowerCase().includes("instance admin");
 }
 
 function addCompanyJsonPost(parent: Command, name: string, description: string, pathSuffix: string): void {
@@ -2066,8 +2067,8 @@ function addCompanyJsonPost(parent: Command, name: string, description: string, 
     parent
       .command(name)
       .description(description)
-      .argument("<companyId>", "Company ID")
-      .requiredOption("--payload-json <json>", "JSON payload")
+      .argument("<companyId>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("JSON payload"))
       .action(async (companyId: string, opts: CompanyJsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts);

@@ -3,6 +3,7 @@ import type { HeartbeatRunEvent } from "@paperclipai/shared";
 import type { TranscriptEntry } from "@/adapters";
 import { heartbeatsApi } from "@/api/heartbeats";
 import { nativeRunEventsToTranscript } from "./native-run-events";
+import { useTranslation } from "@/i18n";
 
 const EVENT_PAGE_SIZE = 1_000;
 const EVENT_POLL_INTERVAL_MS = 2_000;
@@ -23,6 +24,7 @@ function isLive(status: string): boolean {
 }
 
 export function useNativeRunTranscripts(runs: readonly NativeRunTranscriptSource[]) {
+  const { t } = useTranslation();
   const nativeRunsKey = runs
     .filter((run) => run.runtimeMode === "native")
     .map((run) => `${run.id}:${run.status}`)
@@ -66,7 +68,7 @@ export function useNativeRunTranscripts(runs: readonly NativeRunTranscriptSource
         } catch (error) {
           // Keep the last durable cursor; the next poll retries this run only.
           errors.set(run.id, {
-            message: error instanceof Error ? error.message : "Native run activity could not be loaded",
+            message: error instanceof Error ? error.message : t("native_run_activity_could_not_be_loaded"),
             failedAt: new Date().toISOString(),
           });
         }

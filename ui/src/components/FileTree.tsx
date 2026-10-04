@@ -13,6 +13,7 @@ import { statusBadge, statusBadgeDefault } from "../lib/status-colors";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { t, useTranslation } from "@/i18n";
 
 // -- Tree types --------------------------------------------------------------
 
@@ -217,18 +218,18 @@ export function parseFrontmatter(content: string): { data: FrontmatterData; body
 }
 
 export const FRONTMATTER_FIELD_LABELS: Record<string, string> = {
-  name: "Name",
-  title: "Title",
-  kind: "Kind",
-  reportsTo: "Reports to",
-  skills: "Skills",
-  status: "Status",
-  description: "Description",
-  priority: "Priority",
-  assignee: "Responsible",
-  project: "Project",
-  recurring: "Recurring",
-  targetDate: "Target date",
+  name: t("name"),
+  title: t("agent_job_title"),
+  kind: t("kind"),
+  reportsTo: t("reports_to"),
+  skills: t("skills"),
+  status: t("status"),
+  description: t("description"),
+  priority: t("priority"),
+  assignee: t("responsible"),
+  project: t("project"),
+  recurring: t("recurring"),
+  targetDate: t("target_date"),
 };
 
 // -- File tree component -----------------------------------------------------
@@ -275,8 +276,9 @@ export function FileTree({
   loading = false,
   error,
   empty,
-  ariaLabel = "Files",
+  ariaLabel = t("files"),
 }: FileTreeProps) {
+  const { t } = useTranslation();
   const effectiveCheckedFiles = checkedFiles ?? new Set<string>();
   const visibleNodes = useMemo(
     () => flattenVisibleNodes(nodes, expandedDirs),
@@ -364,13 +366,13 @@ export function FileTree({
                 statusBadge.error ?? statusBadgeDefault,
               )}
             >
-              error
+              {t("zhComponents.text_11f9578d05")}
             </Badge>
             <span className="min-w-0 text-destructive">{error.message}</span>
           </div>
           {error.retry && (
             <Button type="button" size="xs" variant="outline" onClick={error.retry}>
-              Retry
+              {t("retry")}
             </Button>
           )}
         </div>
@@ -382,9 +384,9 @@ export function FileTree({
     return (
       <div aria-label={ariaLabel} role="tree" className="p-3">
         <div className="rounded-md border border-dashed border-border px-4 py-8 text-center">
-          <div className="text-sm font-medium">{empty?.title ?? "No files"}</div>
+          <div className="text-sm font-medium">{empty?.title ?? t("no_files")}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {empty?.description ?? "Files will appear here when they are available."}
+            {empty?.description ?? t("files_will_appear_here_when_they_are_available")}
           </div>
         </div>
       </div>
@@ -484,7 +486,7 @@ export function FileTree({
                   event.stopPropagation();
                   onToggleDir(node.path);
                 }}
-                aria-label={expanded ? `Collapse ${node.name}` : `Expand ${node.name}`}
+                aria-label={expanded ? t("zhComponents.message_87e97f4e41", { value1: node.name }) : t("zhComponents.message_a65e6e4651", { value1: node.name })}
               >
                 {expanded ? (
                   <ChevronDown className="h-3.5 w-3.5" />

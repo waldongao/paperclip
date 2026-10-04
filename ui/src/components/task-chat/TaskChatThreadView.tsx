@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ReactNode } from "react";
 import type { IssueAttachment } from "@paperclipai/shared";
 import { cn } from "@/lib/utils";
@@ -327,7 +328,7 @@ export function TaskChatThreadView({
           (item) =>
             item.kind === "marker" &&
             item.variant === "interrupted" &&
-            item.label === "Run failed",
+            (item.label === "Run failed" || item.label === t("run_failed")),
         )?.id
       : undefined;
   const renderedItems = streamlined

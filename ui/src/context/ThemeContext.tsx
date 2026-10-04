@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useTranslation } from "@/i18n";
 
 type Theme = "light" | "dark";
 
@@ -105,9 +106,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 export function useTheme() {
+  const { t } = useTranslation();
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error("useTheme must be used within ThemeProvider");
+    throw new Error(t("usetheme_must_be_used_within_themeprovider"));
   }
   return context;
 }

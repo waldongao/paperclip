@@ -5,24 +5,26 @@ import { useCompany } from "@/context/CompanyContext";
 import { advancedTabHref } from "../tool-tabs";
 import { ToolsAdminGate } from "./ToolsAdminGate";
 import { ProfileDetail } from "./ProfileDetail";
+import { useTranslation } from "@/i18n";
 
 export function ProfileDetailRoute() {
+  const { t } = useTranslation();
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const params = useParams<{ profileId?: string }>();
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Access profiles", href: advancedTabHref("profiles") },
-      { label: "Profile detail" },
+      { label: selectedCompany?.name ?? t("company"), href: "/dashboard" },
+      { label: t("apps"), href: "/apps" },
+      { label: t("access_profiles"), href: advancedTabHref("profiles") },
+      { label: t("profile_detail") },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name]);
 
   if (!selectedCompanyId || !params.profileId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization and profile.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("select_an_organization_and_profile")}</div>;
   }
 
   return (

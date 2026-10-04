@@ -1,41 +1,42 @@
 import { Database, Gauge, ReceiptText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { t, useTranslation } from "@/i18n";
 
 const SURFACES = [
   {
-    title: "Inference ledger",
-    description: "Request-scoped usage and billed runs from cost_events.",
+    title: t("inference_ledger"),
+    description: t("request_scoped_usage_and_billed_runs_from_cost_e"),
     icon: Database,
-    points: ["tokens + billed dollars", "provider, biller, model", "subscription and overage aware"],
+    points: [t("tokens_billed_dollars"), t("provider_biller_model"), t("subscription_and_overage_aware")],
     tone: "from-sky-500/12 via-sky-500/6 to-transparent",
   },
   {
-    title: "Finance ledger",
-    description: "Account-level charges that are not one prompt-response pair.",
+    title: t("finance_ledger"),
+    description: t("account_level_charges_that_are_not_one_prompt_re"),
     icon: ReceiptText,
-    points: ["top-ups, refunds, fees", "Bedrock provisioned or training charges", "credit expiries and adjustments"],
+    points: [t("top_ups_refunds_fees"), t("bedrock_provisioned_or_training_charges"), t("credit_expiries_and_adjustments")],
     tone: "from-amber-500/14 via-amber-500/6 to-transparent",
   },
   {
-    title: "Live quotas",
-    description: "Provider or biller windows that can stop traffic in real time.",
+    title: t("live_quotas"),
+    description: t("provider_or_biller_windows_that_can_stop_traffic"),
     icon: Gauge,
-    points: ["provider quota windows", "biller credit systems", "errors surfaced directly"],
+    points: [t("provider_quota_windows"), t("biller_credit_systems"), t("errors_surfaced_directly")],
     tone: "from-emerald-500/14 via-emerald-500/6 to-transparent",
   },
 ] as const;
 
 export function AccountingModelCard() {
+  const { t } = useTranslation();
   return (
     <Card className="relative overflow-hidden border-border/70">
       <div className="absolute inset-0 bg-(image:--gradient-extract-3)" />
       <CardHeader className="relative px-5 pt-5 pb-2">
         <CardTitle className="text-sm font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Accounting model
+          {t("accounting_model")}
         </CardTitle>
         <CardDescription className="max-w-2xl text-sm leading-6">
-          Paperclip now separates request-level inference usage from account-level finance events.
-          That keeps provider reporting honest when the biller is OpenRouter, Cloudflare, Bedrock, or another intermediary.
+          {t("paperclip_now_separates_request_level_inference")}
         </CardDescription>
       </CardHeader>
       <CardContent className="relative grid gap-3 px-5 pb-5 md:grid-cols-3">

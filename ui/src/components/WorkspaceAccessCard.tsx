@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "../lib/utils";
 import type { WorkspaceAccessState } from "../lib/workspace-access-state";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 /**
  * Workspace access surface (PAP-17572).
@@ -31,12 +33,12 @@ const STATE_BADGE_CLASSES: Record<ActiveWorkspaceAccessState, string> = {
 };
 
 const STATE_LABELS: Record<ActiveWorkspaceAccessState, string> = {
-  provisioning: "Provisioning",
-  validating: "Validating clone",
-  ready: "Ready",
-  degraded: "Degraded",
-  repairing: "Repairing",
-  failed: "Failed",
+  provisioning: t("provisioning_c9d0ab"),
+  validating: t("validating_clone"),
+  ready: t("ready"),
+  degraded: t("degraded"),
+  repairing: t("repairing_28f45d"),
+  failed: t("failed"),
 };
 
 const ACTION_ICONS = {
@@ -64,6 +66,7 @@ export function WorkspaceAccessCard({
   onViewLogs: () => void;
   errorMessage?: string | null;
 }) {
+  const { t } = useTranslation();
   const Icon = ACTION_ICONS[access.action.kind];
   const isWaiting = access.action.kind === "wait";
   const handlers: Record<WorkspaceAccessState["action"]["kind"], () => void> = {
@@ -116,12 +119,12 @@ export function WorkspaceAccessCard({
           </Button>
           {access.state === "ready" && !access.handoffAvailable ? (
             <span className="text-xs text-muted-foreground">
-              Signs in with the snapshot-local credentials captured when this clone was made.
+              {t("signs_in_with_the_snapshot_local_credentials_cap")}
             </span>
           ) : null}
           {access.state === "ready" && access.handoffAvailable ? (
             <span className="text-xs text-muted-foreground">
-              Uses a single-use login handoff — no password needed.
+              {t("uses_a_single_use_login_handoff_no_password_need")}
             </span>
           ) : null}
         </div>

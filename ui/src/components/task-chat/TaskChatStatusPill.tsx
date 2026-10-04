@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+import { t } from "@/i18n";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronRight, Loader2, ShieldQuestion, OctagonX, Ban, Scissors } from "lucide-react";
@@ -348,7 +350,7 @@ export function TaskChatStatusPill({
           ) : null}
           {item.tokens ? (
             <span className="ml-auto shrink-0 font-mono text-(length:--text-micro)">
-              {item.tokens.used.toLocaleString()}/{item.tokens.size.toLocaleString()} ctx
+              {item.tokens.used.toLocaleString(i18n.resolvedLanguage ?? i18n.language)}/{item.tokens.size.toLocaleString(i18n.resolvedLanguage ?? i18n.language)} {t("zhComponents.text_4024700fd9")}
             </span>
           ) : null}
         </span>
@@ -414,7 +416,7 @@ export function TaskChatStatusPill({
           {elapsed ? <span>{elapsed}</span> : null}
           {item.tokens ? (
             <span>
-              {item.tokens.used.toLocaleString()}/{item.tokens.size.toLocaleString()} ctx
+              {item.tokens.used.toLocaleString(i18n.resolvedLanguage ?? i18n.language)}/{item.tokens.size.toLocaleString(i18n.resolvedLanguage ?? i18n.language)} {t("zhComponents.text_4024700fd9")}
             </span>
           ) : null}
         </span>

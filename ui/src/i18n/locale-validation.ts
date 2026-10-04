@@ -90,12 +90,12 @@ function validateNode(path: string[], candidate: unknown, englishReference: unkn
 
   const englishKeys = Object.keys(englishReference).sort();
   const candidateKeys = Object.keys(candidate).sort();
-  const missingKeys = englishKeys.filter((key) => !candidateKeys.includes(key));
   const extraKeys = candidateKeys.filter((key) => !englishKeys.includes(key));
 
-  for (const key of missingKeys) {
-    errors.push(`${formatPath([...path, key])} is missing`);
-  }
+  // Missing keys are allowed: i18next falls back to DEFAULT_LOCALE for anything a
+  // translation has not covered yet, so a locale may be translated incrementally
+  // without every new English string having to land in all 40 other files at once.
+  // Extra keys stay an error — they are always either a typo or a stale key.
   for (const key of extraKeys) {
     errors.push(`${formatPath([...path, key])} is not defined in English`);
   }

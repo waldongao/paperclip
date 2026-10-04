@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../../i18n.js";
 import pc from "picocolors";
 import type { Command } from "commander";
 import { getStoredBoardCredential, loginBoardCli } from "../../client/board-auth.js";
@@ -29,17 +30,17 @@ export interface ResolvedClientContext {
 
 export function addCommonClientOptions(command: Command, opts?: { includeCompany?: boolean }): Command {
   command
-    .option("-c, --config <path>", "Path to Paperclip config file")
-    .option("-d, --data-dir <path>", "Paperclip data directory root (isolates state from ~/.paperclip)")
-    .option("--context <path>", "Path to CLI context file")
-    .option("--profile <name>", "CLI context profile name")
-    .option("--api-base <url>", "Base URL for the Paperclip API")
-    .option("--api-key <token>", "Bearer token for agent-authenticated calls")
-    .option("--run-id <id>", "Heartbeat run id for agent-authenticated mutations (checkout/release/interactions/in-progress update); falls back to $PAPERCLIP_RUN_ID")
-    .option("--json", "Output raw JSON");
+    .option("-c, --config <path>", tCli("Path to Paperclip config file"))
+    .option("-d, --data-dir <path>", tCli("Paperclip data directory root (isolates state from ~/.paperclip)"))
+    .option("--context <path>", tCli("Path to CLI context file"))
+    .option("--profile <name>", tCli("CLI context profile name"))
+    .option("--api-base <url>", tCli("Base URL for the Paperclip API"))
+    .option("--api-key <token>", tCli("Bearer token for agent-authenticated calls"))
+    .option("--run-id <id>", tCli("Heartbeat run id for agent-authenticated mutations (checkout/release/interactions/in-progress update); falls back to $PAPERCLIP_RUN_ID"))
+    .option("--json", tCli("Output raw JSON"));
 
   if (opts?.includeCompany) {
-    command.option("-C, --company-id <id>", "Company ID (overrides context default)");
+    command.option("-C, --company-id <id>", tCli("Company ID (overrides context default)"));
   }
 
   return command;
@@ -66,7 +67,7 @@ export function resolveCommandContext(
 
   if (opts?.requireCompany && !companyId) {
     throw new Error(
-      "Company ID is required. Pass --company-id, set PAPERCLIP_COMPANY_ID, or set context profile companyId via `paperclipai context set`.",
+      tCli("Company ID is required. Pass --company-id, set PAPERCLIP_COMPANY_ID, or set context profile companyId via `paperclipai context set`."),
     );
   }
 
@@ -83,7 +84,7 @@ export function resolveCommandContext(
     recoverAuth: explicitApiKey || !canAttemptInteractiveBoardAuth()
       ? undefined
       : async ({ error }) => {
-          const requestedAccess = error.message.includes("Instance admin required")
+          const requestedAccess = error.rawMessage.includes("Instance admin required")
             ? "instance_admin_required"
             : "board";
           if (!shouldRecoverBoardAuth(error)) {
@@ -125,7 +126,7 @@ export function apiPath(strings: TemplateStringsArray, ...values: Array<string |
   let path = strings[0] ?? "";
   values.forEach((value, index) => {
     if (value === null || value === undefined || String(value).trim() === "") {
-      throw new Error("Cannot build API path with an empty path segment.");
+      throw new Error(tCli("Cannot build API path with an empty path segment."));
     }
     path += `${encodeURIComponent(String(value))}${strings[index + 1] ?? ""}`;
   });
@@ -183,7 +184,7 @@ function resolveApiKey(
 function shouldRecoverBoardAuth(error: ApiRequestError): boolean {
   if (error.status === 401) return true;
   if (error.status !== 403) return false;
-  return error.message.includes("Board access required") || error.message.includes("Instance admin required");
+  return error.rawMessage.includes("Board access required") || error.rawMessage.includes("Instance admin required");
 }
 
 function canAttemptInteractiveBoardAuth(): boolean {
@@ -202,7 +203,7 @@ export function printOutput(data: unknown, opts: { json?: boolean; label?: strin
 
   if (Array.isArray(data)) {
     if (data.length === 0) {
-      console.log(pc.dim("(empty)"));
+      console.log(pc.dim(tCli("(empty)")));
       return;
     }
     for (const item of data) {
@@ -221,7 +222,7 @@ export function printOutput(data: unknown, opts: { json?: boolean; label?: strin
   }
 
   if (data === undefined || data === null) {
-    console.log(pc.dim("(null)"));
+    console.log(pc.dim(tCli("(null)")));
     return;
   }
 
@@ -287,12 +288,12 @@ function readKeyFromProfileEnv(profile: ClientContextProfile): string | undefine
 
 export function handleCommandError(error: unknown): never {
   if (error instanceof ApiRequestError) {
-    const detailSuffix = error.details !== undefined ? ` details=${JSON.stringify(error.details)}` : "";
-    console.error(pc.red(`API error ${error.status}: ${error.message}${detailSuffix}`));
+    const detailSuffix = error.details !== undefined ? tCli(" details={{value0}}", { value0: JSON.stringify(error.details) }) : "";
+    console.error(pc.red(tCli("API error {{status}}: {{message}}{{detailSuffix}}", { status: error.status, message: translateCliDisplayMessage(error.message), detailSuffix: detailSuffix })));
     process.exit(1);
   }
 
   const message = error instanceof Error ? error.message : String(error);
-  console.error(pc.red(message));
+  console.error(pc.red(translateCliDisplayMessage(message)));
   process.exit(1);
 }

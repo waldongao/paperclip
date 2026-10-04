@@ -60,6 +60,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { MentionOption } from "@/components/MarkdownEditor";
 import type { IssueAttachment, IssueWorkMode } from "@paperclipai/shared";
 import { TaskChatComposerTakeoverActionsContext } from "./TaskChatComposerTakeoverContext";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 /** Structurally identical to IssueChatThread's module-private CommentReassignment. */
 interface CommentReassignment {
@@ -204,20 +206,20 @@ function AssigneeIdentityAvatar({
 }
 
 const MODE_DESCRIPTION: Partial<Record<IssueWorkMode, string>> = {
-  standard: "Make changes and run work",
-  planning: "Draft a plan before acting",
-  ask: "Answer questions only, no changes",
+  standard: t("make_changes_and_run_work"),
+  planning: t("draft_a_plan_before_acting"),
+  ask: t("answer_questions_only_no_changes"),
 };
 
 /** v7 per-mode placeholder copy; `{agent}` is the pending assignee's name. */
 function modePlaceholder(mode: IssueWorkMode, agentName: string): string {
   switch (mode) {
     case "planning":
-      return `Plan with ${agentName} — shapes the plan doc, no code changes…`;
+      return t("zhComponents.message_57576153a6", { value1: agentName });
     case "ask":
-      return `Ask ${agentName} a question — read-only, nothing runs…`;
+      return t("zhComponents.message_bd655f5b75", { value1: agentName });
     default:
-      return `Message ${agentName} — describe what you want done…`;
+      return t("zhComponents.message_d82712f9ac", { value1: agentName });
   }
 }
 
@@ -303,6 +305,7 @@ export function TaskChatComposer({
   takeover = null,
   pendingTakeover = null,
 }: TaskChatComposerProps) {
+  const { t } = useTranslation();
   const streamlined = useStreamlinedTaskChatPresentation();
   const [body, setBody] = useState(() => (draftKey ? loadDraft(draftKey) : ""));
   const [submitting, setSubmitting] = useState(false);
@@ -417,12 +420,11 @@ export function TaskChatComposer({
     enableReassign && reassignOptions && reassignOptions.length > 0,
   );
   const assigneeValue = pendingAssignee ?? currentAssigneeValue;
-  const assigneeLabel =
-    reassignOptions?.find((o) => o.id === assigneeValue)?.label ?? "Unassigned";
-  const assigneeName =
-    assigneeLabel === "Unassigned" ? "the agent" : assigneeLabel;
+  const assigneeOption = reassignOptions?.find((o) => o.id === assigneeValue);
+  const assigneeLabel = assigneeOption?.label ?? t("unassigned");
+  const assigneeName = assigneeOption?.label ?? t("the_agent");
   const effectivePlaceholder = queuedEdit
-    ? "Edit queued message…"
+    ? t("edit_queued_message")
     : (placeholder ?? modePlaceholder(pendingMode, assigneeName));
 
   /** Upload an image and return its URL for inline `![](src)` markdown. */
@@ -430,10 +432,10 @@ export function TaskChatComposer({
     if (onAttachImage) {
       const attachment = await onAttachImage(file);
       if (attachment?.contentPath) return attachment.contentPath;
-      throw new Error("Upload did not return a file URL");
+      throw new Error(t("upload_did_not_return_a_file_url"));
     }
     if (onImageUpload) return onImageUpload(file);
-    throw new Error("This file type cannot be attached here");
+    throw new Error(t("this_file_type_cannot_be_attached_here"));
   }
 
   /** Non-image files: attach to the task and track in the chip row. */
@@ -451,7 +453,7 @@ export function TaskChatComposer({
               ? {
                   ...item,
                   status: "error",
-                  error: "This file type cannot be attached here",
+                  error: t("this_file_type_cannot_be_attached_here"),
                 }
               : item,
           ),
@@ -479,7 +481,7 @@ export function TaskChatComposer({
             ? {
                 ...item,
                 status: "error",
-                error: err instanceof Error ? err.message : "Upload failed",
+                error: err instanceof Error ? err.message : t("upload_failed"),
               }
             : item,
         ),
@@ -507,7 +509,7 @@ export function TaskChatComposer({
           name: file.name,
           size: file.size,
           status: "error",
-          error: err instanceof Error ? err.message : "Upload failed",
+          error: err instanceof Error ? err.message : t("upload_failed"),
         },
       ]);
     }
@@ -656,7 +658,7 @@ export function TaskChatComposer({
       setTakeoverError(
         cause instanceof Error
           ? cause.message
-          : "This request could not be skipped.",
+          : t("this_request_could_not_be_skipped"),
       );
     });
   }
@@ -672,7 +674,7 @@ export function TaskChatComposer({
       {takeoverBusy ? (
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
       ) : null}
-      Skip
+      {t("skip")}
     </Button>
   ) : null;
 
@@ -732,7 +734,7 @@ export function TaskChatComposer({
                   className="h-7 px-2"
                   onClick={takeover.onShowNext}
                 >
-                  {takeover.pendingCount} pending
+                  {takeover.pendingCount} {t("zhComponents.text_e22586930a")}
                 </Button>
               ) : null}
               <div
@@ -745,7 +747,7 @@ export function TaskChatComposer({
                 size="icon-xs"
                 variant="ghost"
                 className="text-muted-foreground hover:text-foreground"
-                aria-label={`Dismiss ${takeover.label}`}
+                aria-label={t("zhComponents.message_6b642c6605", { value1: takeover.label })}
                 disabled={takeoverBusy}
                 onClick={takeover.onDismiss}
               >
@@ -792,10 +794,10 @@ export function TaskChatComposer({
             >
               <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
               <span className="min-w-0 flex-1 truncate">
-                {pendingTakeover?.label ?? takeover?.label ?? "Pending input"}
+                {pendingTakeover?.label ?? takeover?.label ?? t("pending_input")}
               </span>
               <span className="shrink-0 font-medium">
-                {pendingTakeover?.count ?? takeover?.pendingCount ?? 1} pending
+                {pendingTakeover?.count ?? takeover?.pendingCount ?? 1} {t("zhComponents.text_e22586930a")}
               </span>
             </button>
           ) : null}
@@ -806,7 +808,7 @@ export function TaskChatComposer({
               onChange={setBody}
               placeholder={
                 disabled
-                  ? (disabledReason ?? "Composer disabled")
+                  ? (disabledReason ?? t("composer_disabled"))
                   : effectivePlaceholder
               }
               readOnly={disabled}
@@ -860,9 +862,9 @@ export function TaskChatComposer({
                       </AttachmentTitle>
                       <AttachmentDescription className="max-w-48">
                         {attachment.status === "uploading"
-                          ? "Uploading…"
+                          ? t("uploading_d921a7")
                           : attachment.status === "error"
-                            ? (attachment.error ?? "Upload failed")
+                            ? (attachment.error ?? t("upload_failed"))
                             : [kind.label, sizeLabel]
                                 .filter(Boolean)
                                 .join(" · ")}
@@ -870,7 +872,7 @@ export function TaskChatComposer({
                     </AttachmentContent>
                     <AttachmentActions>
                       <AttachmentAction
-                        aria-label={`Remove ${attachment.name}`}
+                        aria-label={t("zhComponents.message_3a98e93112", { value1: attachment.name })}
                         onClick={() =>
                           setAttachments((prev) =>
                             prev.filter((item) => item.id !== attachment.id),
@@ -902,8 +904,8 @@ export function TaskChatComposer({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled}
-                  title="Attach file"
-                  aria-label="Attach file"
+                  title={t("attach_file")}
+                  aria-label={t("attach_file")}
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
                   data-testid="task-chat-composer-attach"
                 >
@@ -915,8 +917,8 @@ export function TaskChatComposer({
             {queuedEdit ? (
               <span className="px-1 text-xs font-medium text-muted-foreground">
                 {queuedEdit.stale
-                  ? "Queued message changed"
-                  : "Editing queued message"}
+                  ? t("queued_message_changed")
+                  : t("editing_queued_message")}
               </span>
             ) : (
               <DropdownMenu>
@@ -986,10 +988,10 @@ export function TaskChatComposer({
               <InlineEntitySelector
                 value={assigneeValue}
                 options={reassignOptions ?? []}
-                placeholder="Assignee"
-                noneLabel="No assignee"
-                searchPlaceholder="Search assignees…"
-                emptyMessage="No matches."
+                placeholder={t("assignee")}
+                noneLabel={t("no_assignee")}
+                searchPlaceholder={t("search_assignees_dc60b6")}
+                emptyMessage={t("no_matches")}
                 onChange={setPendingAssignee}
                 disabled={disabled}
                 triggerTestId="task-chat-composer-assignee"
@@ -1036,7 +1038,7 @@ export function TaskChatComposer({
                 disabled={submitting}
                 className="h-8 shrink-0 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
               >
-                Cancel
+                {t("cancel")}
               </button>
             ) : null}
 
@@ -1053,20 +1055,20 @@ export function TaskChatComposer({
               title={
                 queuedEdit
                   ? queuedEdit.stale
-                    ? "Queue as new message"
-                    : "Save queued message"
+                    ? t("queue_as_new_message")
+                    : t("save_queued_message")
                   : uploadPending
-                    ? "Waiting for upload to finish"
+                    ? t("waiting_for_upload_to_finish")
                     : uploadFailed
-                      ? "Remove the failed attachment to send"
-                      : "Send (⌘+Enter)"
+                      ? t("remove_the_failed_attachment_to_send")
+                      : t("send_enter")
               }
               aria-label={
                 queuedEdit
                   ? queuedEdit.stale
-                    ? "Queue as new message"
-                    : "Save queued message"
-                  : "Send"
+                    ? t("queue_as_new_message")
+                    : t("save_queued_message")
+                  : t("send")
               }
               className={cn(
                 "flex h-8 w-8 shrink-0 items-center justify-center transition-transform hover:scale-105 disabled:scale-100",

@@ -45,6 +45,7 @@ import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
 import { DEFAULT_GEMINI_LOCAL_MODEL } from "@paperclipai/adapter-gemini-local";
 import { DEFAULT_KIMI_LOCAL_MODEL } from "@paperclipai/adapter-kimi-local";
 import { DEFAULT_OPENCODE_LOCAL_MODEL, isValidOpenCodeModelId } from "@paperclipai/adapter-opencode-local";
+import { useTranslation } from "@/i18n";
 
 function createValuesForAdapterType(
   adapterType: CreateConfigValues["adapterType"],
@@ -67,6 +68,7 @@ function createValuesForAdapterType(
 }
 
 export function NewAgent() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -132,8 +134,8 @@ export function NewAgent() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Agents", href: "/agents" },
-      { label: "New Agent" },
+      { label: t("agents"), href: "/agents" },
+      { label: t("new_agent_94c537") },
     ]);
   }, [setBreadcrumbs]);
 
@@ -164,7 +166,7 @@ export function NewAgent() {
       navigate(agentUrl(result.agent));
     },
     onError: (error) => {
-      setFormError(error instanceof Error ? error.message : "Failed to create agent");
+      setFormError(error instanceof Error ? error.message : t("failed_to_create_agent"));
     },
   });
 
@@ -178,7 +180,7 @@ export function NewAgent() {
     setFormError(null);
     if (configValues.adapterType === "opencode_local") {
       if (!isValidOpenCodeModelId(configValues.model)) {
-        setFormError("OpenCode requires an explicit model in provider/model format.");
+        setFormError(t("opencode_requires_an_explicit_model_in_provider"));
         return;
       }
     }
@@ -259,9 +261,9 @@ export function NewAgent() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-lg font-semibold">New Agent</h1>
+        <h1 className="text-lg font-semibold">{t("new_agent_94c537")}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Advanced agent configuration
+          {t("advanced_agent_configuration")}
         </p>
       </div>
 
@@ -270,7 +272,7 @@ export function NewAgent() {
         <div className="px-4 pt-4 pb-2">
           <input
             className="w-full text-lg font-semibold bg-transparent outline-none placeholder:text-muted-foreground/50"
-            placeholder="Agent name"
+            placeholder={t("agent_name")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
@@ -281,7 +283,7 @@ export function NewAgent() {
         <div className="px-4 pb-2">
           <input
             className="w-full bg-transparent outline-none text-sm text-muted-foreground placeholder:text-muted-foreground/40"
-            placeholder="Title (e.g. VP of Engineering)"
+            placeholder={t("title_e_g_vp_of_engineering")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -357,14 +359,14 @@ export function NewAgent() {
         <div className="border-t border-border px-4 py-4">
           <div className="space-y-3">
             <div>
-              <h2 className="text-sm font-medium">Organization skills</h2>
+              <h2 className="text-sm font-medium">{t("organization_skills")}</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Optional skills from the organization library. Built-in Paperclip runtime skills are added automatically.
+                {t("optional_skills_from_the_organization_library_bu")}
               </p>
             </div>
             {availableSkills.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                No optional organization skills installed yet.
+                {t("no_optional_organization_skills_installed_yet")}
               </p>
             ) : (
               <div className="space-y-3">
@@ -394,7 +396,7 @@ export function NewAgent() {
         {/* Footer */}
         <div className="border-t border-border px-4 py-3">
           {isFirstAgent && (
-            <p className="text-xs text-muted-foreground mb-2">This will be the CEO</p>
+            <p className="text-xs text-muted-foreground mb-2">{t("this_will_be_the_ceo")}</p>
           )}
           {formError && (
             <p className="text-xs text-destructive mb-2">{formError}</p>
@@ -420,7 +422,7 @@ export function NewAgent() {
             )}
             <div className="flex items-center justify-between gap-2">
               <Button variant="outline" size="sm" onClick={() => navigate("/agents")}>
-                Cancel
+                {t("cancel")}
               </Button>
               <div className="flex items-center gap-2">
                 <Button
@@ -430,14 +432,14 @@ export function NewAgent() {
                   disabled={testAgentState.disabled}
                   onClick={() => testAgentAction?.()}
                 >
-                  {testAgentState.pending ? "Testing..." : "Test Agent"}
+                  {testAgentState.pending ? t("testing") : t("test_agent")}
                 </Button>
                 <Button
                   size="sm"
                   disabled={!name.trim() || createAgent.isPending}
                   onClick={handleSubmit}
                 >
-                  {createAgent.isPending ? "Creating…" : "Create agent"}
+                  {createAgent.isPending ? t("creating") : t("create_agent")}
                 </Button>
               </div>
             </div>

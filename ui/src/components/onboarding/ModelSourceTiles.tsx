@@ -1,8 +1,10 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useRef, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "../../lib/utils";
 import { TAG_SWAP_ENTER, TAG_SWAP_EXIT, TAG_SWAP_TRAVEL } from "./onboarding-motion";
+import { t } from "@/i18n";
 
 /**
  * The connect step's row of model sources, and the tag under each one saying
@@ -24,7 +26,7 @@ export type ModelSource = {
 };
 
 const CREDENTIAL_TAG_LABEL: Record<CredentialMode, string> = {
-  subscription: "Subscription",
+  subscription: t("subscription"),
   api: "API",
 };
 
@@ -48,7 +50,7 @@ export function CredentialTag({ mode }: { mode: CredentialMode }) {
           animate={{ opacity: 1, y: 0, transition: TAG_SWAP_ENTER }}
           exit={{ opacity: 0, y: TAG_SWAP_TRAVEL, transition: TAG_SWAP_EXIT }}
         >
-          {CREDENTIAL_TAG_LABEL[mode]}
+          {getDisplayLabel(CREDENTIAL_TAG_LABEL[mode])}
         </motion.span>
       </AnimatePresence>
     </span>

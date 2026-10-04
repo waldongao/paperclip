@@ -1,19 +1,21 @@
 import { Rocket, Zap } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useTranslation } from "@/i18n";
 
 interface FrontDoorProps {
   onChoose: (path: "create" | "grow") => void;
 }
 
 export function FrontDoor({ onChoose }: FrontDoorProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center min-h-(--sz-60vh) px-8">
       <div className="text-center mb-10">
         <h2 className="text-2xl font-bold tracking-tight">
-          Welcome to Paperclip
+          {t("welcome_to_paperclip")}
         </h2>
         <p className="text-sm text-muted-foreground mt-2">
-          How would you like to get started?
+          {t("how_would_you_like_to_get_started")}
         </p>
       </div>
 
@@ -30,9 +32,9 @@ export function FrontDoor({ onChoose }: FrontDoorProps) {
             <Rocket className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm">Build a new organization</h3>
+            <h3 className="font-semibold text-sm">{t("build_a_new_organization")}</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Begin with a mission, bring on a lead agent, and grow a team of agents to do the work.
+              {t("begin_with_a_mission_bring_on_a_lead_agent_and_g")}
             </p>
           </div>
         </button>
@@ -49,9 +51,9 @@ export function FrontDoor({ onChoose }: FrontDoorProps) {
             <Zap className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm">Add agents to your org</h3>
+            <h3 className="font-semibold text-sm">{t("add_agents_to_your_org")}</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Bring AI agents into your existing team or workflows.
+              {t("bring_ai_agents_into_your_existing_team_or_workf")}
             </p>
           </div>
         </button>

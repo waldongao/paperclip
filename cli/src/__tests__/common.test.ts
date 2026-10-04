@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { writeContext } from "../client/context.js";
 import { setStoredBoardCredential } from "../client/board-auth.js";
+import * as boardAuth from "../client/board-auth.js";
+import { ApiRequestError } from "../client/http.js";
 import { apiPath, inferContentTypeFromPath, resolveApiBase, resolveCommandContext } from "../commands/client/common.js";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -156,6 +158,110 @@ describe("resolveCommandContext", () => {
     const explicitResolved = resolveCommandContext({ context: contextPath, apiKey: "explicit-token" });
     expect(explicitResolved.api.apiKey).toBe("explicit-token");
     expect(explicitResolved.authSource).toBe("explicit");
+  });
+
+  describe("localized board authentication recovery", () => {
+    let stdinDescriptor: PropertyDescriptor | undefined;
+    let stdoutDescriptor: PropertyDescriptor | undefined;
+    let loginSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      process.env.PAPERCLIP_LOCALE = "zh-CN";
+      process.env.PAPERCLIP_AUTH_STORE = createTempPath("auth.json");
+      stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+      stdoutDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+      Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+      Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
+      loginSpy = vi.spyOn(boardAuth, "loginBoardCli").mockResolvedValue({
+        token: "recovered-board-token",
+        approvalUrl: "http://paperclip.test/cli-auth/challenge-1",
+        userId: "user-1",
+      });
+    });
+
+    afterEach(() => {
+      if (stdinDescriptor) Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+      else delete (process.stdin as { isTTY?: boolean }).isTTY;
+      if (stdoutDescriptor) Object.defineProperty(process.stdout, "isTTY", stdoutDescriptor);
+      else delete (process.stdout as { isTTY?: boolean }).isTTY;
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    it.each([
+      ["Board access required", "board"],
+      ["Instance admin required", "instance_admin_required"],
+    ])("recovers a localized 403 for %s with the correct requested access", async (rawMessage, requestedAccess) => {
+      const error = new ApiRequestError(403, rawMessage);
+      expect(error.message).toMatch(/[\u4e00-\u9fff]/);
+      expect(error.rawMessage).toBe(rawMessage);
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce(new Response(JSON.stringify({ error: rawMessage }), { status: 403 }))
+        .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+      vi.stubGlobal("fetch", fetchMock);
+
+      const resolved = resolveCommandContext({
+        context: createTempPath("context.json"),
+        apiBase: "http://paperclip.test",
+        companyId: "company-1",
+      });
+      await expect(resolved.api.get("/api/companies")).resolves.toEqual({ ok: true });
+
+      expect(loginSpy).toHaveBeenCalledExactlyOnceWith({
+        apiBase: "http://paperclip.test",
+        requestedAccess,
+        requestedCompanyId: "company-1",
+        command: expect.any(String),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenNthCalledWith(2, "http://paperclip.test/api/companies", expect.objectContaining({
+        headers: expect.objectContaining({ authorization: "Bearer recovered-board-token" }),
+      }));
+    });
+
+    it.each([
+      [403, "Permission denied"],
+      [500, "Board access required"],
+    ])("does not recover unrelated failures (%s, %s)", async (status, rawMessage) => {
+      const fetchMock = vi.fn().mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: rawMessage }), { status }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+      const resolved = resolveCommandContext({ context: createTempPath("context.json"), apiBase: "http://paperclip.test" });
+
+      await expect(resolved.api.get("/api/companies")).rejects.toMatchObject({ status, rawMessage });
+      expect(loginSpy).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(["noninteractive stdin", "noninteractive stdout", "explicit API key"])(
+      "preserves the interactive recovery boundary for %s",
+      async (boundary) => {
+        if (boundary === "noninteractive stdin") {
+          Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: false });
+        }
+        if (boundary === "noninteractive stdout") {
+          Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: false });
+        }
+        const resolved = resolveCommandContext({
+          context: createTempPath("context.json"),
+          apiBase: "http://paperclip.test",
+          apiKey: boundary === "explicit API key" ? "agent-token" : undefined,
+        });
+        const fetchMock = vi.fn().mockResolvedValueOnce(
+          new Response(JSON.stringify({ error: "Board access required" }), { status: 403 }),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        expect(resolved.api.recoverAuth).toBeUndefined();
+        await expect(resolved.api.get("/api/companies")).rejects.toMatchObject({
+          status: 403,
+          rawMessage: "Board access required",
+        });
+        expect(loginSpy).not.toHaveBeenCalled();
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 });
 

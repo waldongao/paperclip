@@ -1,4 +1,5 @@
 import type { RoutineRunSummary, RoutineVariable } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 /**
  * Format a single resolved variable value for the runs-row subtitle (§3.6).
@@ -36,9 +37,9 @@ export function dedupedTriggerLabel(
  * turn it into a one-line "why" for the runs list.
  */
 const SKIP_REASON_LABELS: Record<string, string> = {
-  no_external_activity: "Skipped — no activity since last run",
-  paused: "Skipped — routine paused",
-  worktree_execution_cutoff: "Skipped — worktree execution cutoff",
+  no_external_activity: t("skipped_no_activity_since_last_run"),
+  paused: t("skipped_routine_paused"),
+  worktree_execution_cutoff: t("skipped_worktree_execution_cutoff"),
 };
 
 /**
@@ -54,7 +55,7 @@ export function runRowSubtitle(
   variables: readonly RoutineVariable[] | null | undefined,
 ): string {
   if (run.status === "failed") {
-    return run.failureReason?.trim() || "Run failed";
+    return run.failureReason?.trim() || t("run_failed");
   }
   if (run.status === "skipped") {
     const reason = run.failureReason?.trim();

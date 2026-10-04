@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 import type { ServerInfoSnapshot } from "@paperclipai/shared";
 
 export type DevServerHealthStatus = {
@@ -51,7 +53,7 @@ export const healthApi = {
     });
     if (!res.ok) {
       const payload = await res.json().catch(() => null) as { error?: string } | null;
-      throw new Error(payload?.error ?? `Failed to load health (${res.status})`);
+      throw new Error(translateDisplayMessage(payload?.error ?? t("zhSupport.healthFailed", { status: res.status })));
     }
     return res.json();
   },
@@ -63,7 +65,7 @@ export const healthApi = {
     });
     if (!res.ok) {
       const payload = await res.json().catch(() => null) as { error?: string } | null;
-      throw new Error(payload?.error ?? `Failed to request restart (${res.status})`);
+      throw new Error(translateDisplayMessage(payload?.error ?? t("zhSupport.restartFailed", { status: res.status })));
     }
   },
 };

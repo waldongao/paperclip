@@ -4,19 +4,20 @@ import { useCloudInstance } from "@/hooks/useCloudInstance";
 import { useHiddenSettings } from "@/hooks/useHiddenSettings";
 import { INSTANCE_SETTINGS_PATH_PREFIX } from "@/lib/instance-settings";
 import { useLocation, useNavigate } from "@/lib/router";
+import { useTranslation } from "@/i18n";
 
 const items = [
-  { value: "general", label: "General", href: "/company/settings" },
-  { value: "export", label: "Export", href: "/company/export" },
-  { value: "import", label: "Import", href: "/company/import" },
-  { value: "members", label: "Members", href: "/company/settings/members" },
-  { value: "secrets", label: "Secrets", href: "/company/settings/secrets" },
-  { value: "instance-profile", label: "Profile", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/profile` },
-  { value: "instance-environments", label: "Environments", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/environments` },
-  { value: "instance-access", label: "Access", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/access` },
-  { value: "instance-experimental", label: "Experimental", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/experimental` },
-  { value: "instance-plugins", label: "Plugins", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/plugins` },
-  { value: "instance-adapters", label: "Adapters", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/adapters` },
+  { value: "general", labelKey: "settings.nav.general", href: "/company/settings" },
+  { value: "export", labelKey: "settings.nav.export", href: "/company/export" },
+  { value: "import", labelKey: "settings.nav.import", href: "/company/import" },
+  { value: "members", labelKey: "settings.nav.members", href: "/company/settings/members" },
+  { value: "secrets", labelKey: "settings.nav.secrets", href: "/company/settings/secrets" },
+  { value: "instance-profile", labelKey: "settings.nav.profile", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/profile` },
+  { value: "instance-environments", labelKey: "settings.nav.environments", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/environments` },
+  { value: "instance-access", labelKey: "settings.nav.access", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/access` },
+  { value: "instance-experimental", labelKey: "settings.nav.experimental", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/experimental` },
+  { value: "instance-plugins", labelKey: "settings.nav.plugins", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/plugins` },
+  { value: "instance-adapters", labelKey: "settings.nav.adapters", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/adapters` },
 ] as const;
 
 type CompanySettingsTab = (typeof items)[number]["value"];
@@ -93,6 +94,7 @@ export function getCompanySettingsTab(pathname: string): CompanySettingsTab {
 }
 
 export function CompanySettingsNav() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { hidden: hiddenSettings } = useHiddenSettings();
@@ -115,7 +117,7 @@ export function CompanySettingsNav() {
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange}>
       <PageTabBar
-        items={visibleItems.map(({ value, label }) => ({ value, label }))}
+        items={visibleItems.map(({ value, labelKey }) => ({ value, label: t(labelKey) }))}
         value={activeTab}
         onValueChange={handleTabChange}
         align="start"

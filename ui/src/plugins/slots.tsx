@@ -45,6 +45,8 @@ import {
   PluginBridgeContext,
   type PluginHostContext,
 } from "./bridge";
+import { t, useTranslation } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 export type PluginSlotContext = {
   companyId?: string | null;
@@ -153,8 +155,8 @@ function requiresEntityType(slotType: PluginUiSlotType): boolean {
 }
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message) return error.message;
-  return "Unknown error";
+  if (error instanceof Error && error.message) return translateDisplayMessage(error.message);
+  return t("unknown_error");
 }
 
 /**
@@ -430,7 +432,7 @@ async function importPluginModule(url: string): Promise<Record<string, unknown>>
   // Fetch the module source text
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to fetch plugin module: ${response.status} ${response.statusText}`);
+    throw new Error(t("zhSupport.pluginModuleFailed", { status: response.status, detail: response.statusText }));
   }
 
   const source = await response.text();
@@ -730,7 +732,7 @@ class PluginSlotErrorBoundary extends Component<PluginSlotErrorBoundaryProps, Pl
     if (this.state.hasError) {
       return (
         <div className={cn("rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-xs text-destructive", this.props.className)}>
-          {this.props.slot.pluginDisplayName}: failed to render
+          {this.props.slot.pluginDisplayName}{t("failed_to_render")}
         </div>
       );
     }
@@ -902,6 +904,7 @@ export function PluginSlotOutlet({
   errorClassName,
   missingBehavior = "hidden",
 }: PluginSlotOutletProps) {
+  const { t } = useTranslation();
   const { slots, errorMessage } = usePluginSlots({
     slotTypes,
     entityType,
@@ -911,7 +914,7 @@ export function PluginSlotOutlet({
   if (errorMessage) {
     return (
       <div className={cn("rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-xs text-destructive", errorClassName)}>
-        Plugin extensions unavailable: {errorMessage}
+        {t("plugin_extensions_unavailable")} {errorMessage}
       </div>
     );
   }

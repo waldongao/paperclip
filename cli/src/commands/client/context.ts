@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import pc from "picocolors";
 import {
@@ -28,15 +29,15 @@ interface ContextSetOptions extends ContextOptions {
 }
 
 export function registerContextCommands(program: Command): void {
-  const context = program.command("context").description("Manage CLI client context profiles");
+  const context = program.command("context").description(tCli("Manage CLI client context profiles"));
 
   context
     .command("show")
-    .description("Show current context and active profile")
-    .option("-d, --data-dir <path>", "Paperclip data directory root (isolates state from ~/.paperclip)")
-    .option("--context <path>", "Path to CLI context file")
-    .option("--profile <name>", "Profile to inspect")
-    .option("--json", "Output raw JSON")
+    .description(tCli("Show current context and active profile"))
+    .option("-d, --data-dir <path>", tCli("Paperclip data directory root (isolates state from ~/.paperclip)"))
+    .option("--context <path>", tCli("Path to CLI context file"))
+    .option("--profile <name>", tCli("Profile to inspect"))
+    .option("--json", tCli("Output raw JSON"))
     .action((opts: ContextOptions) => {
       const contextPath = resolveContextPath(opts.context);
       const store = readContext(opts.context);
@@ -53,10 +54,10 @@ export function registerContextCommands(program: Command): void {
 
   context
     .command("list")
-    .description("List available context profiles")
-    .option("-d, --data-dir <path>", "Paperclip data directory root (isolates state from ~/.paperclip)")
-    .option("--context <path>", "Path to CLI context file")
-    .option("--json", "Output raw JSON")
+    .description(tCli("List available context profiles"))
+    .option("-d, --data-dir <path>", tCli("Paperclip data directory root (isolates state from ~/.paperclip)"))
+    .option("--context <path>", tCli("Path to CLI context file"))
+    .option("--json", tCli("Output raw JSON"))
     .action((opts: ContextOptions) => {
       const store = readContext(opts.context);
       const rows = Object.entries(store.profiles).map(([name, profile]) => ({
@@ -74,29 +75,29 @@ export function registerContextCommands(program: Command): void {
 
   context
     .command("use")
-    .description("Set active context profile")
-    .argument("<profile>", "Profile name")
-    .option("-d, --data-dir <path>", "Paperclip data directory root (isolates state from ~/.paperclip)")
-    .option("--context <path>", "Path to CLI context file")
+    .description(tCli("Set active context profile"))
+    .argument("<profile>", tCli("Profile name"))
+    .option("-d, --data-dir <path>", tCli("Paperclip data directory root (isolates state from ~/.paperclip)"))
+    .option("--context <path>", tCli("Path to CLI context file"))
     .action((profile: string, opts: ContextOptions) => {
       setCurrentProfile(profile, opts.context);
-      console.log(pc.green(`Active profile set to '${profile}'.`));
+      console.log(pc.green(tCli("Active profile set to '{{profile}}'.", { profile: profile })));
     });
 
   context
     .command("set")
-    .description("Set values on a profile")
-    .option("-d, --data-dir <path>", "Paperclip data directory root (isolates state from ~/.paperclip)")
-    .option("--context <path>", "Path to CLI context file")
-    .option("--profile <name>", "Profile name (default: current profile)")
-    .option("--api-base <url>", "Default API base URL")
-    .option("--company-id <id>", "Default company ID")
-    .option("--persona <persona>", "Profile persona: board or agent")
-    .option("--agent-id <id>", "Default agent ID for agent persona")
-    .option("--agent-name <name>", "Default agent display name")
-    .option("--api-key-env-var-name <name>", "Env var containing API key (recommended)")
-    .option("--use", "Set this profile as active")
-    .option("--json", "Output raw JSON")
+    .description(tCli("Set values on a profile"))
+    .option("-d, --data-dir <path>", tCli("Paperclip data directory root (isolates state from ~/.paperclip)"))
+    .option("--context <path>", tCli("Path to CLI context file"))
+    .option("--profile <name>", tCli("Profile name (default: current profile)"))
+    .option("--api-base <url>", tCli("Default API base URL"))
+    .option("--company-id <id>", tCli("Default company ID"))
+    .option("--persona <persona>", tCli("Profile persona: board or agent"))
+    .option("--agent-id <id>", tCli("Default agent ID for agent persona"))
+    .option("--agent-name <name>", tCli("Default agent display name"))
+    .option("--api-key-env-var-name <name>", tCli("Env var containing API key (recommended)"))
+    .option("--use", tCli("Set this profile as active"))
+    .option("--json", tCli("Output raw JSON"))
     .action((opts: ContextSetOptions) => {
       const existing = readContext(opts.context);
       const targetProfile = opts.profile?.trim() || existing.currentProfile || "default";
@@ -121,9 +122,9 @@ export function registerContextCommands(program: Command): void {
       };
 
       if (!opts.json) {
-        console.log(pc.green(`Updated profile '${targetProfile}'.`));
+        console.log(pc.green(tCli("Updated profile '{{targetProfile}}'.", { targetProfile: targetProfile })));
         if (opts.use) {
-          console.log(pc.green(`Set '${targetProfile}' as active profile.`));
+          console.log(pc.green(tCli("Set '{{targetProfile}}' as active profile.", { targetProfile: targetProfile })));
         }
       }
       printOutput(payload, { json: opts.json });
@@ -154,5 +155,5 @@ function buildContextPatch(opts: ContextSetOptions): Partial<ClientContextProfil
 function parsePersona(value: string | undefined): "board" | "agent" | undefined {
   if (value === undefined) return undefined;
   if (value === "board" || value === "agent") return value;
-  throw new Error("Invalid --persona value. Use board or agent.");
+  throw new Error(tCli("Invalid --persona value. Use board or agent."));
 }

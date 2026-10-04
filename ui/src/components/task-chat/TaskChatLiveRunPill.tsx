@@ -5,6 +5,7 @@ import { useSecondTick } from "@/hooks/useSecondTick";
 import { formatDurationWords } from "@/lib/issue-chat-messages";
 import { isCommandTool } from "@/lib/transcriptPresentation";
 import { isTerminalRunStatus } from "@/components/task-chat/transcript-adapter";
+import { t, useTranslation } from "@/i18n";
 
 /**
  * "ran N commands, called M tools" for the live tail's status pill, counted off
@@ -28,8 +29,8 @@ export function toolCountSummaryFromEntries(entries: readonly TranscriptEntry[])
     else other += 1;
   }
   const parts: string[] = [];
-  if (commands > 0) parts.push(`ran ${commands} command${commands === 1 ? "" : "s"}`);
-  if (other > 0) parts.push(`called ${other} tool${other === 1 ? "" : "s"}`);
+  if (commands > 0) parts.push(t("ran_n_commands_inline", { count: commands }));
+  if (other > 0) parts.push(t("called_n_tools_inline", { count: other }));
   return parts.length > 0 ? parts.join(", ") : null;
 }
 
@@ -55,6 +56,7 @@ export function TaskChatLiveRunPill({
   finishedAtMs?: number | null;
   toolSummary: string | null;
 }) {
+  const { t } = useTranslation();
   const active = !isTerminalRunStatus(status);
   // One shared page-wide ticker drives the live elapsed readout, matching the
   // default view's `useLiveElapsed`.
@@ -65,8 +67,8 @@ export function TaskChatLiveRunPill({
   const elapsed = elapsedMs != null
     ? formatDurationWords(elapsedMs)
     : null;
-  const verb = active ? "Working" : "Worked";
-  const suffix = elapsed ? `for ${elapsed}` : null;
+  const verb = active ? t("working_3b4dfc") : t("worked");
+  const suffix = elapsed ? t("for_elapsed", { elapsed }) : null;
 
   return (
     <div

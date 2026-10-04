@@ -14,6 +14,7 @@ import { OnboardingHeading } from "./OnboardingPrimitives";
 import { PillGuy } from "./PillGuy";
 import { SleepingZs } from "./SleepingZs";
 import { Stepper } from "./Stepper";
+import { t, useTranslation } from "@/i18n";
 
 /**
  * A prototype of the connect step, from the PCLP-Onboarding file (nodes
@@ -46,12 +47,12 @@ import { Stepper } from "./Stepper";
 const MODEL_SOURCES: ModelSource[] = [
   {
     id: "claude_local",
-    label: "Claude Code",
+    label: t("claude_code"),
     icon: <img src="/brands/claude-color.svg" alt="" className="size-full" />,
   },
   {
     id: "codex_local",
-    label: "Codex",
+    label: t("codex"),
     icon: <img src="/brands/codex-color.svg" alt="" className="size-full" />,
   },
 ];
@@ -79,6 +80,7 @@ export function ConnectModelPreview({
   initialUseApiKeys?: boolean;
   control?: CredentialControl;
 }) {
+  const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState<string | null>(initialSourceId);
   const [useApiKeys, setUseApiKeys] = useState(initialUseApiKeys);
   const mode: CredentialMode = useApiKeys ? "api" : "subscription";
@@ -105,14 +107,14 @@ export function ConnectModelPreview({
         <div className="pt-6">
           <OnboardingHeading
             center
-            title="Connect a model"
-            lede="Paperclip works with your existing subscription or API keys."
+            title={t("connect_a_model")}
+            lede={t("zhComponents.text_6f718825cb")}
           />
         </div>
 
         <div className="space-y-2 pt-12">
           <ModelSourceTiles
-            label="Model source"
+            label={t("model_source")}
             sources={MODEL_SOURCES}
             mode={mode}
             selectedId={selectedId}
@@ -132,7 +134,7 @@ export function ConnectModelPreview({
                 onCheckedChange={(checked) => setUseApiKeys(checked === true)}
               />
               <span className="text-sm font-medium text-foreground">
-                Use API keys instead
+                {t("use_api_keys_instead")}
               </span>
             </label>
           )}
@@ -142,7 +144,7 @@ export function ConnectModelPreview({
             disabled rather than failing on press. */}
         <FooterNav
           onBack={() => {}}
-          primaryLabel="Connect"
+          primaryLabel={t("connect")}
           primaryDisabled={selectedId === null}
           onPrimary={() => {}}
         />

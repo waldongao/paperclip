@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { deriveAgentUrlKey, deriveProjectUrlKey, normalizeProjectUrlKey, hasNonAsciiContent } from "@paperclipai/shared";
 import type { BillingType, FinanceDirection, FinanceEventKind } from "@paperclipai/shared";
+import { t, i18n } from "@/i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,11 +35,11 @@ export function asFiniteNumber(value: unknown, fallback: number) {
 }
 
 export function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${(cents / 100).toLocaleString(i18n.resolvedLanguage ?? i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatNumber(n: number): string {
-  return n.toLocaleString("en-US");
+  return n.toLocaleString(i18n.resolvedLanguage ?? i18n.language);
 }
 
 /**
@@ -47,11 +48,11 @@ export function formatNumber(n: number): string {
  */
 export function formatProjectBudget(budget: { amountCents: number; windowKind: string }): string {
   const amount = formatCents(budget.amountCents);
-  return budget.windowKind === "calendar_month_utc" ? `${amount}/mo` : amount;
+  return budget.windowKind === "calendar_month_utc" ? t("zhSupport.monthlyPrice", { amount }) : amount;
 }
 
 export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
+  return new Date(date).toLocaleDateString(i18n.resolvedLanguage ?? i18n.language, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -59,7 +60,7 @@ export function formatDate(date: Date | string): string {
 }
 
 export function formatDateTime(date: Date | string): string {
-  return new Date(date).toLocaleString("en-US", {
+  return new Date(date).toLocaleString(i18n.resolvedLanguage ?? i18n.language, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -69,7 +70,7 @@ export function formatDateTime(date: Date | string): string {
 }
 
 export function formatShortDate(date: Date | string): string {
-  return new Date(date).toLocaleString("en-US", {
+  return new Date(date).toLocaleString(i18n.resolvedLanguage ?? i18n.language, {
     month: "short",
     day: "numeric",
   });
@@ -79,13 +80,13 @@ export function relativeTime(date: Date | string): string {
   const now = Date.now();
   const then = new Date(date).getTime();
   const diffSec = Math.round((now - then) / 1000);
-  if (diffSec < 60) return "just now";
+  if (diffSec < 60) return t("just_now");
   const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 60) return t("zhSupport.time.minutesAgo", { count: diffMin });
   const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) return t("zhSupport.time.hoursAgo", { count: diffHr });
   const diffDay = Math.round(diffHr / 24);
-  if (diffDay < 30) return `${diffDay}d ago`;
+  if (diffDay < 30) return t("zhSupport.time.daysAgo", { count: diffDay });
   return formatDate(date);
 }
 
@@ -98,56 +99,56 @@ export function formatTokens(n: number): string {
 
 /** Humanize a millisecond duration into a compact `1h 2m`, `45m 12s`, `12s` string. */
 export function formatDurationMs(ms: number): string {
-  if (!Number.isFinite(ms) || ms <= 0) return "0s";
+  if (!Number.isFinite(ms) || ms <= 0) return t("zhSupport.time.seconds", { count: 0 });
   const totalSeconds = Math.round(ms / 1000);
-  if (totalSeconds < 60) return `${totalSeconds}s`;
+  if (totalSeconds < 60) return t("zhSupport.time.seconds", { count: totalSeconds });
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  if (minutes < 60) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+  if (minutes < 60) return seconds > 0 ? t("zhSupport.time.minutesSeconds", { minutes, seconds }) : t("zhSupport.time.minutes", { count: minutes });
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   if (hours < 24) {
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+    return remainingMinutes > 0 ? t("zhSupport.time.hoursMinutes", { hours, minutes: remainingMinutes }) : t("zhSupport.time.hours", { count: hours });
   }
   const days = Math.floor(hours / 24);
   const remainingHours = hours % 24;
-  return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
+  return remainingHours > 0 ? t("zhSupport.time.daysHours", { days, hours: remainingHours }) : t("zhSupport.time.days", { count: days });
 }
 
 /** Map a raw provider slug to a display-friendly name. */
 export function providerDisplayName(provider: string): string {
   const map: Record<string, string> = {
-    anthropic: "Anthropic",
-    aws_bedrock: "AWS Bedrock",
-    openai: "OpenAI",
-    openrouter: "OpenRouter",
-    chatgpt: "ChatGPT",
-    google: "Google",
-    cursor: "Cursor",
-    jetbrains: "JetBrains AI",
+    anthropic: t("anthropic"),
+    aws_bedrock: t("aws_bedrock"),
+    openai: t("openai"),
+    openrouter: t("openrouter"),
+    chatgpt: t("chatgpt"),
+    google: t("google"),
+    cursor: t("cursor"),
+    jetbrains: t("jetbrains_ai"),
   };
   return map[provider.toLowerCase()] ?? provider;
 }
 
 export function billingTypeDisplayName(billingType: BillingType): string {
   const map: Record<BillingType, string> = {
-    metered_api: "Metered API",
-    subscription_included: "Subscription",
-    subscription_overage: "Subscription overage",
-    credits: "Credits",
-    fixed: "Fixed",
-    unknown: "Unknown",
+    metered_api: t("metered_api"),
+    subscription_included: t("subscription"),
+    subscription_overage: t("subscription_overage"),
+    credits: t("credits"),
+    fixed: t("fixed"),
+    unknown: t("unknown"),
   };
   return map[billingType];
 }
 
 export function quotaSourceDisplayName(source: string): string {
   const map: Record<string, string> = {
-    "anthropic-oauth": "Anthropic OAuth",
-    "claude-cli": "Claude CLI",
-    "bedrock": "AWS Bedrock",
-    "codex-rpc": "Codex app server",
-    "codex-wham": "ChatGPT WHAM",
+    "anthropic-oauth": t("anthropic_oauth"),
+    "claude-cli": t("claude_cli"),
+    "bedrock": t("aws_bedrock"),
+    "codex-rpc": t("codex_app_server"),
+    "codex-wham": t("chatgpt_wham"),
   };
   return map[source] ?? source;
 }
@@ -186,26 +187,26 @@ export function visibleRunCostUsd(
 
 export function financeEventKindDisplayName(eventKind: FinanceEventKind): string {
   const map: Record<FinanceEventKind, string> = {
-    inference_charge: "Inference charge",
-    platform_fee: "Platform fee",
-    credit_purchase: "Credit purchase",
-    credit_refund: "Credit refund",
-    credit_expiry: "Credit expiry",
-    byok_fee: "BYOK fee",
-    gateway_overhead: "Gateway overhead",
-    log_storage_charge: "Log storage",
-    logpush_charge: "Logpush",
-    provisioned_capacity_charge: "Provisioned capacity",
-    training_charge: "Training",
-    custom_model_import_charge: "Custom model import",
-    custom_model_storage_charge: "Custom model storage",
-    manual_adjustment: "Manual adjustment",
+    inference_charge: t("inference_charge"),
+    platform_fee: t("platform_fee"),
+    credit_purchase: t("credit_purchase"),
+    credit_refund: t("credit_refund"),
+    credit_expiry: t("credit_expiry"),
+    byok_fee: t("byok_fee"),
+    gateway_overhead: t("gateway_overhead"),
+    log_storage_charge: t("log_storage"),
+    logpush_charge: t("logpush"),
+    provisioned_capacity_charge: t("provisioned_capacity"),
+    training_charge: t("training"),
+    custom_model_import_charge: t("custom_model_import"),
+    custom_model_storage_charge: t("custom_model_storage"),
+    manual_adjustment: t("manual_adjustment"),
   };
   return map[eventKind];
 }
 
 export function financeDirectionDisplayName(direction: FinanceDirection): string {
-  return direction === "credit" ? "Credit" : "Debit";
+  return direction === "credit" ? t("credit") : t("debit");
 }
 
 /** Build an issue URL using the human-readable identifier when available. */

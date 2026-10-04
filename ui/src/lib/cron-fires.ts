@@ -1,3 +1,6 @@
+
+import { t } from "@/i18n";
+
 /**
  * Client-side "next N schedule fires" helper for the routine Delivery preview (§3.5).
  *
@@ -46,25 +49,25 @@ function parseField(token: string, spec: FieldSpec): number[] {
   const values = new Set<number>();
   for (const rawPart of token.split(",")) {
     const part = rawPart.trim();
-    if (part === "") throw new Error("Empty cron field element");
+    if (part === "") throw new Error(t("empty_cron_field_element"));
 
     const slashIdx = part.indexOf("/");
     if (slashIdx !== -1) {
       const base = part.slice(0, slashIdx);
       const step = Number.parseInt(part.slice(slashIdx + 1), 10);
-      if (!Number.isInteger(step) || step <= 0) throw new Error("Invalid cron step");
+      if (!Number.isInteger(step) || step <= 0) throw new Error(t("invalid_cron_step"));
       let start = spec.min;
       let end = spec.max;
       if (base === "*") {
         // every `step` from min
       } else if (base.includes("-")) {
         const [a, b] = base.split("-").map((s) => Number.parseInt(s, 10));
-        if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error("Invalid cron range");
+        if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error(t("invalid_cron_range"));
         start = a;
         end = b;
       } else {
         const s = Number.parseInt(base, 10);
-        if (!Number.isInteger(s)) throw new Error("Invalid cron start");
+        if (!Number.isInteger(s)) throw new Error(t("invalid_cron_start"));
         start = s;
       }
       assertBounds(start, spec);
@@ -75,10 +78,10 @@ function parseField(token: string, spec: FieldSpec): number[] {
 
     if (part.includes("-")) {
       const [a, b] = part.split("-").map((s) => Number.parseInt(s, 10));
-      if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error("Invalid cron range");
+      if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error(t("invalid_cron_range"));
       assertBounds(a, spec);
       assertBounds(b, spec);
-      if (a > b) throw new Error("Invalid cron range (start > end)");
+      if (a > b) throw new Error(t("invalid_cron_range_start_end"));
       for (let i = a; i <= b; i++) values.add(i);
       continue;
     }
@@ -89,17 +92,17 @@ function parseField(token: string, spec: FieldSpec): number[] {
     }
 
     const val = Number.parseInt(part, 10);
-    if (!Number.isInteger(val)) throw new Error("Invalid cron value");
+    if (!Number.isInteger(val)) throw new Error(t("invalid_cron_value"));
     assertBounds(val, spec);
     values.add(val);
   }
-  if (values.size === 0) throw new Error("Empty cron field");
+  if (values.size === 0) throw new Error(t("empty_cron_field"));
   return [...values].sort((a, b) => a - b);
 }
 
 function assertBounds(value: number, spec: FieldSpec): void {
   if (value < spec.min || value > spec.max) {
-    throw new Error(`Cron value ${value} out of range`);
+    throw new Error(t("zhSupport.cron.outOfRange", { value }));
   }
 }
 
@@ -138,6 +141,7 @@ interface ZonedParts {
 }
 
 function getZonedMinuteParts(date: Date, timeZone: string): ZonedParts {
+  // Machine parsing: WEEKDAY_INDEX requires English weekday tokens.
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone,
     year: "numeric",
@@ -153,7 +157,7 @@ function getZonedMinuteParts(date: Date, timeZone: string): ZonedParts {
     if (part.type !== "literal") map[part.type] = part.value;
   }
   const weekday = WEEKDAY_INDEX[map.weekday ?? ""];
-  if (weekday === undefined) throw new Error(`Unable to resolve weekday for ${timeZone}`);
+  if (weekday === undefined) throw new Error(t("zhSupport.cron.unknownWeekday", { timeZone }));
   return {
     month: Number(map.month),
     day: Number(map.day),
@@ -224,9 +228,9 @@ export interface FirePreviewEntry {
 }
 
 const DISPOSITION_LABEL: Record<FireDisposition, string> = {
-  queued: "queued",
-  coalesced: "would be coalesced",
-  skipped: "would be skipped",
+  queued: t("queued"),
+  coalesced: t("would_be_coalesced"),
+  skipped: t("would_be_skipped"),
 };
 
 /**
@@ -246,7 +250,7 @@ export function previewFirePolicies(
         at,
         disposition: "queued",
         label: DISPOSITION_LABEL.queued,
-        note: "runs immediately",
+        note: t("runs_immediately"),
       };
     }
     let disposition: FireDisposition;
@@ -266,7 +270,7 @@ export function previewFirePolicies(
       at,
       disposition,
       label: DISPOSITION_LABEL[disposition],
-      note: disposition === "queued" ? null : "if the previous run is still active",
+      note: disposition === "queued" ? null : t("if_the_previous_run_is_still_active"),
     };
   });
 }

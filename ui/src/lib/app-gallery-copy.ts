@@ -1,3 +1,7 @@
+
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
+
 /**
  * Prosumer copy for the Apps surface (PAP-10856).
  *
@@ -51,90 +55,90 @@ export interface AppCopy {
  */
 const APP_COPY: Record<string, AppCopy> = {
   zapier: {
-    tagline: "Reach 9,000+ apps your team already uses.",
-    short: "Reach 9,000+ apps from your agents.",
+    tagline: t("reach_9_000_apps_your_team_already_uses"),
+    short: t("reach_9_000_apps_from_your_agents"),
   },
   github: {
-    tagline: "Read code and pull requests, comment on issues.",
-    short: "Read code and pull requests, comment on issues.",
+    tagline: t("read_code_and_pull_requests_comment_on_issues"),
+    short: t("read_code_and_pull_requests_comment_on_issues"),
   },
   slack: {
-    tagline: "Send and read messages in your team's channels.",
-    short: "Send and read messages in your channels.",
+    tagline: t("send_and_read_messages_in_your_teams_channels"),
+    short: t("send_and_read_messages_in_your_channels"),
   },
   notion: {
-    tagline: "Read and update pages in your workspace.",
-    short: "Read and update pages in your workspace.",
+    tagline: t("read_and_update_pages_in_your_workspace"),
+    short: t("read_and_update_pages_in_your_workspace"),
   },
   posthog: {
-    tagline: "Explore product usage, errors, flags, and experiments.",
-    short: "Sign in with PostHog. Project pinning and access controls are optional.",
+    tagline: t("explore_product_usage_errors_flags_and_experimen"),
+    short: t("sign_in_with_posthog_project_pinning_and_access"),
   },
   linear: {
-    tagline: "Create, update and read tickets.",
-    short: "Create, update and read tickets.",
+    tagline: t("create_update_and_read_tickets"),
+    short: t("create_update_and_read_tickets"),
   },
   "google-sheets": {
-    tagline: "Read and update selected spreadsheets.",
-    short: "Read spreadsheets or update the files you choose.",
+    tagline: t("read_and_update_selected_spreadsheets"),
+    short: t("read_spreadsheets_or_update_the_files_you_choose"),
   },
   gmail: {
-    tagline: "Read mail and create drafts for your review.",
-    short: "Read mail and create drafts for your review.",
+    tagline: t("read_mail_and_create_drafts_for_your_review"),
+    short: t("read_mail_and_create_drafts_for_your_review"),
   },
   "google-drive": {
-    tagline: "Find, read, and create files in Drive.",
-    short: "Find, read, and create files in Drive.",
+    tagline: t("find_read_and_create_files_in_drive"),
+    short: t("find_read_and_create_files_in_drive"),
   },
   "google-docs": {
-    tagline: "Read and update documents.",
-    short: "Read and update documents.",
+    tagline: t("read_and_update_documents"),
+    short: t("read_and_update_documents"),
   },
   "google-slides": {
-    tagline: "Read and update presentations.",
-    short: "Read and update presentations.",
+    tagline: t("read_and_update_presentations"),
+    short: t("read_and_update_presentations"),
   },
   "google-calendar": {
-    tagline: "Review calendars and manage events.",
-    short: "Review calendars and manage events.",
+    tagline: t("review_calendars_and_manage_events"),
+    short: t("review_calendars_and_manage_events"),
   },
   "google-chat": {
-    tagline: "Read conversations and send messages.",
-    short: "Read conversations and send messages.",
+    tagline: t("read_conversations_and_send_messages"),
+    short: t("read_conversations_and_send_messages"),
   },
   "google-people": {
-    tagline: "Look up contacts and people in your directory.",
-    short: "Look up contacts and people in your directory.",
+    tagline: t("look_up_contacts_and_people_in_your_directory"),
+    short: t("look_up_contacts_and_people_in_your_directory"),
   },
   "google-workspace-search": {
-    tagline: "Search across your Google workspace.",
-    short: "Search across your Google workspace.",
+    tagline: t("search_across_your_google_workspace"),
+    short: t("search_across_your_google_workspace"),
   },
   hubspot: {
-    tagline: "Look up contacts and update deal stages.",
-    short: "Look up contacts and update deal stages.",
+    tagline: t("look_up_contacts_and_update_deal_stages"),
+    short: t("look_up_contacts_and_update_deal_stages"),
   },
   intercom: {
-    tagline: "Read and reply to customer conversations.",
-    short: "Read and reply to customer conversations.",
+    tagline: t("read_and_reply_to_customer_conversations"),
+    short: t("read_and_reply_to_customer_conversations"),
   },
   figma: {
-    tagline: "Read files and post comments on frames.",
-    short: "Read files and post comments on frames.",
+    tagline: t("read_files_and_post_comments_on_frames"),
+    short: t("read_files_and_post_comments_on_frames"),
   },
   stripe: {
-    tagline: "Read customers, invoices, and payouts.",
-    short: "Read customers, invoices, and payouts.",
+    tagline: t("read_customers_invoices_and_payouts"),
+    short: t("read_customers_invoices_and_payouts"),
   },
   context7: {
-    tagline: "Look up up-to-date docs for your libraries.",
-    short: "Look up up-to-date docs for your libraries.",
+    tagline: t("look_up_up_to_date_docs_for_your_libraries"),
+    short: t("look_up_up_to_date_docs_for_your_libraries"),
   },
 };
 
 const GENERIC: AppCopy = {
-  tagline: "Give your agents access to this app.",
-  short: "Give your agents access to this app.",
+  tagline: t("give_your_agents_access_to_this_app"),
+  short: t("give_your_agents_access_to_this_app"),
 };
 
 /** Curated, gate-safe copy for a gallery app. */
@@ -142,7 +146,7 @@ export function appCopyFor(key: string, fallbackTagline?: string | null): AppCop
   const curated = APP_COPY[key];
   if (curated) return curated;
   if (fallbackTagline) {
-    const cleaned = sanitizeProsumerCopy(fallbackTagline);
+    const cleaned = sanitizeProsumerCopy(translateDisplayMessage(fallbackTagline));
     if (cleaned) return { tagline: cleaned, short: cleaned };
   }
   return GENERIC;
@@ -159,7 +163,7 @@ export function credentialFieldLabel(
   rawLabel: string,
   fieldCount: number,
 ): string {
-  if (fieldCount <= 1) return `Your ${appName} key`;
-  const cleaned = sanitizeProsumerCopy(rawLabel);
-  return cleaned || `Your ${appName} key`;
+  if (fieldCount <= 1) return t("zhSupport.yourAppKey", { app: appName });
+  const cleaned = sanitizeProsumerCopy(translateDisplayMessage(rawLabel));
+  return cleaned || t("zhSupport.yourAppKey", { app: appName });
 }

@@ -174,32 +174,33 @@ import {
   ISSUE_OVERRIDE_ADAPTER_TYPES,
   type IssueModelLane,
 } from "../lib/issue-assignee-overrides";
+import { t, useTranslation } from "@/i18n";
 
 const STAGED_FILE_ACCEPT = "image/*,application/pdf,text/plain,text/markdown,application/json,text/csv,text/html,.md,.markdown";
 
 const ISSUE_THINKING_EFFORT_OPTIONS = {
   claude_local: [
-    { value: "", label: "Default" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "", label: t("default_808d7d") },
+    { value: "low", label: t("low") },
+    { value: "medium", label: t("medium") },
+    { value: "high", label: t("high") },
   ],
   codex_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
+    { value: "", label: t("default_808d7d") },
+    { value: "minimal", label: t("minimal") },
+    { value: "low", label: t("low") },
+    { value: "medium", label: t("medium") },
+    { value: "high", label: t("high") },
+    { value: "xhigh", label: t("x_high") },
   ],
   opencode_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
-    { value: "max", label: "Max" },
+    { value: "", label: t("default_808d7d") },
+    { value: "minimal", label: t("minimal") },
+    { value: "low", label: t("low") },
+    { value: "medium", label: t("medium") },
+    { value: "high", label: t("high") },
+    { value: "xhigh", label: t("x_high") },
+    { value: "max", label: t("max") },
   ],
 } as const;
 
@@ -279,19 +280,19 @@ function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; col
   return [
     {
       value: "backlog",
-      label: "Backlog",
+      label: t("backlog"),
       color: palette.backlog ?? issueStatusTextDefault,
-      description: "Parked - assignee will not be woken",
+      description: t("parked_assignee_will_not_be_woken"),
     },
     {
       value: "todo",
-      label: "Todo",
+      label: t("todo"),
       color: palette.todo ?? issueStatusTextDefault,
-      description: "Executable - assignee will be woken",
+      description: t("executable_assignee_will_be_woken"),
     },
-    { value: "in_progress", label: "In Progress", color: palette.in_progress ?? issueStatusTextDefault },
-    { value: "in_review", label: "In Review", color: palette.in_review ?? issueStatusTextDefault },
-    { value: "done", label: "Done", color: palette.done ?? issueStatusTextDefault },
+    { value: "in_progress", label: t("in_progress"), color: palette.in_progress ?? issueStatusTextDefault },
+    { value: "in_review", label: t("in_review"), color: palette.in_review ?? issueStatusTextDefault },
+    { value: "done", label: t("done"), color: palette.done ?? issueStatusTextDefault },
   ];
 }
 
@@ -324,16 +325,16 @@ function shouldWarnAboutRunUserSecrets(status: string, assigneeAgentId: string |
 }
 
 const priorities = [
-  { value: "critical", label: "Critical", icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault },
-  { value: "high", label: "High", icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault },
-  { value: "medium", label: "Medium", icon: Minus, color: priorityColor.medium ?? priorityColorDefault },
-  { value: "low", label: "Low", icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault },
+  { value: "critical", label: t("critical"), icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault },
+  { value: "high", label: t("high"), icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault },
+  { value: "medium", label: t("medium"), icon: Minus, color: priorityColor.medium ?? priorityColorDefault },
+  { value: "low", label: t("low"), icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault },
 ];
 
 const EXECUTION_WORKSPACE_MODES = [
-  { value: "shared_workspace", label: "Project default" },
-  { value: "isolated_workspace", label: "New isolated workspace" },
-  { value: "reuse_existing", label: "Reuse existing workspace" },
+  { value: "shared_workspace", label: t("project_default") },
+  { value: "isolated_workspace", label: t("new_isolated_workspace") },
+  { value: "reuse_existing", label: t("reuse_existing_workspace") },
 ] as const;
 
 function defaultExecutionWorkspaceModeForIssueDefaults(
@@ -379,6 +380,7 @@ const IssueTitleTextarea = memo(function IssueTitleTextarea({
   projectSelectorRef: RefObject<HTMLButtonElement | null>;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   const [draftValue, setDraftValue] = useState(value);
 
   useEffect(() => {
@@ -388,7 +390,7 @@ const IssueTitleTextarea = memo(function IssueTitleTextarea({
   return (
     <textarea
       className="w-full text-lg font-semibold bg-transparent outline-none resize-none overflow-hidden placeholder:text-muted-foreground/50"
-      placeholder="Task title"
+      placeholder={t("task_title")}
       rows={1}
       value={draftValue}
       onChange={(e) => {
@@ -442,6 +444,7 @@ const IssueDescriptionEditor = memo(function IssueDescriptionEditor({
   imageUploadHandler: (file: File) => Promise<string>;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   const [draftValue, setDraftValue] = useState(value);
 
   useEffect(() => {
@@ -456,7 +459,7 @@ const IssueDescriptionEditor = memo(function IssueDescriptionEditor({
         setDraftValue(nextValue);
         onChange(nextValue);
       }}
-      placeholder="Add description..."
+      placeholder={t("add_description")}
       bordered={false}
       mentions={mentions}
       contentClassName={cn("text-sm text-muted-foreground pb-12", expanded ? "min-h-(--sz-220px)" : "min-h-(--sz-120px)")}
@@ -466,6 +469,7 @@ const IssueDescriptionEditor = memo(function IssueDescriptionEditor({
 });
 
 export function NewIssueDialog() {
+  const { t } = useTranslation();
   const { newIssueOpen, newIssueDefaults, closeNewIssue } = useDialog();
   const visualViewportLayout = useVisualViewportLayout(newIssueOpen);
   const dialogBodyRef = useRef<HTMLDivElement>(null);
@@ -655,11 +659,11 @@ export function NewIssueDialog() {
         const prefix = (companies.find((company) => company.id === companyId)?.issuePrefix ?? "").trim();
         const issueRef = issue.identifier ?? issue.id;
         pushToast({
-          title: `Created ${issueRef} with upload warnings`,
-          body: `${failures.length} staged ${failures.length === 1 ? "file" : "files"} could not be added.`,
+          title: t("zhComponents.message_4c503a0eea", { value1: issueRef }),
+          body: t("zhComponents.message_1e8e6a090c", { count: failures.length, value1: failures.length }),
           tone: "warn",
           action: prefix
-            ? { label: `Open ${issueRef}`, href: `/${prefix}/issues/${issueRef}` }
+            ? { label: t("zhComponents.message_dd49d87ac0", { value1: issueRef }), href: `/${prefix}/issues/${issueRef}` }
             : undefined,
         });
       }
@@ -671,7 +675,7 @@ export function NewIssueDialog() {
 
   const uploadDescriptionImage = useMutation({
     mutationFn: async (file: File) => {
-      if (!effectiveCompanyId) throw new Error("No organization selected");
+      if (!effectiveCompanyId) throw new Error(t("no_organization_selected"));
       return assetsApi.uploadImage(effectiveCompanyId, file, "issues/drafts");
     },
   });
@@ -1186,12 +1190,12 @@ export function NewIssueDialog() {
     && !isUsingParentExecutionWorkspace;
   const assigneeOptionsTitle =
     assigneeAdapterType === "claude_local"
-      ? "Claude options"
+      ? t("claude_options")
       : assigneeAdapterType === "codex_local"
-        ? "Codex options"
+        ? t("codex_options")
         : assigneeAdapterType === "opencode_local"
-          ? "OpenCode options"
-        : "Agent options";
+          ? t("opencode_options")
+        : t("agent_options");
   const thinkingEffortOptions =
     assigneeAdapterType === "codex_local"
       ? ISSUE_THINKING_EFFORT_OPTIONS.codex_local
@@ -1245,7 +1249,7 @@ export function NewIssueDialog() {
   const hasSavedDraft = Boolean(savedDraft?.title.trim() || savedDraft?.description.trim());
   const canDiscardDraft = hasDraft || hasSavedDraft;
   const createIssueErrorMessage =
-    createIssue.error instanceof Error ? createIssue.error.message : "Failed to create task. Try again.";
+    createIssue.error instanceof Error ? createIssue.error.message : t("failed_to_create_task_try_again");
   const stagedDocuments = stagedFiles.filter((file) => file.kind === "document");
   const stagedAttachments = stagedFiles.filter((file) => file.kind === "attachment");
 
@@ -1417,7 +1421,7 @@ export function NewIssueDialog() {
               </PopoverContent>
             </Popover>
             <span className="text-muted-foreground/60">&rsaquo;</span>
-            <span>{isSubIssueMode ? "New sub-task" : "New task"}</span>
+            <span>{isSubIssueMode ? t("new_sub_task") : t("new_task")}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -1470,17 +1474,17 @@ export function NewIssueDialog() {
           <div className="px-4 pb-2">
             <div className="overflow-x-auto overscroll-x-contain">
               <div className="inline-flex items-center gap-2 text-sm text-muted-foreground flex-wrap sm:flex-nowrap sm:min-w-max">
-              <span className="w-6 shrink-0 text-center">For</span>
+              <span className="min-w-6 shrink-0 whitespace-nowrap text-center">{t("zhComponents.assignTo")}</span>
               <InlineEntitySelector
                 ref={assigneeSelectorRef}
                 value={assigneeValue}
                 options={assigneeOptions}
                 recentOptionIds={recentAssigneeOptionIds}
-                placeholder="Assignee"
+                placeholder={t("assignee")}
                 disablePortal
-                noneLabel="No assignee"
-                searchPlaceholder="Search assignees..."
-                emptyMessage="No assignees found."
+                noneLabel={t("no_assignee")}
+                searchPlaceholder={t("search_assignees")}
+                emptyMessage={t("no_assignees_found")}
                 onChange={(value) => {
                   const nextAssignee = parseAssigneeValue(value);
                   if (nextAssignee.assigneeAgentId) {
@@ -1510,7 +1514,7 @@ export function NewIssueDialog() {
                       <span className="truncate">{option.label}</span>
                     )
                   ) : (
-                    <span className="text-muted-foreground">Assignee</span>
+                    <span className="text-muted-foreground">{t("assignee")}</span>
                   )
                 }
                 renderOption={(option) => {
@@ -1523,23 +1527,23 @@ export function NewIssueDialog() {
                       {assignee ? <AgentIcon icon={assignee.icon} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> : null}
                       <span className="truncate">{option.label}</span>
                       {assignee && getTrustPreset(assignee.permissions) === "low_trust_review" ? (
-                        <ShieldAlert className="ml-auto h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" aria-label="Low-trust review agent" />
+                        <ShieldAlert className="ml-auto h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" aria-label={t("low_trust_review_agent")} />
                       ) : null}
                     </>
                   );
                 }}
               />
-              <span>in</span>
+              <span>{t("zhComponents.belongsTo")}</span>
               <InlineEntitySelector
                 ref={projectSelectorRef}
                 value={projectId}
                 options={projectOptions}
                 recentOptionIds={recentProjectIds}
-                placeholder="Project"
+                placeholder={t("project")}
                 disablePortal
-                noneLabel="No project"
-                searchPlaceholder="Search projects..."
-                emptyMessage="No projects found."
+                noneLabel={t("no_project")}
+                searchPlaceholder={t("search_projects")}
+                emptyMessage={t("no_projects_found")}
                 onChange={handleProjectChange}
                 onConfirm={() => {
                   descriptionEditorRef.current?.focus();
@@ -1554,7 +1558,7 @@ export function NewIssueDialog() {
                       <span className="truncate">{option.label}</span>
                     </>
                   ) : (
-                    <span className="text-muted-foreground">Project</span>
+                    <span className="text-muted-foreground">{t("project")}</span>
                   )
                 }
                 renderOption={(option) => {
@@ -1578,7 +1582,7 @@ export function NewIssueDialog() {
                   <button
                     type="button"
                     className="inline-flex items-center justify-center rounded-md p-1 text-muted-foreground hover:bg-accent/50 transition-colors"
-                    title="Add reviewer, approver, or watchdog"
+                    title={t("add_reviewer_approver_or_watchdog")}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
@@ -1596,7 +1600,7 @@ export function NewIssueDialog() {
                     }}
                   >
                     <Eye className="h-3 w-3" />
-                    Reviewer
+                    {t("reviewer")}
                   </button>
                   <button
                     className={cn(
@@ -1610,7 +1614,7 @@ export function NewIssueDialog() {
                     }}
                   >
                     <ShieldCheck className="h-3 w-3" />
-                    Approver
+                    {t("approver")}
                   </button>
                   <button
                     className={cn(
@@ -1631,7 +1635,7 @@ export function NewIssueDialog() {
                     }}
                   >
                     <ScanEye className="h-3 w-3" />
-                    Watchdog
+                    {t("watchdog")}
                   </button>
                 </PopoverContent>
               </Popover>
@@ -1646,11 +1650,11 @@ export function NewIssueDialog() {
                 value={reviewerValue}
                 options={assigneeOptions}
                 recentOptionIds={recentAssigneeOptionIds}
-                placeholder="Reviewer"
+                placeholder={t("reviewer")}
                 disablePortal
-                noneLabel="No reviewer"
-                searchPlaceholder="Search reviewers..."
-                emptyMessage="No reviewers found."
+                noneLabel={t("no_reviewer")}
+                searchPlaceholder={t("search_reviewers")}
+                emptyMessage={t("no_reviewers_found")}
                 onChange={setReviewerValue}
                 renderTriggerValue={(option) =>
                   option ? (
@@ -1664,7 +1668,7 @@ export function NewIssueDialog() {
                       <span className="truncate">{option.label}</span>
                     </>
                   ) : (
-                    <span className="text-muted-foreground">Reviewer</span>
+                    <span className="text-muted-foreground">{t("reviewer")}</span>
                   )
                 }
                 renderOption={(option) => {
@@ -1691,11 +1695,11 @@ export function NewIssueDialog() {
                 value={approverValue}
                 options={assigneeOptions}
                 recentOptionIds={recentAssigneeOptionIds}
-                placeholder="Approver"
+                placeholder={t("approver")}
                 disablePortal
-                noneLabel="No approver"
-                searchPlaceholder="Search approvers..."
-                emptyMessage="No approvers found."
+                noneLabel={t("no_approver")}
+                searchPlaceholder={t("search_approvers")}
+                emptyMessage={t("no_approvers_found")}
                 onChange={setApproverValue}
                 renderTriggerValue={(option) =>
                   option ? (
@@ -1709,7 +1713,7 @@ export function NewIssueDialog() {
                       <span className="truncate">{option.label}</span>
                     </>
                   ) : (
-                    <span className="text-muted-foreground">Approver</span>
+                    <span className="text-muted-foreground">{t("approver")}</span>
                   )
                 }
                 renderOption={(option) => {
@@ -1737,7 +1741,7 @@ export function NewIssueDialog() {
                     <button
                       type="button"
                       className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent/50 transition-colors min-w-0"
-                      title="Configure watchdog"
+                      title={t("configure_watchdog")}
                     >
                       {selectedWatchdogAgent ? (
                         <>
@@ -1748,20 +1752,20 @@ export function NewIssueDialog() {
                           ) : null}
                         </>
                       ) : (
-                        <span className="text-muted-foreground">Set watchdog</span>
+                        <span className="text-muted-foreground">{t("set_watchdog")}</span>
                       )}
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80 p-3 space-y-3" align="start">
                     <div className="space-y-1.5">
-                      <div className="text-xs font-medium text-foreground">Watchdog agent</div>
+                      <div className="text-xs font-medium text-foreground">{t("watchdog_agent")}</div>
                       <InlineEntitySelector
                         value={watchdogAgentId}
                         options={watchdogAgentOptions}
-                        placeholder="Select agent"
-                        noneLabel="No watchdog agent"
-                        searchPlaceholder="Search agents..."
-                        emptyMessage="No agents found."
+                        placeholder={t("select_agent")}
+                        noneLabel={t("no_watchdog_agent")}
+                        searchPlaceholder={t("search_agents")}
+                        emptyMessage={t("no_agents_found")}
                         onChange={setWatchdogAgentId}
                         renderTriggerValue={(option) =>
                           option ? (
@@ -1772,7 +1776,7 @@ export function NewIssueDialog() {
                               <span className="truncate">{option.label}</span>
                             </>
                           ) : (
-                            <span className="text-muted-foreground">Select agent</span>
+                            <span className="text-muted-foreground">{t("select_agent")}</span>
                           )
                         }
                         renderOption={(option) => {
@@ -1787,11 +1791,11 @@ export function NewIssueDialog() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <div className="text-xs font-medium text-foreground">Instructions <span className="font-normal text-muted-foreground">(optional)</span></div>
+                      <div className="text-xs font-medium text-foreground">{t("instructions")} <span className="font-normal text-muted-foreground">{t("optional")}</span></div>
                       <Textarea
                         value={watchdogInstructions}
                         onChange={(event) => setWatchdogInstructions(event.target.value)}
-                        placeholder="What should the watchdog watch for and how should it keep work moving?"
+                        placeholder={t("what_should_the_watchdog_watch_for_and_how_shoul")}
                         rows={4}
                         className="text-xs"
                       />
@@ -1807,10 +1811,10 @@ export function NewIssueDialog() {
                           setWatchdogEditorOpen(false);
                         }}
                       >
-                        Remove
+                        {t("remove")}
                       </button>
                       <Button type="button" size="sm" className="h-7 text-xs" onClick={() => setWatchdogEditorOpen(false)}>
-                        Done
+                        {t("done")}
                       </Button>
                     </div>
                   </PopoverContent>
@@ -1824,7 +1828,7 @@ export function NewIssueDialog() {
             <div className="max-w-full rounded-md border border-border bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <ListTree className="h-3.5 w-3.5 shrink-0" />
-                <span className="shrink-0">Sub-task of</span>
+                <span className="shrink-0">{t("sub_task_of")}</span>
                 <span className="font-medium text-foreground">{parentIssueLabel}</span>
               </div>
               {newIssueDefaults.parentTitle ? (
@@ -1839,9 +1843,9 @@ export function NewIssueDialog() {
           {currentProject && currentProjectSupportsExecutionWorkspace && (
             <div className="px-4 py-3 space-y-2">
             <div className="space-y-1.5">
-              <div className="text-xs font-medium">Execution workspace</div>
+              <div className="text-xs font-medium">{t("execution_workspace")}</div>
               <div className="text-(length:--text-micro) text-muted-foreground">
-                Control whether this task runs in the shared workspace, a new isolated workspace, or an existing one.
+                {t("control_whether_this_task_runs_in_the_shared_wor")}
               </div>
               <select
                 className="w-full rounded border border-border bg-transparent px-2 py-1.5 text-xs outline-none"
@@ -1876,12 +1880,12 @@ export function NewIssueDialog() {
               */}
               {executionWorkspaceMode === "reuse_existing" && selectedReusableExecutionWorkspace && (
                 <div className="text-(length:--text-micro) text-muted-foreground">
-                  Reusing {selectedReusableExecutionWorkspace.name} from {selectedReusableExecutionWorkspace.branchName ?? "existing execution workspace"}.
+                  {t("reusing_37161b")} {selectedReusableExecutionWorkspace.name} {t("zhComponents.text_0b1e95cfd9")} {selectedReusableExecutionWorkspace.branchName ?? t("existing_execution_workspace")}.
                 </div>
               )}
               {showParentWorkspaceWarning ? (
                 <div className="rounded-md border border-amber-300/60 bg-amber-50 px-2 py-1.5 text-(length:--text-micro) text-amber-900 dark:border-amber-800/70 dark:bg-amber-950/30 dark:text-amber-100">
-                  Warning: this sub-task will no longer use the parent task workspace{parentExecutionWorkspaceLabel ? ` (${parentExecutionWorkspaceLabel})` : ""}.
+                  {t("warning_this_sub_task_will_no_longer_use_the_par")}{parentExecutionWorkspaceLabel ? ` (${parentExecutionWorkspaceLabel})` : ""}.
                 </div>
               ) : null}
             </div>
@@ -1900,11 +1904,11 @@ export function NewIssueDialog() {
             {assigneeOptionsOpen && (
               <div className="mt-2 rounded-md border border-border p-3 bg-muted/20 space-y-3">
                 <div className="space-y-1.5">
-                  <div className="text-xs text-muted-foreground">Model lane</div>
+                  <div className="text-xs text-muted-foreground">{t("model_lane")}</div>
                   <div
                     className="flex w-full overflow-hidden rounded-md border border-border"
                     role="radiogroup"
-                    aria-label="Model lane"
+                    aria-label={t("model_lane")}
                   >
                     {(["primary", "custom"] as const).map((lane) => (
                       <button
@@ -1918,35 +1922,35 @@ export function NewIssueDialog() {
                         )}
                         onClick={() => setAssigneeModelLane(lane)}
                       >
-                        {lane === "primary" ? "Primary" : "Custom"}
+                        {lane === "primary" ? t("primary") : t("custom")}
                       </button>
                     ))}
                   </div>
                   {assigneeModelLane === "primary" && (
-                    <p className="text-(length:--text-micro) text-muted-foreground">Runs on the agent's primary model.</p>
+                    <p className="text-(length:--text-micro) text-muted-foreground">{t("runs_on_the_agents_primary_model")}</p>
                   )}
                   {assigneeModelLane === "custom" && (
-                    <p className="text-(length:--text-micro) text-muted-foreground">Override the model and effort for this task only.</p>
+                    <p className="text-(length:--text-micro) text-muted-foreground">{t("override_the_model_and_effort_for_this_task_only")}</p>
                   )}
                 </div>
                 {assigneeModelLane === "custom" && (
                   <div className="space-y-1.5">
-                    <div className="text-xs text-muted-foreground">Model</div>
+                    <div className="text-xs text-muted-foreground">{t("model")}</div>
                     <InlineEntitySelector
                       value={assigneeModelOverride}
                       options={modelOverrideOptions}
-                      placeholder="Default model"
+                      placeholder={t("default_model")}
                       disablePortal
-                      noneLabel="Default model"
-                      searchPlaceholder="Search models..."
-                      emptyMessage="No models found."
+                      noneLabel={t("default_model")}
+                      searchPlaceholder={t("search_models")}
+                      emptyMessage={t("no_models_found")}
                       onChange={setAssigneeModelOverride}
                     />
                   </div>
                 )}
                 {assigneeModelLane === "custom" && (
                   <div className="space-y-1.5">
-                    <div className="text-xs text-muted-foreground">Thinking effort</div>
+                    <div className="text-xs text-muted-foreground">{t("thinking_effort")}</div>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {thinkingEffortOptions.map((option) => (
                         <button
@@ -1965,7 +1969,7 @@ export function NewIssueDialog() {
                 )}
                 {assigneeAdapterType === "claude_local" && assigneeModelLane === "custom" && (
                   <div className="flex items-center justify-between rounded-md border border-border px-2 py-1.5">
-                    <div className="text-xs text-muted-foreground">Enable Chrome (--chrome)</div>
+                    <div className="text-xs text-muted-foreground">{t("enable_chrome_chrome")}</div>
                     <ToggleSwitch
                       checked={assigneeChrome}
                       onCheckedChange={() => setAssigneeChrome((value) => !value)}
@@ -2004,7 +2008,7 @@ export function NewIssueDialog() {
               <div className="mt-4 space-y-3 rounded-lg border border-border/70 p-3">
               {stagedDocuments.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Documents</div>
+                  <div className="text-xs font-medium text-muted-foreground">{t("documents")}</div>
                   <div className="space-y-2">
                     {stagedDocuments.map((file) => (
                       <div key={file.id} className="flex items-start justify-between gap-3 rounded-md border border-border/70 px-3 py-2">
@@ -2028,7 +2032,7 @@ export function NewIssueDialog() {
                           className="shrink-0 text-muted-foreground"
                           onClick={() => removeStagedFile(file.id)}
                           disabled={createIssue.isPending}
-                          title="Remove document"
+                          title={t("remove_document")}
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>
@@ -2040,7 +2044,7 @@ export function NewIssueDialog() {
 
               {stagedAttachments.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Attachments</div>
+                  <div className="text-xs font-medium text-muted-foreground">{t("attachments")}</div>
                   <div className="space-y-2">
                     {stagedAttachments.map((file) => (
                       <div key={file.id} className="flex items-start justify-between gap-3 rounded-md border border-border/70 px-3 py-2">
@@ -2050,7 +2054,7 @@ export function NewIssueDialog() {
                             <span className="truncate text-sm">{file.file.name}</span>
                           </div>
                           <div className="mt-1 text-(length:--text-micro) text-muted-foreground">
-                            {file.file.type || "application/octet-stream"} • {formatFileSize(file.file)}
+                            {file.file.type || t("application_octet_stream")} • {formatFileSize(file.file)}
                           </div>
                         </div>
                         <Button
@@ -2059,7 +2063,7 @@ export function NewIssueDialog() {
                           className="shrink-0 text-muted-foreground"
                           onClick={() => removeStagedFile(file.id)}
                           disabled={createIssue.isPending}
-                          title="Remove attachment"
+                          title={t("remove_attachment")}
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>
@@ -2122,7 +2126,7 @@ export function NewIssueDialog() {
                 ) : (
                   <>
                     <Minus className="h-3 w-3 text-muted-foreground" />
-                    Priority
+                    {t("priority")}
                   </>
                 )}
               </button>
@@ -2165,7 +2169,7 @@ export function NewIssueDialog() {
             disabled={createIssue.isPending}
           >
             <Paperclip className="h-3 w-3" />
-            Upload
+            {t("upload")}
           </button>
 
           {/* Work mode chip */}
@@ -2226,7 +2230,7 @@ export function NewIssueDialog() {
               {SHOW_TASK_PRIORITY_UI && (
               <div className="sm:hidden">
                 <div className="px-2 py-1 text-(length:--text-nano) font-medium uppercase text-muted-foreground">
-                  Priority
+                  {t("priority")}
                 </div>
                 {priorities.map((p) => (
                   <button
@@ -2251,11 +2255,11 @@ export function NewIssueDialog() {
               )}
               <button className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                Start date
+                {t("start_date")}
               </button>
               <button className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                Due date
+                {t("due_date")}
               </button>
             </PopoverContent>
           </Popover>
@@ -2268,7 +2272,7 @@ export function NewIssueDialog() {
           >
             <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
             <span className="leading-snug">
-              Assigning implies executable intent - leave status as <span className="font-medium">Backlog</span> only to deliberately park this. The assignee will not be woken until status moves to <span className="font-medium">Todo</span> or <span className="font-medium">In Progress</span>.
+              {t("assigning_implies_executable_intent_leave_status")} <span className="font-medium">{t("backlog")}</span> {t("only_to_deliberately_park_this_the_assignee_will")} <span className="font-medium">{t("todo")}</span> {t("zhComponents.text_1758356db2")} <span className="font-medium">{t("in_progress")}</span>.
             </span>
           </div>
         ) : null}
@@ -2276,8 +2280,8 @@ export function NewIssueDialog() {
         {selectedAssigneeAgent?.status === "paused" ? (
           <div data-testid="new-issue-paused-assignee-note" className="mx-4 mb-2">
             <InlineBanner tone="warning" icon={PauseCircle} compact>
-              <span className="font-medium">{selectedAssigneeAgent.name}</span> is paused and will not start work on this task until it is resumed
-              {selectedAssigneeAgent.pauseReason === "import" ? " — it arrived paused from an organization import" : ""}. You can resume it from the task page after creating the task.
+              <span className="font-medium">{selectedAssigneeAgent.name}</span> {t("is_paused_and_will_not_start_work_on_this_task_u")}
+              {selectedAssigneeAgent.pauseReason === "import" ? t("it_arrived_paused_from_an_organization_import") : ""}{t("zhComponents.text_6f36782725")}
             </InlineBanner>
           </div>
         ) : null}
@@ -2289,7 +2293,7 @@ export function NewIssueDialog() {
           >
             <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
             <span className="leading-snug">
-              Low-trust review agent. It can only act inside its assigned review boundary; task, project, or run policy defines the concrete scope.
+              {t("low_trust_review_agent_it_can_only_act_inside_it")}
             </span>
           </div>
         ) : null}
@@ -2303,7 +2307,7 @@ export function NewIssueDialog() {
             onClick={discardDraft}
             disabled={createIssue.isPending || !canDiscardDraft}
           >
-            Discard Draft
+            {t("discard_draft")}
           </Button>
           <div className="flex items-center gap-3">
             {createIssue.isError ? (
@@ -2320,7 +2324,7 @@ export function NewIssueDialog() {
             >
               <span className="inline-flex items-center justify-center gap-1.5">
                 {createIssue.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                <span>{createIssue.isPending ? "Creating..." : isSubIssueMode ? "Create Sub-Task" : "Create Task"}</span>
+                <span>{createIssue.isPending ? t("creating_28ea76") : isSubIssueMode ? t("create_sub_task") : t("create_task")}</span>
               </span>
             </Button>
           </div>

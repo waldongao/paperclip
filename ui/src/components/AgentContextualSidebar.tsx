@@ -25,6 +25,7 @@ import {
   agentScopedAuditHref,
   type AgentLocalDetailView,
 } from "@/pages/agent-detail-navigation";
+import { t, useTranslation } from "@/i18n";
 
 const localIcons = {
   overview: Sparkles,
@@ -39,10 +40,10 @@ const localIcons = {
 } satisfies Record<AgentLocalDetailView, typeof Sparkles>;
 
 const auditItems = [
-  { section: "activity", label: "Activity", icon: Activity },
-  { section: "runs", label: "Runs", icon: PlayCircle },
-  { section: "costs", label: "Costs", icon: ReceiptText },
-  { section: "budgets", label: "Budgets", icon: BadgeDollarSign },
+  { section: "activity", label: t("activity"), icon: Activity },
+  { section: "runs", label: t("runs"), icon: PlayCircle },
+  { section: "costs", label: t("costs"), icon: ReceiptText },
+  { section: "budgets", label: t("budgets"), icon: BadgeDollarSign },
 ] as const;
 
 export function AgentContextualSidebar({
@@ -54,6 +55,7 @@ export function AgentContextualSidebar({
   agentId?: string;
   agentName?: string;
 }) {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const shouldResolveAgent = !agentId || !agentName;
   const { data: resolvedAgent } = useQuery({
@@ -62,7 +64,7 @@ export function AgentContextualSidebar({
     enabled: shouldResolveAgent && Boolean(agentRef && selectedCompanyId),
   });
   const resolvedId = agentId ?? resolvedAgent?.id;
-  const resolvedName = agentName ?? resolvedAgent?.name ?? "Agent";
+  const resolvedName = agentName ?? resolvedAgent?.name ?? t("agent_5ce2e6");
 
   return (
     <ContextualSidebarFrame
@@ -73,7 +75,7 @@ export function AgentContextualSidebar({
       className="border-r border-border bg-background"
     >
       <nav
-        aria-label={`${resolvedName} navigation`}
+        aria-label={t("zhComponents.message_d54050e888", { value1: resolvedName })}
         data-slot="contextual-sidebar-nav"
         className={contextualSidebarStyles.nav}
       >
@@ -110,7 +112,7 @@ export function AgentContextualSidebar({
             data-slot="contextual-sidebar-section-label"
             className={contextualSidebarStyles.sectionLabel}
           >
-            Audit
+            {t("audit")}
           </p>
           <div data-slot="contextual-sidebar-group" className={contextualSidebarStyles.group}>
             {resolvedId ? auditItems.map((item) => (
@@ -121,7 +123,7 @@ export function AgentContextualSidebar({
                 icon={item.icon}
               />
             )) : (
-              <p className="px-2 py-1.5 text-xs text-muted-foreground">Loading audit links…</p>
+              <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("loading_audit_links")}</p>
             )}
           </div>
         </div>

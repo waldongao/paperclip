@@ -1,4 +1,6 @@
 import { formatDateTime } from "./utils";
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 type RetryAwareRun = {
   status: string;
@@ -19,12 +21,20 @@ export type RunRetryStateSummary = {
 };
 
 const RETRY_REASON_LABELS: Record<string, string> = {
-  transient_failure: "Transient failure",
-  missing_issue_comment: "Missing task comment",
-  process_lost: "Process lost",
-  assignment_recovery: "Assignment recovery",
-  issue_continuation_needed: "Continuation needed",
-  max_turns_continuation: "Max-turn continuation",
+  transient_failure: t("transient_failure"),
+  missing_issue_comment: t("missing_task_comment"),
+  process_lost: t("process_lost_8e50aa"),
+  assignment_recovery: t("assignment_recovery"),
+  issue_continuation_needed: t("continuation_needed"),
+  max_turns_continuation: t("max_turn_continuation"),
+};
+
+const ADDITIONAL_RETRY_REASON_KEYS: Record<string, string> = {
+  workspace_busy: "zhSupport.finalRetryWorkspaceBusy",
+  interaction_continuation_infra_retry: "zhSupport.finalRetryInteractionInfra",
+  execution_review_participant_recovery: "zhSupport.finalRetryExecutionReview",
+  issue_disposition_repair: "zhSupport.finalRetryDisposition",
+  provider_quota_recovery: "zhSupport.finalRetryProviderQuota",
 };
 
 function readNonEmptyString(value: unknown) {
@@ -39,7 +49,8 @@ function joinFragments(parts: Array<string | null>) {
 export function formatRetryReason(reason: string | null | undefined) {
   const normalized = readNonEmptyString(reason);
   if (!normalized) return null;
-  return RETRY_REASON_LABELS[normalized] ?? normalized.replace(/_/g, " ");
+  const additionalKey = ADDITIONAL_RETRY_REASON_KEYS[normalized];
+  return RETRY_REASON_LABELS[normalized] ?? (additionalKey ? t(additionalKey) : normalized.replace(/_/g, " "));
 }
 
 export function describeRunRetryState(run: RetryAwareRun): RunRetryStateSummary | null {
@@ -47,7 +58,7 @@ export function describeRunRetryState(run: RetryAwareRun): RunRetryStateSummary 
     typeof run.scheduledRetryAttempt === "number" && Number.isFinite(run.scheduledRetryAttempt) && run.scheduledRetryAttempt > 0
       ? run.scheduledRetryAttempt
       : null;
-  const attemptLabel = attempt ? `Attempt ${attempt}` : null;
+  const attemptLabel = attempt ? t("zhSupport.retryAttempt", { attempt }) : null;
   const reasonLabel = formatRetryReason(run.scheduledRetryReason);
   const retryOfRunId = readNonEmptyString(run.retryOfRunId);
   const exhaustedReason = readNonEmptyString(run.retryExhaustedReason);
@@ -65,12 +76,12 @@ export function describeRunRetryState(run: RetryAwareRun): RunRetryStateSummary 
   if (run.status === "scheduled_retry") {
     return {
       kind: "scheduled",
-      badgeLabel: isMaxTurnContinuation ? "Continuation scheduled" : "Retry scheduled",
+      badgeLabel: isMaxTurnContinuation ? t("continuation_scheduled") : t("retry_scheduled"),
       tone: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
       detail: joinFragments([attemptLabel, reasonLabel]),
       secondary: dueAt
-        ? `${isMaxTurnContinuation ? "Next continuation" : "Next retry"} ${dueAt}`
-        : `${isMaxTurnContinuation ? "Next continuation" : "Next retry"} pending schedule`,
+        ? `${isMaxTurnContinuation ? t("next_continuation") : t("next_retry")} ${dueAt}`
+        : t("zhSupport.retryPendingSchedule", { action: isMaxTurnContinuation ? t("next_continuation") : t("next_retry") }),
       retryOfRunId,
     };
   }
@@ -78,19 +89,19 @@ export function describeRunRetryState(run: RetryAwareRun): RunRetryStateSummary 
   if (exhaustedReason) {
     return {
       kind: "exhausted",
-      badgeLabel: isMaxTurnContinuation ? "Continuation exhausted" : "Retry exhausted",
+      badgeLabel: isMaxTurnContinuation ? t("continuation_exhausted") : t("retry_exhausted"),
       tone: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-      detail: joinFragments([attemptLabel, reasonLabel, "Automatic retries exhausted"]),
+      detail: joinFragments([attemptLabel, reasonLabel, t("automatic_retries_exhausted")]),
       secondary: exhaustedReason.includes("Manual intervention required")
-        ? exhaustedReason
-        : `${exhaustedReason} Manual intervention required.`,
+        ? translateDisplayMessage(exhaustedReason)
+        : t("zhSupport.manualIntervention", { reason: translateDisplayMessage(exhaustedReason) }),
       retryOfRunId,
     };
   }
 
   return {
     kind: "attempted",
-    badgeLabel: isMaxTurnContinuation ? "Continued run" : "Retried run",
+    badgeLabel: isMaxTurnContinuation ? t("continued_run") : t("retried_run"),
     tone: "border-slate-500/20 bg-slate-500/10 text-slate-700 dark:text-slate-300",
     detail: joinFragments([attemptLabel, reasonLabel]),
     secondary: null,

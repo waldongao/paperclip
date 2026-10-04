@@ -359,7 +359,8 @@ describe("teams CLI commands", () => {
     expect(JSON.parse(String(logSpy.mock.calls[0]?.[0]))).toEqual(result);
   });
 
-  it("requests board approval when agent-run install lacks create-agent permission", async () => {
+  it.each(["en", "zh-CN"])("requests board approval when agent-run install lacks create-agent permission in %s", async (locale) => {
+    process.env.PAPERCLIP_LOCALE = locale;
     const approval = {
       id: "approval-1",
       companyId: "company-1",
@@ -426,7 +427,7 @@ describe("teams CLI commands", () => {
       type: "request_board_approval",
       issueIds: ["11111111-1111-4111-8111-111111111111"],
       payload: {
-        title: "Approve catalog team install: product-engineering",
+        title: locale === "zh-CN" ? "审批目录团队安装：product-engineering" : "Approve catalog team install: product-engineering",
         installAttempt: {
           companyId: "company-1",
           catalogRef: "product-engineering",
@@ -458,7 +459,8 @@ describe("teams CLI commands", () => {
     expect(errorSpy).not.toHaveBeenCalled();
   });
 
-  it("auto-requests board approval for forbidden installs inside a Paperclip task run", async () => {
+  it.each(["en", "zh-CN"])("auto-requests board approval for forbidden installs inside a Paperclip task run in %s", async (locale) => {
+    process.env.PAPERCLIP_LOCALE = locale;
     process.env.PAPERCLIP_TASK_ID = "11111111-1111-4111-8111-111111111111";
     const approval = {
       id: "approval-2",

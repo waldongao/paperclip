@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import * as p from "@clack/prompts";
@@ -47,7 +48,7 @@ async function waitForHealth(instanceId: string, expectedVersion: string | null,
     if (last.ok && (!expectedVersion || last.serverVersion === expectedVersion)) return last;
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  throw new Error(`Paperclip service did not become healthy${expectedVersion ? ` at version ${expectedVersion}` : ""}: ${last.error ?? `reported ${last.serverVersion ?? "no version"}`}`);
+  throw new Error(tCli("Paperclip service did not become healthy{{value1}}: {{value2}}", { value1: String(expectedVersion ? tCli(" at version {{value1}}", { value1: String(expectedVersion) }) : ""), value2: String(last.error ?? tCli("reported {{value1}}", { value1: String(last.serverVersion ?? tCli("no version")) })) }));
 }
 
 export function resolveRestartExpectedVersion(expectedVersion: string | null | undefined): string | null {
@@ -95,8 +96,8 @@ export async function withHotRestartLock<T>(
       }
       if (Date.now() >= deadline) {
         throw new Error(
-          `Another restart for instance ${instanceId} is still running. ` +
-          `If no restart process is active, remove the stale lock at ${lockPath} and retry.`,
+          tCli("Another restart for instance {{value1}} is still running. ", { value1: String(instanceId) }) +
+          tCli("If no restart process is active, remove the stale lock at {{value1}} and retry.", { value1: String(lockPath) }),
         );
       }
       await new Promise((resolve) => setTimeout(resolve, pollMs));
@@ -117,7 +118,7 @@ export async function withHotRestartLock<T>(
 }
 
 async function writeHotRestartIntent(status: ServiceStatus, instanceId: string, drainRequired: boolean): Promise<{ requestedAt: string }> {
-  if (!status.pid) throw new Error(`Cannot restart ${status.serviceName}: supervisor did not report a server pid.`);
+  if (!status.pid) throw new Error(tCli("Cannot restart {{value1}}: supervisor did not report a server pid.", { value1: String(status.serviceName) }));
   const health = await probeHealth(instanceId);
   const instanceRoot = resolvePaperclipInstanceRoot(instanceId);
   const requestedAt = new Date().toISOString();
@@ -163,13 +164,13 @@ export async function restartManagedService(input: { instanceId?: string; expect
 }
 
 export function registerServiceCommands(program: Command): void {
-  const service = program.command("service").description("Manage Paperclip as a background service");
-  const common = (command: Command) => command.option("-i, --instance <id>", "Local instance id (default: default)").option("--json", "Print machine-readable JSON", false);
+  const service = program.command("service").description(tCli("Manage Paperclip as a background service"));
+  const common = (command: Command) => command.option("-i, --instance <id>", tCli("Local instance id (default: default)")).option("--json", tCli("Print machine-readable JSON"), false);
 
-  common(service.command("install").description("Install and register the background service"))
-    .option("--no-start-now", "Install without starting now")
-    .option("--no-start-on-login", "Install without enabling start on login")
-    .option("--enable-linger", "Allow systemd startup without an active login session", false)
+  common(service.command("install").description(tCli("Install and register the background service")))
+    .option("--no-start-now", tCli("Install without starting now"))
+    .option("--no-start-on-login", tCli("Install without enabling start on login"))
+    .option("--enable-linger", tCli("Allow systemd startup without an active login session"), false)
     .action(async (opts) => {
       const manager = await resolveManager(opts); if (!manager) return;
       const result = await manager.install({ startNow: opts.startNow, startOnLogin: opts.startOnLogin });
@@ -177,47 +178,47 @@ export function registerServiceCommands(program: Command): void {
       if (manager.enableLinger) {
         let consent = opts.enableLinger === true;
         if (!consent && process.stdin.isTTY && process.stdout.isTTY) {
-          consent = await p.confirm({ message: "Allow Paperclip to run without an active login session? This runs 'loginctl enable-linger' for your user and may request system authorization.", initialValue: false }) === true;
+          consent = await p.confirm({ message: tCli("Allow Paperclip to run without an active login session? This runs 'loginctl enable-linger' for your user and may request system authorization."), initialValue: false }) === true;
         }
         if (consent) { await manager.enableLinger(); lingerEnabled = true; }
       }
       output({ installed: true, changed: result.changed, platform: manager.platform, serviceName: manager.serviceName, definitionPath: manager.definitionPath, lingerEnabled }, opts.json);
     });
 
-  common(service.command("uninstall").description("Stop, disable, and remove the background service")).action(async (opts) => {
+  common(service.command("uninstall").description(tCli("Stop, disable, and remove the background service"))).action(async (opts) => {
     const manager = await resolveManager(opts); if (!manager) return;
     await manager.uninstall();
     const status = await manager.status();
-    if (status.installed || status.active) throw new Error(`${manager.serviceName} is still loaded after uninstall.`);
+    if (status.installed || status.active) throw new Error(tCli("{{value1}} is still loaded after uninstall.", { value1: String(manager.serviceName) }));
     output({ uninstalled: true, serviceName: manager.serviceName }, opts.json);
   });
 
   for (const verb of ["start", "stop"] as const) {
-    common(service.command(verb).description(`${verb === "start" ? "Start" : "Stop"} the background service`)).action(async (opts) => {
+    common(service.command(verb).description(tCli("{{value1}} the background service", { value1: String(verb === "start" ? tCli("Start") : tCli("Stop")) }))).action(async (opts) => {
       const manager = await resolveManager(opts); if (!manager) return;
       await manager[verb]();
       output(await manager.status(), opts.json);
     });
   }
 
-  common(service.command("restart").description("Hot-restart the service while preserving active agent runs"))
-    .option("--wait", "Wait for active runs to drain instead of adopting them", false)
-    .option("--expected-version <version>", "Require the restarted server to report this version")
+  common(service.command("restart").description(tCli("Hot-restart the service while preserving active agent runs")))
+    .option("--wait", tCli("Wait for active runs to drain instead of adopting them"), false)
+    .option("--expected-version <version>", tCli("Require the restarted server to report this version"))
     .action(async (opts) => output(await restartManagedService({ instanceId: opts.instance, expectedVersion: opts.expectedVersion, waitForDrain: opts.wait }), opts.json));
 
-  common(service.command("status").description("Show supervisor and health status")).action(async (opts) => {
+  common(service.command("status").description(tCli("Show supervisor and health status"))).action(async (opts) => {
     const manager = await resolveManager(opts); if (!manager) return;
     const instanceId = resolvePaperclipInstanceId(opts.instance);
     output({ ...await manager.status(), health: await probeHealth(instanceId) }, opts.json);
   });
 
-  common(service.command("logs").description("Show service logs"))
-    .option("-f, --follow", "Follow new log output", false)
-    .option("-n, --lines <count>", "Number of recent lines", "100")
+  common(service.command("logs").description(tCli("Show service logs")))
+    .option("-f, --follow", tCli("Follow new log output"), false)
+    .option("-n, --lines <count>", tCli("Number of recent lines"), "100")
     .action(async (opts) => {
       const manager = await resolveManager(opts); if (!manager) return;
       const lines = Number.parseInt(opts.lines, 10);
-      if (!Number.isInteger(lines) || lines < 1) throw new Error("--lines must be a positive integer.");
+      if (!Number.isInteger(lines) || lines < 1) throw new Error(tCli("--lines must be a positive integer."));
       await manager.logs(opts.follow, lines);
     });
 }

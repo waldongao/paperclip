@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Archive } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useTranslation } from "@/i18n";
 
 interface SwipeToArchiveProps {
   children: ReactNode;
@@ -21,6 +22,7 @@ export function SwipeToArchive({
   selected = false,
   className,
 }: SwipeToArchiveProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
   const widthRef = useRef(0);
@@ -177,7 +179,7 @@ export function SwipeToArchive({
       style={{
         height: lockedHeight === null ? undefined : isCollapsing ? 0 : lockedHeight,
         opacity: isCollapsing ? 0 : 1,
-        transition: isCollapsing ? "height 200ms ease, opacity 200ms ease" : undefined,
+        transition: isCollapsing ? t("height_200ms_ease_opacity_200ms_ease") : undefined,
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -200,7 +202,7 @@ export function SwipeToArchive({
       >
         <span className="inline-flex items-center gap-2 text-sm font-medium">
           <Archive className="h-4 w-4" />
-          Archive
+          {t("archive")}
         </span>
       </div>
       <div

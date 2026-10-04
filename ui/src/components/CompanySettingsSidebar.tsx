@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n";
 import {
   Cpu,
   Download,
@@ -40,6 +41,7 @@ function isSandboxProviderOnly(plugin: PluginRecord): boolean {
 }
 
 export function CompanySettingsSidebar() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { hidden: hiddenSettings } = useHiddenSettings();
   const showPage = (pageKey: string) => !hiddenSettings.has(pageKey);
@@ -80,14 +82,14 @@ export function CompanySettingsSidebar() {
   const sidebarPlugins = (plugins ?? []).filter((plugin) => !isSandboxProviderOnly(plugin));
 
   return (
-    <ContextualSidebarFrame surface="settings" title="Settings" icon={SlidersHorizontal}>
+    <ContextualSidebarFrame surface="settings" title={t("settings.title")} icon={SlidersHorizontal}>
       <nav className="flex-1 min-h-0 overflow-y-auto scrollbar-auto-hide px-3 py-2">
         <div className="flex flex-col gap-0.5">
-          <SidebarNavItem to="/company/settings" label="General" icon={SlidersHorizontal} end />
+          <SidebarNavItem to="/company/settings" label={t("settings.nav.general")} icon={SlidersHorizontal} end />
           {showPage("instance.profile") && (
             <SidebarNavItem
               to={`${INSTANCE_SETTINGS_PATH_PREFIX}/profile`}
-              label="Profile"
+              label={t("settings.nav.profile")}
               icon={UserRoundPen}
               end
             />
@@ -95,7 +97,7 @@ export function CompanySettingsSidebar() {
           {showPage("company.members") && (
             <SidebarNavItem
               to="/company/settings/members"
-              label="Members"
+              label={t("settings.nav.members")}
               icon={Users}
               badge={badges?.joinRequests ?? 0}
               end
@@ -113,12 +115,12 @@ export function CompanySettingsSidebar() {
               />
             ))}
           {showPage("company.secrets") && (
-            <SidebarNavItem to="/company/settings/secrets" label="Secrets" icon={KeyRound} end />
+            <SidebarNavItem to="/company/settings/secrets" label={t("settings.nav.secrets")} icon={KeyRound} end />
           )}
           {showPage("instance.environments") && (
             <SidebarNavItem
               to={`${INSTANCE_SETTINGS_PATH_PREFIX}/environments`}
-              label="Environments"
+              label={t("settings.nav.environments")}
               icon={MonitorCog}
               end
             />
@@ -126,28 +128,28 @@ export function CompanySettingsSidebar() {
           {showPage("instance.access") && (
             <SidebarNavItem
               to={`${INSTANCE_SETTINGS_PATH_PREFIX}/access`}
-              label="Access"
+              label={t("settings.nav.access")}
               icon={Shield}
               end
             />
           )}
           {showPage("company.export") && (
-            <SidebarNavItem to="/company/export" label="Export" icon={Download} />
+            <SidebarNavItem to="/company/export" label={t("settings.nav.export")} icon={Download} />
           )}
           {!isCloud && showPage("company.import") && (
-            <SidebarNavItem to="/company/import" label="Import" icon={Upload} end />
+            <SidebarNavItem to="/company/import" label={t("settings.nav.import")} icon={Upload} end />
           )}
           {showPage("instance.experimental") && (
             <SidebarNavItem
               to={`${INSTANCE_SETTINGS_PATH_PREFIX}/experimental`}
-              label="Experimental"
+              label={t("settings.nav.experimental")}
               icon={FlaskConical}
             />
           )}
           {showPlugins && (
             <SidebarNavItem
               to={`${INSTANCE_SETTINGS_PATH_PREFIX}/plugins`}
-              label="Plugins"
+              label={t("settings.nav.plugins")}
               icon={Puzzle}
             />
           )}
@@ -175,7 +177,7 @@ export function CompanySettingsSidebar() {
           {showPage("instance.adapters") && (
             <SidebarNavItem
               to={`${INSTANCE_SETTINGS_PATH_PREFIX}/adapters`}
-              label="Adapters"
+              label={t("settings.nav.adapters")}
               icon={Cpu}
             />
           )}

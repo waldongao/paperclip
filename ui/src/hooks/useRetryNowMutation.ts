@@ -5,6 +5,8 @@ import { ApiError } from "../api/client";
 import { issuesApi } from "../api/issues";
 import { useToastActions } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
+import { t, useTranslation } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 export type RetryNowError = {
   message: string;
@@ -15,17 +17,17 @@ export type RetryNowError = {
 function readErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (typeof error.message === "string" && error.message.trim().length > 0) return error.message;
-    return `Request failed (${error.status})`;
+    return t("zhSupport.requestStatus", { status: error.status });
   }
   if (error instanceof Error && error.message) return error.message;
-  return "The request failed. Try again in a moment.";
+  return t("the_request_failed_try_again_in_a_moment");
 }
 
 export const RETRY_NOW_OUTCOME_HEADLINE: Record<IssueRetryNowOutcome, string> = {
-  promoted: "Retry promoted",
-  already_promoted: "Retry already running",
-  no_scheduled_retry: "No scheduled retry",
-  gate_suppressed: "Couldn't retry now",
+  promoted: t("retry_promoted"),
+  already_promoted: t("retry_already_running"),
+  no_scheduled_retry: t("no_scheduled_retry"),
+  gate_suppressed: t("couldnt_retry_now"),
 };
 
 export function useRetryNowMutation(
@@ -33,12 +35,13 @@ export function useRetryNowMutation(
 ): UseMutationResult<IssueRetryNowResponse, unknown, void, unknown> & {
   lastError: RetryNowError | null;
 } {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
 
   const mutation = useMutation({
     mutationFn: () => {
-      if (!issueId) throw new Error("Missing issue id");
+      if (!issueId) throw new Error(t("missing_issue_id"));
       return issuesApi.retryScheduledRetryNow(issueId);
     },
     onSuccess: (response) => {
@@ -52,20 +55,20 @@ export function useRetryNowMutation(
       if (response.outcome === "promoted") {
         pushToast({
           title: RETRY_NOW_OUTCOME_HEADLINE.promoted,
-          body: response.message,
+          body: translateDisplayMessage(response.message),
           tone: "success",
         });
       } else if (response.outcome === "gate_suppressed") {
         pushToast({
           title: RETRY_NOW_OUTCOME_HEADLINE.gate_suppressed,
-          body: response.message,
+          body: translateDisplayMessage(response.message),
           tone: "error",
         });
       }
     },
     onError: (error) => {
       pushToast({
-        title: "Couldn't retry now",
+        title: t("couldnt_retry_now"),
         body: readErrorMessage(error),
         tone: "error",
       });
@@ -86,8 +89,8 @@ export function useRetryNowMutation(
     }
     if (mutation.data && mutation.data.outcome === "gate_suppressed") {
       return {
-        message: mutation.data.message,
-        outcomeMessage: mutation.data.message,
+        message: translateDisplayMessage(mutation.data.message),
+        outcomeMessage: translateDisplayMessage(mutation.data.message),
         status: null,
       };
     }

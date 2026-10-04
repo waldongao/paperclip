@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import {
   addCommonClientOptions,
@@ -15,16 +16,16 @@ interface SkillOptions extends BaseClientOptions {
 }
 
 export function registerSkillCommands(program: Command): void {
-  const skill = program.command("skill").description("Company skill operations");
+  const skill = program.command("skill").description(tCli("Company skill operations"));
 
-  addCompanyGet(skill, "list", "List company skills", "skills");
+  addCompanyGet(skill, "list", tCli("List company skills"), "skills");
 
   addCommonClientOptions(
     skill
       .command("get")
-      .description("Get company skill details")
-      .argument("<skillId>", "Skill ID")
-      .option("-C, --company-id <id>", "Company ID")
+      .description(tCli("Get company skill details"))
+      .argument("<skillId>", tCli("Skill ID"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (skillId: string, opts: SkillOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -39,10 +40,10 @@ export function registerSkillCommands(program: Command): void {
   addCommonClientOptions(
     skill
       .command("file")
-      .description("Read a company skill file")
-      .argument("<skillId>", "Skill ID")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--path <path>", "Skill-relative file path", "SKILL.md")
+      .description(tCli("Read a company skill file"))
+      .argument("<skillId>", tCli("Skill ID"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--path <path>", tCli("Skill-relative file path"), "SKILL.md")
       .action(async (skillId: string, opts: SkillOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -55,17 +56,17 @@ export function registerSkillCommands(program: Command): void {
     { includeCompany: false },
   );
 
-  addCompanyPost(skill, "create", "Create a local company skill", "skills", true);
-  addCompanyPost(skill, "import", "Import company skills from a source", "skills/import", true);
-  addCompanyPost(skill, "scan-projects", "Scan project workspaces for company skills", "skills/scan-projects", true);
+  addCompanyPost(skill, "create", tCli("Create a local company skill"), "skills", true);
+  addCompanyPost(skill, "import", tCli("Import company skills from a source"), "skills/import", true);
+  addCompanyPost(skill, "scan-projects", tCli("Scan project workspaces for company skills"), "skills/scan-projects", true);
 
   addCommonClientOptions(
     skill
       .command("file:update")
-      .description("Update a company skill file")
-      .argument("<skillId>", "Skill ID")
-      .option("-C, --company-id <id>", "Company ID")
-      .requiredOption("--payload-json <json>", "CompanySkillFileUpdate JSON payload")
+      .description(tCli("Update a company skill file"))
+      .argument("<skillId>", tCli("Skill ID"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("CompanySkillFileUpdate JSON payload"))
       .action(async (skillId: string, opts: SkillOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -80,14 +81,14 @@ export function registerSkillCommands(program: Command): void {
     { includeCompany: false },
   );
 
-  addSkillAction(skill, "update-status", "Get company skill update status", "update-status", "GET");
-  addSkillAction(skill, "install-update", "Install available company skill update", "install-update", "POST");
-  addSkillAction(skill, "delete", "Delete a company skill", "", "DELETE");
+  addSkillAction(skill, "update-status", tCli("Get company skill update status"), "update-status", "GET");
+  addSkillAction(skill, "install-update", tCli("Install available company skill update"), "install-update", "POST");
+  addSkillAction(skill, "delete", tCli("Delete a company skill"), "", "DELETE");
 }
 
 function addCompanyGet(parent: Command, name: string, description: string, path: string): void {
   addCommonClientOptions(
-    parent.command(name).description(description).option("-C, --company-id <id>", "Company ID").action(async (opts: SkillOptions) => {
+    parent.command(name).description(description).option("-C, --company-id <id>", tCli("Company ID")).action(async (opts: SkillOptions) => {
       try {
         const ctx = resolveCommandContext(opts, { requireCompany: true });
         printOutput(await ctx.api.get(`${apiPath`/api/companies/${ctx.companyId}`}/${path}`), { json: ctx.json });
@@ -100,11 +101,11 @@ function addCompanyGet(parent: Command, name: string, description: string, path:
 }
 
 function addCompanyPost(parent: Command, name: string, description: string, path: string, requirePayload = false): void {
-  const command = parent.command(name).description(description).option("-C, --company-id <id>", "Company ID");
+  const command = parent.command(name).description(description).option("-C, --company-id <id>", tCli("Company ID"));
   if (requirePayload) {
-    command.requiredOption("--payload-json <json>", "JSON payload");
+    command.requiredOption("--payload-json <json>", tCli("JSON payload"));
   } else {
-    command.option("--payload-json <json>", "JSON payload", "{}");
+    command.option("--payload-json <json>", tCli("JSON payload"), "{}");
   }
   addCommonClientOptions(
     command.action(async (opts: SkillOptions) => {
@@ -124,8 +125,8 @@ function addSkillAction(parent: Command, name: string, description: string, suff
     parent
       .command(name)
       .description(description)
-      .argument("<skillId>", "Skill ID")
-      .option("-C, --company-id <id>", "Company ID")
+      .argument("<skillId>", tCli("Skill ID"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (skillId: string, opts: SkillOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });

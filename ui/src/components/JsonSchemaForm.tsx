@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SecretBindingPicker, type SecretBindingValue } from "./SecretBindingPicker";
+import { t, useTranslation } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -185,7 +186,7 @@ export function validateField(
 
   // Required check
   if (isRequired && (value === undefined || value === null || value === "")) {
-    return "This field is required";
+    return t("this_field_is_required");
   }
 
   // Skip further validation if empty and not required
@@ -195,16 +196,16 @@ export function validateField(
     return null;
   }
   if (type === "secret-ref" && typeof value === "object") {
-    return "Invalid secret reference";
+    return t("invalid_secret_reference");
   }
 
   if (type === "string" || type === "secret-ref") {
     const str = String(value);
     if (schema.minLength != null && str.length < schema.minLength) {
-      return `Must be at least ${schema.minLength} characters`;
+      return t("zhComponents.message_f18acc6996", { value1: schema.minLength });
     }
     if (schema.maxLength != null && str.length > schema.maxLength) {
-      return `Must be at most ${schema.maxLength} characters`;
+      return t("zhComponents.message_3735449dc6", { value1: schema.maxLength });
     }
     if (schema.pattern) {
       // Guard against ReDoS: reject overly complex patterns from plugin JSON Schemas.
@@ -214,7 +215,7 @@ export function validateField(
         try {
           const re = new RegExp(schema.pattern);
           if (!re.test(str)) {
-            return `Must match pattern: ${schema.pattern}`;
+            return t("zhComponents.message_6fb4911a00", { value1: schema.pattern });
           }
         } catch {
           // Invalid regex in schema — skip
@@ -225,34 +226,34 @@ export function validateField(
 
   if (type === "number" || type === "integer") {
     const num = Number(value);
-    if (isNaN(num)) return "Must be a valid number";
+    if (isNaN(num)) return t("must_be_a_valid_number");
     if (schema.minimum != null && num < schema.minimum) {
-      return `Must be at least ${schema.minimum}`;
+      return t("zhComponents.message_1c5d7f7e20", { value1: schema.minimum });
     }
     if (schema.maximum != null && num > schema.maximum) {
-      return `Must be at most ${schema.maximum}`;
+      return t("zhComponents.message_948cdfe2b0", { value1: schema.maximum });
     }
     if (schema.exclusiveMinimum != null && num <= schema.exclusiveMinimum) {
-      return `Must be greater than ${schema.exclusiveMinimum}`;
+      return t("zhComponents.message_2abd151199", { value1: schema.exclusiveMinimum });
     }
     if (schema.exclusiveMaximum != null && num >= schema.exclusiveMaximum) {
-      return `Must be less than ${schema.exclusiveMaximum}`;
+      return t("zhComponents.message_09aa586995", { value1: schema.exclusiveMaximum });
     }
     if (type === "integer" && !Number.isInteger(num)) {
-      return "Must be a whole number";
+      return t("must_be_a_whole_number");
     }
     if (schema.multipleOf != null && num % schema.multipleOf !== 0) {
-      return `Must be a multiple of ${schema.multipleOf}`;
+      return t("zhComponents.message_6d628ef58b", { value1: schema.multipleOf });
     }
   }
 
   if (type === "array") {
     const arr = value as unknown[];
     if (schema.minItems != null && arr.length < schema.minItems) {
-      return `Must have at least ${schema.minItems} items`;
+      return t("zhComponents.message_9868823621", { value1: schema.minItems });
     }
     if (schema.maxItems != null && arr.length > schema.maxItems) {
-      return `Must have at most ${schema.maxItems} items`;
+      return t("zhComponents.message_d14a5caf08", { value1: schema.maxItems });
     }
   }
 
@@ -383,7 +384,7 @@ const FieldWrapper = React.memo(({
   );
 });
 
-FieldWrapper.displayName = "FieldWrapper";
+FieldWrapper.displayName = t("fieldwrapper");
 
 interface FormFieldProps {
   propSchema: JsonSchemaNode;
@@ -446,7 +447,7 @@ const BooleanField = React.memo(({
   </div>
 ));
 
-BooleanField.displayName = "BooleanField";
+BooleanField.displayName = t("booleanfield");
 
 /**
  * Sentinel value for the "not configured" row of an optional enum select.
@@ -525,12 +526,12 @@ const EnumField = React.memo(({
         disabled={disabled}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select an option" />
+          <SelectValue placeholder={t("select_an_option")} />
         </SelectTrigger>
         <SelectContent>
           {showUnsetOption && (
             <SelectItem value={ENUM_UNSET_VALUE} textValue="None">
-              <span className="text-muted-foreground">None</span>
+              <span className="text-muted-foreground">{t("none")}</span>
             </SelectItem>
           )}
           {options.map((option) => (
@@ -544,7 +545,7 @@ const EnumField = React.memo(({
   );
 });
 
-EnumField.displayName = "EnumField";
+EnumField.displayName = t("enumfield");
 
 /**
  * Specialized field for secret-ref values. Renders a picker for existing
@@ -636,7 +637,7 @@ const SecretField = React.memo(({
           value={
             stringValue.length === 0
               ? ""
-              : `Sensitive — ${stringValue.length} characters hidden. Click the eye to reveal.`
+              : t("zhComponents.message_5b71d0823f", { value1: stringValue.length })
           }
           readOnly
           placeholder={String(defaultValue ?? "")}
@@ -659,7 +660,7 @@ const SecretField = React.memo(({
           <Eye className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="sr-only">
-          {isVisible ? "Hide secret" : "Show secret"}
+          {isVisible ? t("hide_secret") : t("show_secret")}
         </span>
       </Button>
     </div>
@@ -688,7 +689,7 @@ const SecretField = React.memo(({
           <Eye className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="sr-only">
-          {isVisible ? "Hide secret" : "Show secret"}
+          {isVisible ? t("hide_secret") : t("show_secret")}
         </span>
       </Button>
     </div>
@@ -699,7 +700,7 @@ const SecretField = React.memo(({
       label={label}
       description={
         description ||
-        "Pick an existing organization secret, or paste a raw value (Paperclip will store it as a secret on save)."
+        t("pick_an_existing_organization_secret_or_paste_a")
       }
       required={isRequired}
       error={error}
@@ -710,9 +711,9 @@ const SecretField = React.memo(({
           value={bindingValue}
           onChange={handlePickerChange}
           label=""
-          placeholder="Select an existing secret"
+          placeholder={t("select_an_existing_secret")}
           allowVersionSelector={false}
-          emptyHint="No active secrets yet. Create one or paste a raw value below."
+          emptyHint={t("no_active_secrets_yet_create_one_or_paste_a_raw")}
           disabled={disabled}
         />
         {!isBoundToSecret ? (
@@ -729,7 +730,7 @@ const SecretField = React.memo(({
                   }}
                   disabled={disabled}
                 >
-                  Hide raw value input
+                  {t("hide_raw_value_input")}
                 </button>
               ) : null}
             </div>
@@ -740,7 +741,7 @@ const SecretField = React.memo(({
               onClick={() => setShowRawInput(true)}
               disabled={disabled}
             >
-              Or paste a raw value
+              {t("or_paste_a_raw_value")}
             </button>
           )
         ) : null}
@@ -749,7 +750,7 @@ const SecretField = React.memo(({
   );
 });
 
-SecretField.displayName = "SecretField";
+SecretField.displayName = t("secretfield");
 
 /**
  * Specialized field for numeric (number/integer) values.
@@ -821,7 +822,7 @@ const NumberField = React.memo(({
   );
 });
 
-NumberField.displayName = "NumberField";
+NumberField.displayName = t("numberfield");
 
 /**
  * Specialized field for string values, rendering either an Input or Textarea based on length or format.
@@ -881,7 +882,7 @@ const StringField = React.memo(({
   );
 });
 
-StringField.displayName = "StringField";
+StringField.displayName = t("stringfield");
 
 /**
  * Specialized field for array values, handling dynamic addition and removal of items.
@@ -935,7 +936,7 @@ const ArrayField = React.memo(({
           }}
         >
           <Plus className="mr-2 h-4 w-4" />
-          {isComplex ? "Add item" : "Add"}
+          {isComplex ? t("add_item") : t("add")}
         </Button>
       </div>
 
@@ -947,7 +948,7 @@ const ArrayField = React.memo(({
           >
             <div className="flex-1">
               <div className="mb-2 text-xs font-medium text-muted-foreground">
-                Item {index + 1}
+                {t("item")} {index + 1}
               </div>
               <FormField
                 propSchema={itemSchema}
@@ -980,13 +981,13 @@ const ArrayField = React.memo(({
               }}
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Remove item</span>
+              <span className="sr-only">{t("remove_item")}</span>
             </Button>
           </div>
         ))}
         {items.length === 0 && (
           <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-            No items added yet.
+            {t("no_items_added_yet")}
           </div>
         )}
       </div>
@@ -997,7 +998,7 @@ const ArrayField = React.memo(({
   );
 });
 
-ArrayField.displayName = "ArrayField";
+ArrayField.displayName = t("arrayfield");
 
 /**
  * Specialized field for object values, handling recursive rendering of nested properties.
@@ -1067,7 +1068,7 @@ const ObjectField = React.memo(({
   );
 });
 
-ObjectField.displayName = "ObjectField";
+ObjectField.displayName = t("objectfield");
 
 /**
  * Orchestrator component that selects and renders the appropriate field type based on the schema node.
@@ -1195,7 +1196,7 @@ const FormField = React.memo(({
   }
 });
 
-FormField.displayName = "FormField";
+FormField.displayName = t("formfield");
 
 // ---------------------------------------------------------------------------
 // Main Component
@@ -1213,8 +1214,9 @@ export function JsonSchemaForm({
   errors = {},
   disabled,
   className,
-  advancedLabel = "Advanced options",
+  advancedLabel = t("advanced_options"),
 }: JsonSchemaFormProps) {
+  const { t } = useTranslation();
   const type = resolveType(schema);
 
   const handleRootScalarChange = useCallback((newVal: unknown) => {
@@ -1259,7 +1261,7 @@ export function JsonSchemaForm({
     const groupOrder: string[] = [];
     const groups = new Map<string, Array<[string, JsonSchemaNode]>>();
     const advancedKeys = new Set<string>();
-    const DEFAULT_GROUP = "More options";
+    const DEFAULT_GROUP = t("more_options");
 
     for (const entry of Object.entries(properties)) {
       const [key, propSchema] = entry;
@@ -1319,7 +1321,7 @@ export function JsonSchemaForm({
           className,
         )}
       >
-        No configuration options available.
+        {t("no_configuration_options_available")}
       </div>
     );
   }

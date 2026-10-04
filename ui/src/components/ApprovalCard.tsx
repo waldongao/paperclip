@@ -1,3 +1,4 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Link } from "@/lib/router";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { timeAgo } from "../lib/timeAgo";
 import type { Approval, Agent } from "@paperclipai/shared";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "@/i18n";
 
 function statusIcon(status: string) {
   if (status === "approved") return <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />;
@@ -42,6 +44,7 @@ export function ApprovalCard({
   isPending?: boolean;
   pendingAction?: "approve" | "reject" | null;
 }) {
+  const { t } = useTranslation();
   const payload = approval.payload as Record<string, unknown> | null;
   const Icon = typeIcon[approval.type] ?? defaultTypeIcon;
   const kindLabel = typeLabel[approval.type] ?? approval.type;
@@ -70,7 +73,7 @@ export function ApprovalCard({
                 </Badge>
                 {requesterAgent && (
                   <div className="inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-                    <span>Requested by</span>
+                    <span>{t("requested_by")}</span>
                     <Identity name={requesterAgent.name} size="sm" className="inline-flex" />
                   </div>
                 )}
@@ -80,7 +83,7 @@ export function ApprovalCard({
                   {subject ?? kindLabel}
                 </h3>
                 <p className="text-xs leading-5 text-muted-foreground">
-                  Approval request created {timeAgo(approval.createdAt)}
+                  {t("approval_request_created")} {timeAgo(approval.createdAt)}
                 </p>
               </div>
             </div>
@@ -89,7 +92,7 @@ export function ApprovalCard({
         <div className="shrink-0">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/80 px-2.5 py-1 text-xs text-muted-foreground">
             {statusIcon(approval.status)}
-            <span className="capitalize">{approval.status.replace(/_/g, " ")}</span>
+            <span className="capitalize">{getDisplayLabel(approval.status.replace(/_/g, " "), "raw")}</span>
           </div>
         </div>
       </div>
@@ -104,7 +107,7 @@ export function ApprovalCard({
 
       {approval.decisionNote && (
         <div className="mt-4 rounded-lg border border-border/60 bg-muted/30 px-3.5 py-3 text-xs leading-5 text-muted-foreground">
-          <span className="font-medium text-foreground">Decision note.</span> {approval.decisionNote}
+          <span className="font-medium text-foreground">{t("decision_note")}</span> {approval.decisionNote}
         </div>
       )}
 
@@ -119,7 +122,7 @@ export function ApprovalCard({
                   onClick={onApprove}
                   disabled={isPending}
                 >
-                  {pendingAction === "approve" ? "Approving..." : "Approve"}
+                  {pendingAction === "approve" ? t("approving") : t("approve")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -127,7 +130,7 @@ export function ApprovalCard({
                   onClick={onReject}
                   disabled={isPending}
                 >
-                  {pendingAction === "reject" ? "Rejecting..." : "Reject"}
+                  {pendingAction === "reject" ? t("rejecting") : t("reject")}
                 </Button>
               </>
             )}
@@ -138,11 +141,11 @@ export function ApprovalCard({
                 to={detailLink}
                 className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-auto px-2 text-xs text-muted-foreground")}
               >
-                View details
+                {t("view_details")}
               </Link>
             ) : (
               <Button variant="ghost" size="sm" className="h-auto px-2 text-xs text-muted-foreground" onClick={onOpen}>
-                View details
+                {t("view_details")}
               </Button>
             )
           ) : null}

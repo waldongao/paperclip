@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState, type ReactNode } from "react";
 import type { IssueAttachment } from "@paperclipai/shared";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ import {
 } from "./task-chat-attachments";
 import { TaskChatSystemNotice } from "./TaskChatSystemNotice";
 import type { TaskChatMessageItem } from "./task-chat-model";
+import { useTranslation } from "@/i18n";
 
 interface TaskChatBubbleProps {
   item: TaskChatMessageItem;
@@ -140,6 +142,7 @@ export function TaskChatBubble({
   onTryAgainNoLiveExecutionPath,
   tryAgainNoLiveExecutionPathPending,
 }: TaskChatBubbleProps) {
+  const { t } = useTranslation();
   const streamlined = useStreamlinedTaskChatPresentation();
   // Clicking an embedded image opens the full-screen lightbox (with download);
   // arrow keys walk across the other images in the same bubble.
@@ -247,7 +250,7 @@ export function TaskChatBubble({
           data-testid="task-chat-bubble-media"
         >
           <span className="text-xs text-muted-foreground">
-            Screenshots · {imageRefs.length}
+            {t("screenshots")} {imageRefs.length}
           </span>
           <div className="grid grid-cols-4 gap-2">
             {imageRefs
@@ -257,7 +260,7 @@ export function TaskChatBubble({
                   key={ref.url}
                   type="button"
                   className="group aspect-video min-w-0 overflow-hidden rounded-md bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label={`Open ${ref.name || `image ${index + 1}`}`}
+                  aria-label={t("zhComponents.message_440da5a837", { value1: ref.name || t("zhComponents.message_6cf6242042", { value1: index + 1 }) })}
                   onClick={() => setLightboxSrc(ref.url)}
                 >
                   <img
@@ -272,7 +275,7 @@ export function TaskChatBubble({
               <button
                 type="button"
                 className="aspect-video min-w-0 rounded-md bg-muted text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label={`Open ${imageRefs.length - 3} more screenshots`}
+                aria-label={t("zhComponents.message_a0f642d888", { value1: imageRefs.length - 3 })}
                 onClick={() => setLightboxSrc(imageRefs[3].url)}
               >
                 +{imageRefs.length - 3}
@@ -287,7 +290,7 @@ export function TaskChatBubble({
       {attachmentRefs.length > 0 ? (
         <div className="flex max-w-(--pct-85) flex-col gap-2">
           <span className="text-xs text-muted-foreground">
-            Files · {attachmentRefs.length}
+            {t("files_27c071")} {attachmentRefs.length}
           </span>
           <AttachmentGroup data-testid="task-chat-bubble-attachments">
             {attachmentRefs.map((ref) => {
@@ -308,7 +311,7 @@ export function TaskChatBubble({
                     </AttachmentDescription>
                   </AttachmentContent>
                   <AttachmentTrigger
-                    aria-label={`Open ${ref.name}`}
+                    aria-label={t("zhComponents.message_c3236292e6", { value1: ref.name })}
                     render={
                       <a
                         href={ref.openPath ?? ref.url}
@@ -329,7 +332,7 @@ export function TaskChatBubble({
           data-testid="task-chat-verification-caveats"
         >
           <p className="font-medium text-amber-800 dark:text-amber-200">
-            Verification caveat
+            {t("verification_caveat")}
           </p>
           <ul className="mt-1 space-y-1 text-muted-foreground">
             {item.verificationCaveats.map((caveat, index) => (
@@ -350,7 +353,7 @@ export function TaskChatBubble({
       ) : null}
       {item.optimistic ? (
         <span className="flex items-center gap-1 px-1 text-(length:--text-micro) text-muted-foreground">
-          <span>{item.optimistic === "queued" ? "Queued" : "Sending…"}</span>
+          <span>{item.optimistic === "queued" ? t("queued") : t("sending_cf7655")}</span>
           {item.optimistic === "queued" ? queuedAction : null}
         </span>
       ) : attachedTurn ? (

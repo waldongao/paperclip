@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
+import { useTranslation } from "@/i18n";
 
 /**
  * Shared footer for the arc's step cards: a ghost pill "Back" and a primary
@@ -24,6 +25,7 @@ export function FooterNav({
   loadingLabel?: string;
   onPrimary: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-between pt-9">
       {onBack ? (
@@ -42,7 +44,7 @@ export function FooterNav({
           disabled={loading}
         >
           <ArrowLeft className="mr-1 size-3.5" />
-          Back
+          {t("back")}
         </Button>
       ) : (
         <span />

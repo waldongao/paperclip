@@ -24,6 +24,7 @@ import {
   ConnectionSetupFlow,
   type ConnectionSetupCompletion,
 } from "./ConnectionSetupFlow";
+import { useTranslation } from "@/i18n";
 
 export interface ConnectionIntentInteractionBodyProps {
   interaction: ConnectionIntentInteraction;
@@ -36,6 +37,7 @@ export function ConnectionIntentInteractionBody({
   currentUserId,
   addresseeLabel,
 }: ConnectionIntentInteractionBodyProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const focusTargetRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -136,26 +138,26 @@ export function ConnectionIntentInteractionBody({
     interaction.status === "accepted"
       ? {
           icon: CheckCircle2,
-          title: `${interaction.payload.serviceName} connected`,
-          body: `${interaction.payload.requestingAgentName} can use this connection on the continuation run.`,
+          title: t("zhCore.serviceConnected", { service: interaction.payload.serviceName }),
+          body: t("zhCore.agentCanContinue", { agent: interaction.payload.requestingAgentName }),
         }
       : interaction.status === "rejected"
         ? {
             icon: XCircle,
-            title: "Connection declined",
-            body: `${interaction.payload.requestingAgentName} was notified and can continue without it.`,
+            title: t("connection_declined"),
+            body: t("zhCore.agentNotified", { agent: interaction.payload.requestingAgentName }),
           }
         : interaction.status === "expired"
           ? {
               icon: Clock,
               title:
                 resultOutcome === "superseded"
-                  ? "Request superseded"
-                  : "Connection request expired",
+                  ? t("request_superseded")
+                  : t("connection_request_expired"),
               body:
                 resultOutcome === "superseded"
-                  ? "A newer run requested this connection. Use the latest card instead."
-                  : "This request is no longer active.",
+                  ? t("a_newer_run_requested_this_connection_use_the_la")
+                  : t("this_request_is_no_longer_active"),
             }
           : null;
   const StatusIcon = status?.icon;
@@ -197,11 +199,10 @@ export function ConnectionIntentInteractionBody({
           <Clock className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
           <div>
             <p className="font-medium text-foreground">
-              Waiting for {addresseeLabel}
+              {t("waiting_for")} {addresseeLabel}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Only the addressed person can choose an identity or authorize this
-              connection.
+              {t("only_the_addressed_person_can_choose_an_identity")}
             </p>
           </div>
         </div>
@@ -229,12 +230,10 @@ export function ConnectionIntentInteractionBody({
           />
           <div>
             <p className="font-medium text-foreground">
-              {interaction.payload.requestingAgentName} needs{" "}
-              {interaction.payload.serviceName}
+              {t("zhCore.agentNeedsService", { agent: interaction.payload.requestingAgentName, service: interaction.payload.serviceName })}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Connect your identity or reuse an eligible connection. Access is
-              added only for this agent.
+              {t("connect_your_identity_or_reuse_an_eligible_conne")}
             </p>
           </div>
         </div>
@@ -242,8 +241,7 @@ export function ConnectionIntentInteractionBody({
         {needsRetry ? (
           <p className="mt-4 flex items-center gap-2 text-sm text-destructive">
             <RotateCcw className="h-4 w-4" />
-            Authorization didn’t finish. Your previous choices are safe; try
-            again.
+            {t("authorization_didn_t_finish_your_previous_choice")}
           </p>
         ) : null}
 
@@ -257,10 +255,10 @@ export function ConnectionIntentInteractionBody({
                   <Plug className="h-4 w-4" />
                 )}
                 {authorizing
-                  ? "Authorizing…"
+                  ? t("authorizing")
                   : needsRetry
-                    ? "Try again"
-                    : "Connect / Use existing"}
+                    ? t("try_again")
+                    : t("connect_use_existing")}
               </Button>
             </DialogTrigger>
             <DialogContent
@@ -272,33 +270,32 @@ export function ConnectionIntentInteractionBody({
             >
               <DialogHeader className="sr-only">
                 <DialogTitle>
-                  Connect {interaction.payload.serviceName}
+                  {t("connect")} {interaction.payload.serviceName}
                 </DialogTitle>
                 <DialogDescription>
-                  Complete connection setup without leaving this task.
+                  {t("complete_connection_setup_without_leaving_this_t")}
                 </DialogDescription>
               </DialogHeader>
               {setupQuery.isLoading ? (
                 <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Loading
-                  connection options…
+                  <Loader2 className="h-4 w-4 animate-spin" /> {t("loading_connection_options")}
                 </div>
               ) : setupQuery.isError ? (
                 <div className="py-8 text-center">
                   <p className="font-medium text-foreground">
-                    Couldn’t load connection setup
+                    {t("couldn_t_load_connection_setup")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {setupQuery.error instanceof Error
                       ? setupQuery.error.message
-                      : "Try again."}
+                      : t("try_again_624fb2")}
                   </p>
                   <Button
                     className="mt-4"
                     variant="outline"
                     onClick={() => setupQuery.refetch()}
                   >
-                    Try again
+                    {t("try_again")}
                   </Button>
                 </div>
               ) : setupQuery.data ? (
@@ -327,7 +324,7 @@ export function ConnectionIntentInteractionBody({
             disabled={declineMutation.isPending || authorizing}
             onClick={() => declineMutation.mutate()}
           >
-            Not now
+            {t("not_now")}
           </Button>
         </div>
 
@@ -343,7 +340,7 @@ export function ConnectionIntentInteractionBody({
                   declineMutation.error ??
                   phaseMutation.error
                 )?.message
-              : "Couldn’t update this connection request."}
+              : t("couldn_t_update_this_connection_request")}
           </p>
         ) : null}
       </div>

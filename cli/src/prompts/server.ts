@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import * as p from "@clack/prompts";
 import { isLoopbackHost, type BindMode } from "@paperclipai/shared";
 import type { AuthConfig, ServerConfig } from "../config/schema.js";
@@ -5,10 +6,10 @@ import { parseHostnameCsv } from "../config/hostnames.js";
 import { buildCustomServerConfig, buildPresetServerConfig, inferConfiguredBind } from "../config/server-bind.js";
 
 const TAILNET_BIND_WARNING =
-  "No Tailscale address was detected during setup. The saved config will stay on loopback until Tailscale is available or PAPERCLIP_TAILNET_BIND_HOST is set.";
+  tCli("No Tailscale address was detected during setup. The saved config will stay on loopback until Tailscale is available or PAPERCLIP_TAILNET_BIND_HOST is set.");
 
 function cancelled(): never {
-  p.cancel("Setup cancelled.");
+  p.cancel(tCli("Setup cancelled."));
   process.exit(0);
 }
 
@@ -21,27 +22,27 @@ export async function promptServer(opts?: {
   const currentBind = inferConfiguredBind(currentServer);
 
   const bindSelection = await p.select({
-    message: "Reachability",
+    message: tCli("Reachability"),
     options: [
       {
         value: "loopback" as const,
-        label: "Trusted local",
-        hint: "Recommended for first run: localhost only, no login friction",
+        label: tCli("Trusted local"),
+        hint: tCli("Recommended for first run: localhost only, no login friction"),
       },
       {
         value: "lan" as const,
-        label: "Private network",
-        hint: "Broad private bind for LAN, VPN, or legacy --tailscale-auth style access",
+        label: tCli("Private network"),
+        hint: tCli("Broad private bind for LAN, VPN, or legacy --tailscale-auth style access"),
       },
       {
         value: "tailnet" as const,
-        label: "Tailnet",
-        hint: "Private authenticated access using the machine's detected Tailscale address",
+        label: tCli("Tailnet"),
+        hint: tCli("Private authenticated access using the machine's detected Tailscale address"),
       },
       {
         value: "custom" as const,
-        label: "Custom",
-        hint: "Choose exact auth mode, exposure, and host manually",
+        label: tCli("Custom"),
+        hint: tCli("Choose exact auth mode, exposure, and host manually"),
       },
     ],
     initialValue: currentBind,
@@ -51,13 +52,13 @@ export async function promptServer(opts?: {
   const bind = bindSelection as BindMode;
 
   const portStr = await p.text({
-    message: "Server port",
+    message: tCli("Server port"),
     defaultValue: String(currentServer?.port ?? 3100),
     placeholder: "3100",
     validate: (val) => {
       const n = Number(val);
       if (isNaN(n) || n < 1 || n > 65535 || !Number.isInteger(n)) {
-        return "Must be an integer between 1 and 65535";
+        return tCli("Must be an integer between 1 and 65535");
       }
     },
   });
@@ -76,7 +77,7 @@ export async function promptServer(opts?: {
 
   if (bind === "lan" || bind === "tailnet") {
     const allowedHostnamesInput = await p.text({
-      message: "Allowed private hostnames (comma-separated, optional)",
+      message: tCli("Allowed private hostnames (comma-separated, optional)"),
       defaultValue: (currentServer?.allowedHostnames ?? []).join(", "),
       placeholder:
         bind === "tailnet"
@@ -87,7 +88,7 @@ export async function promptServer(opts?: {
           parseHostnameCsv(val ?? "");
           return;
         } catch (err) {
-          return err instanceof Error ? err.message : "Invalid hostname list";
+          return err instanceof Error ? err.message : tCli("Invalid hostname list");
         }
       },
     });
@@ -106,17 +107,17 @@ export async function promptServer(opts?: {
   }
 
   const deploymentModeSelection = await p.select({
-    message: "Auth mode",
+    message: tCli("Auth mode"),
     options: [
       {
         value: "local_trusted",
-        label: "Local trusted",
-        hint: "No login required; only safe with loopback-only or similarly trusted access",
+        label: tCli("Local trusted"),
+        hint: tCli("No login required; only safe with loopback-only or similarly trusted access"),
       },
       {
         value: "authenticated",
-        label: "Authenticated",
-        hint: "Login required; supports both private-network and public deployments",
+        label: tCli("Authenticated"),
+        hint: tCli("Login required; supports both private-network and public deployments"),
       },
     ],
     initialValue: currentServer?.deploymentMode ?? "authenticated",
@@ -128,17 +129,17 @@ export async function promptServer(opts?: {
   let exposure: ServerConfig["exposure"] = "private";
   if (deploymentMode === "authenticated") {
     const exposureSelection = await p.select({
-      message: "Exposure profile",
+      message: tCli("Exposure profile"),
       options: [
         {
           value: "private",
-          label: "Private network",
-          hint: "Private access only, with automatic URL handling",
+          label: tCli("Private network"),
+          hint: tCli("Private access only, with automatic URL handling"),
         },
         {
           value: "public",
-          label: "Public internet",
-          hint: "Internet-facing deployment with explicit public URL requirements",
+          label: tCli("Public internet"),
+          hint: tCli("Internet-facing deployment with explicit public URL requirements"),
         },
       ],
       initialValue: currentServer?.exposure ?? "private",
@@ -152,13 +153,13 @@ export async function promptServer(opts?: {
     currentServer?.host ??
     (deploymentMode === "local_trusted" ? "127.0.0.1" : "0.0.0.0");
   const host = await p.text({
-    message: "Bind host",
+    message: tCli("Bind host"),
     defaultValue: defaultHost,
     placeholder: defaultHost,
     validate: (val) => {
-      if (!val || !val.trim()) return "Host is required";
+      if (!val || !val.trim()) return tCli("Host is required");
       if (deploymentMode === "local_trusted" && !isLoopbackHost(val.trim())) {
-        return "Local trusted mode requires a loopback host such as 127.0.0.1";
+        return tCli("Local trusted mode requires a loopback host such as 127.0.0.1");
       }
     },
   });
@@ -168,7 +169,7 @@ export async function promptServer(opts?: {
   let allowedHostnames: string[] = [];
   if (deploymentMode === "authenticated" && exposure === "private") {
     const allowedHostnamesInput = await p.text({
-      message: "Allowed private hostnames (comma-separated, optional)",
+      message: tCli("Allowed private hostnames (comma-separated, optional)"),
       defaultValue: (currentServer?.allowedHostnames ?? []).join(", "),
       placeholder: "dotta-macbook-pro, your-host.tailnet.ts.net",
       validate: (val) => {
@@ -176,7 +177,7 @@ export async function promptServer(opts?: {
           parseHostnameCsv(val ?? "");
           return;
         } catch (err) {
-          return err instanceof Error ? err.message : "Invalid hostname list";
+          return err instanceof Error ? err.message : tCli("Invalid hostname list");
         }
       },
     });
@@ -188,20 +189,20 @@ export async function promptServer(opts?: {
   let publicBaseUrl: string | undefined;
   if (deploymentMode === "authenticated" && exposure === "public") {
     const urlInput = await p.text({
-      message: "Public base URL",
+      message: tCli("Public base URL"),
       defaultValue: currentAuth?.publicBaseUrl ?? "",
       placeholder: "https://paperclip.example.com",
       validate: (val) => {
         const candidate = val?.trim() ?? "";
-        if (!candidate) return "Public base URL is required for public exposure";
+        if (!candidate) return tCli("Public base URL is required for public exposure");
         try {
           const url = new URL(candidate);
           if (url.protocol !== "http:" && url.protocol !== "https:") {
-            return "URL must start with http:// or https://";
+            return tCli("URL must start with http:// or https://");
           }
           return;
         } catch {
-          return "Enter a valid URL";
+          return tCli("Enter a valid URL");
         }
       },
     });

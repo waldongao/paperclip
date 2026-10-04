@@ -1,4 +1,5 @@
 import { auditSectionHref, type AuditSection } from "./audit/audit-navigation";
+import { t } from "@/i18n";
 
 export type AgentDetailView =
   | "overview"
@@ -19,27 +20,27 @@ export const AGENT_DETAIL_NAVIGATION: ReadonlyArray<{
   items: ReadonlyArray<{ value: AgentLocalDetailView; label: string }>;
 }> = [
   {
-    label: "Agent",
+    label: t("agent_5ce2e6"),
     items: [
-      { value: "overview", label: "Overview" },
-      { value: "instructions", label: "Instructions" },
-      { value: "skills", label: "Skills" },
+      { value: "overview", label: t("overview") },
+      { value: "instructions", label: t("instructions") },
+      { value: "skills", label: t("skills") },
     ],
   },
   {
-    label: "Runtime",
+    label: t("runtime"),
     items: [
-      { value: "runtime", label: "Harness / Runtime" },
-      { value: "secrets", label: "Secrets" },
-      { value: "tools", label: "Tools" },
+      { value: "runtime", label: t("harness_runtime") },
+      { value: "secrets", label: t("secrets") },
+      { value: "tools", label: t("tools") },
     ],
   },
   {
-    label: "Governance",
+    label: t("governance"),
     items: [
-      { value: "permissions", label: "Permissions / Trust" },
-      { value: "api-keys", label: "API Keys" },
-      { value: "revisions", label: "Revisions" },
+      { value: "permissions", label: t("permissions_trust") },
+      { value: "api-keys", label: t("api_keys") },
+      { value: "revisions", label: t("revisions") },
     ],
   },
 ] as const;

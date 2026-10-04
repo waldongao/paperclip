@@ -1,5 +1,6 @@
 import type { CompanyPortabilityFileEntry } from "@paperclipai/shared";
 
+
 const contentTypeByExtension: Record<string, string> = {
   ".gif": "image/gif",
   ".jpeg": "image/jpeg",

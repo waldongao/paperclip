@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 
 export interface ToggleSwitchProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
@@ -65,4 +66,4 @@ export const ToggleSwitch = React.forwardRef<
   },
 );
 
-ToggleSwitch.displayName = "ToggleSwitch";
+ToggleSwitch.displayName = t("toggleswitch");

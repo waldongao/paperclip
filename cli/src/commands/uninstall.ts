@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -46,7 +47,7 @@ export async function uninstallCommand(
   const detection = await detect({ instanceId, platform });
   const otherDefinitions = otherServiceDefinitions(platform, userHomeDir, instanceId);
   if (otherDefinitions.length > 0) {
-    throw new Error(`Cannot remove the shared managed CLI while other instance services are installed: ${otherDefinitions.join(", ")}. Uninstall those services first.`);
+    throw new Error(tCli("Cannot remove the shared managed CLI while other instance services are installed: {{value1}}. Uninstall those services first.", { value1: String(otherDefinitions.join(", ")) }));
   }
   if (!detection.supported && platform === "linux") {
     const definitionPath = path.join(
@@ -58,7 +59,7 @@ export async function uninstallCommand(
     );
     if (fs.existsSync(definitionPath)) {
       throw new Error(
-        `Cannot verify or remove the background service: ${detection.reason}. Retry when the service manager is available.`,
+        tCli("Cannot verify or remove the background service: {{value1}}. Retry when the service manager is available.", { value1: String(detection.reason) }),
       );
     }
   }
@@ -83,8 +84,8 @@ export async function uninstallCommand(
   }, paths, { initialize: !hadStore });
 
   if (!shimRemoved) {
-    console.log(pc.yellow(`Left ${paths.shimPath} unchanged because it is not a Paperclip-managed shim.`));
+    console.log(pc.yellow(tCli("Left {{value1}} unchanged because it is not a Paperclip-managed shim.", { value1: String(paths.shimPath) })));
   }
-  console.log(pc.green("Removed the managed Paperclip CLI install."));
-  console.log(pc.dim(`User data was left untouched under ${paths.paperclipHome}.`));
+  console.log(pc.green(tCli("Removed the managed Paperclip CLI install.")));
+  console.log(pc.dim(tCli("User data was left untouched under {{value1}}.", { value1: String(paths.paperclipHome) })));
 }

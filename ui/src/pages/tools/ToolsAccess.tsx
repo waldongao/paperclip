@@ -15,6 +15,7 @@ import {
   isAdvancedSetupTab,
   type ToolTabKey,
 } from "./tool-tabs";
+import { useTranslation } from "@/i18n";
 
 function renderTab(tab: ToolTabKey, companyId: string) {
   switch (tab) {
@@ -31,6 +32,7 @@ function renderTab(tab: ToolTabKey, companyId: string) {
 }
 
 export function ToolsAccess() {
+  const { t } = useTranslation();
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const params = useParams<{ tab?: string }>();
@@ -40,20 +42,20 @@ export function ToolsAccess() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
+      { label: selectedCompany?.name ?? t("company"), href: "/dashboard" },
+      { label: t("apps"), href: "/apps" },
       ...(advanced
-        ? [{ label: "Advanced setup" }]
+        ? [{ label: t("advanced_setup") }]
         : [
-            { label: "Advanced setup", href: advancedTabHref("paste-config") },
-            { label: tabLabel ?? "Developer tools" },
+            { label: t("advanced_setup"), href: advancedTabHref("paste-config") },
+            { label: tabLabel ?? t("developer_tools") },
           ]),
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name, advanced, tabLabel]);
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to open advanced setup.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("select_an_organization_to_open_advanced_setup")}</div>;
   }
 
   if (params.tab === "run-your-own") {
@@ -86,16 +88,15 @@ export function ToolsAccess() {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-4 sm:p-6">
         <header>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-foreground">Advanced setup</h1>
+            <h1 className="text-xl font-bold text-foreground">{t("advanced_setup")}</h1>
             <span className="inline-flex items-center rounded-full bg-foreground px-2.5 py-0.5 text-(length:--text-micro) font-bold text-background">
-              Advanced
+              {t("advanced")}
             </span>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            For tools that aren't in the gallery. You'll need details from the tool's documentation.
-            Most people never need this — if the app you want is in the gallery,{" "}
+            {t("for_tools_that_arent_in_the_gallery_youll_need_d")}{" "}
             <Link to="/apps" className="font-medium text-primary hover:underline">
-              connect it there instead
+              {t("connect_it_there_instead")}
             </Link>
             .
           </p>
@@ -122,9 +123,9 @@ export function ToolsAccess() {
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Wrench className="h-3.5 w-3.5" />
-          Looking for the developer surface?{" "}
+          {t("looking_for_the_developer_surface")}{" "}
           <Link to={advancedTabHref("profiles")} className="font-medium text-primary hover:underline">
-            Open developer tools
+            {t("open_developer_tools")}
           </Link>
         </p>
       </div>

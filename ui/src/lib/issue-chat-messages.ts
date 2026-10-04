@@ -22,6 +22,8 @@ import { findUIAdapter } from "../adapters/registry";
 import {
   summarizeNotice,
 } from "./transcriptPresentation";
+import { t } from "@/i18n";
+import { getDisplayLabel } from "./display-labels";
 
 type JsonValue = null | string | number | boolean | JsonValue[] | { [key: string]: JsonValue };
 type JsonObject = { [key: string]: JsonValue };
@@ -539,17 +541,17 @@ function authorNameForComment(
 ) {
   const authorAgentId = effectiveCommentAuthorAgentId(comment);
   if (authorAgentId) {
-    return agentMap?.get(authorAgentId)?.name ?? (options?.isSystemNotice ? "Paperclip" : authorAgentId.slice(0, 8));
+    return agentMap?.get(authorAgentId)?.name ?? (options?.isSystemNotice ? t("paperclip") : authorAgentId.slice(0, 8));
   }
   const authorUserId = comment.authorUserId ?? null;
-  if (!authorUserId) return options?.isSystemNotice ? "Paperclip" : "You";
+  if (!authorUserId) return options?.isSystemNotice ? t("paperclip") : t("you");
   const userLabel = userLabelMap?.get(authorUserId)?.trim();
   if (userLabel) return userLabel;
-  return formatAssigneeUserLabel(authorUserId, currentUserId, userLabelMap) ?? "You";
+  return formatAssigneeUserLabel(authorUserId, currentUserId, userLabelMap) ?? t("you");
 }
 
 function formatStatusLabel(status: string) {
-  return status.replace(/_/g, " ");
+  return getDisplayLabel(status);
 }
 
 function createCommentMessage(args: {
@@ -648,29 +650,29 @@ function createTimelineEventMessage(args: {
   const actorName = event.actorType === "agent"
     ? (agentMap?.get(event.actorId)?.name ?? event.actorId.slice(0, 8))
     : event.actorType === "system"
-      ? "System"
-      : (formatAssigneeUserLabel(event.actorId, currentUserId, userLabelMap) ?? "Board");
+      ? t("system")
+      : (formatAssigneeUserLabel(event.actorId, currentUserId, userLabelMap) ?? t("board"));
 
   const lines: string[] = [
-    event.followUpRequested ? `${actorName} requested follow-up` : `${actorName} updated this issue`,
+    event.followUpRequested ? t("zhSupport.actorFollowup", { actor: actorName }) : t("zhSupport.actorUpdatedIssue", { actor: actorName }),
   ];
   if (event.statusChange) {
     lines.push(
-      `Status: ${event.statusChange.from ?? "none"} -> ${event.statusChange.to ?? "none"}`,
+      t("zhSupport.changedStatus", { from: getDisplayLabel(event.statusChange.from), to: getDisplayLabel(event.statusChange.to) }),
     );
   }
   if (event.assigneeChange) {
     const from = event.assigneeChange.from.agentId
       ? (agentMap?.get(event.assigneeChange.from.agentId)?.name ?? event.assigneeChange.from.agentId.slice(0, 8))
-      : (formatAssigneeUserLabel(event.assigneeChange.from.userId, currentUserId, userLabelMap) ?? "Unassigned");
+      : (formatAssigneeUserLabel(event.assigneeChange.from.userId, currentUserId, userLabelMap) ?? t("unassigned"));
     const to = event.assigneeChange.to.agentId
       ? (agentMap?.get(event.assigneeChange.to.agentId)?.name ?? event.assigneeChange.to.agentId.slice(0, 8))
-      : (formatAssigneeUserLabel(event.assigneeChange.to.userId, currentUserId, userLabelMap) ?? "Unassigned");
-    lines.push(`Assignee: ${from} -> ${to}`);
+      : (formatAssigneeUserLabel(event.assigneeChange.to.userId, currentUserId, userLabelMap) ?? t("unassigned"));
+    lines.push(t("zhSupport.changedAssignee", { from, to }));
   }
   if (event.workspaceChange) {
     lines.push(
-      `Workspace: ${event.workspaceChange.from.label ?? "none"} -> ${event.workspaceChange.to.label ?? "none"}`,
+      t("zhSupport.changedWorkspace", { from: event.workspaceChange.from.label ?? t("none"), to: event.workspaceChange.to.label ?? t("none") }),
     );
   }
 
@@ -775,18 +777,18 @@ export function formatDurationWords(ms: number | null) {
   if (ms === null || !Number.isFinite(ms) || ms <= 0) return null;
   const totalSeconds = Math.max(1, Math.round(ms / 1000));
   if (totalSeconds < 60) {
-    return `${totalSeconds} second${totalSeconds === 1 ? "" : "s"}`;
+    return t("zhSupport.durationWords.seconds", { count: totalSeconds });
   }
   const totalMinutes = Math.round(totalSeconds / 60);
   if (totalMinutes < 60) {
-    return `${totalMinutes} minute${totalMinutes === 1 ? "" : "s"}`;
+    return t("zhSupport.durationWords.minutes", { count: totalMinutes });
   }
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   if (minutes === 0) {
-    return `${hours} hour${hours === 1 ? "" : "s"}`;
+    return t("zhSupport.durationWords.hours", { count: hours });
   }
-  return `${hours} hour${hours === 1 ? "" : "s"} ${minutes} minute${minutes === 1 ? "" : "s"}`;
+  return t("zhSupport.durationWords.hoursAndMinutes", { hours: t("zhSupport.durationWords.hours", { count: hours }), minutes: t("zhSupport.durationWords.minutes", { count: minutes }) });
 }
 
 function runDurationLabel(run: {
@@ -804,24 +806,24 @@ function runDurationLabel(run: {
   const stopReason = typeof run.resultJson?.stopReason === "string" ? run.resultJson.stopReason : null;
   switch (run.status) {
     case "succeeded":
-      return durationText ? `Worked for ${durationText}` : "Finished work";
+      return durationText ? t("worked_for_duration", { duration: durationText }) : t("finished_work");
     case "failed":
     case "error":
-      return durationText ? `Failed after ${durationText}` : "Run failed";
+      return durationText ? t("failed_after_duration", { duration: durationText }) : t("run_failed");
     case "timed_out":
-      return durationText ? `Timed out after ${durationText}` : "Run timed out";
+      return durationText ? t("timed_out_after_duration", { duration: durationText }) : t("run_timed_out");
     case "cancelled":
       if (isOperatorInterruptedRun(run.resultJson, run.errorCode)) {
-        return durationText ? `Interrupted by board after ${durationText}` : "Interrupted by board";
+        return durationText ? t("interrupted_by_board_after_duration", { duration: durationText }) : t("interrupted_by_board");
       }
       if (stopReason === "paused") {
-        return durationText ? `Paused by board after ${durationText}` : "Paused by board";
+        return durationText ? t("paused_by_board_after_duration", { duration: durationText }) : t("paused_by_board_7105dc");
       }
-      return durationText ? `Cancelled after ${durationText}` : "Run cancelled";
+      return durationText ? t("cancelled_after_duration", { duration: durationText }) : t("run_cancelled");
     case "queued":
-      return "Queued";
+      return t("queued");
     case "running":
-      return "Working...";
+      return t("working_049ac8");
     default:
       return formatStatusLabel(run.status);
   }
@@ -833,7 +835,7 @@ function createHistoricalRunMessage(run: IssueChatLinkedRun, agentMap?: Map<stri
     id: `run:${run.runId}`,
     role: "system",
     createdAt: toDate(runTimestamp(run)),
-    content: [{ type: "text", text: `${agentName} run ${run.runId.slice(0, 8)} ${formatStatusLabel(run.status)}` }],
+    content: [{ type: "text", text: t("zhSupport.runStatus", { agent: agentName, id: run.runId.slice(0, 8), status: formatStatusLabel(run.status) }) }],
     metadata: {
       custom: {
         kind: "run",
@@ -859,7 +861,7 @@ function createHistoricalTranscriptMessage(args: {
   const agentName = run.agentName ?? agentMap?.get(run.agentId)?.name ?? run.agentId.slice(0, 8);
   const compactedTranscript = compactIssueChatTranscript(transcript, issueChatTranscriptMaxVisibleEntries(run.adapterType));
   const { parts, notices, segments } = buildAssistantPartsFromTranscript(compactedTranscript);
-  const waitingText = hasOutput ? "" : "Run finished";
+  const waitingText = hasOutput ? "" : t("run_finished");
   const content = parts.length > 0
     ? parts
     : waitingText
@@ -931,7 +933,7 @@ export function buildAssistantPartsFromTranscript(entries: readonly IssueChatTra
         family: entry.family ?? "provider_notice",
         eventType: entry.eventType ?? "provider.notice.recorded",
         status: entry.status ?? "informational",
-        title: entry.title ?? "Provider activity",
+        title: entry.title ?? t("provider_activity"),
         summary: entry.summary ?? "",
         payload: entry.payload ?? {},
       });
@@ -1005,13 +1007,13 @@ export function buildAssistantPartsFromTranscript(entries: readonly IssueChatTra
     if (entry.kind === "result") {
       if (entry.isError && entry.errors?.length) {
         for (const error of entry.errors) {
-          orderedParts.push({ type: "reasoning", text: `Run error: ${summarizeNotice(error)}` });
+          orderedParts.push({ type: "reasoning", text: t("run_error_detail", { detail: summarizeNotice(error) }) });
         }
       } else if (entry.text) {
         orderedParts.push({
           type: "reasoning",
           text: entry.isError
-            ? `Run error: ${summarizeNotice(entry.text)}`
+            ? t("run_error_detail", { detail: summarizeNotice(entry.text) })
             : summarizeNotice(entry.text),
         });
       }
@@ -1102,10 +1104,10 @@ function createLiveRunMessage(args: {
   const { parts, notices, segments } = buildAssistantPartsFromTranscript(compactedTranscript);
   const waitingText =
     run.status === "queued"
-      ? "Queued..."
+      ? t("queued_22cefe")
       : parts.length > 0
         ? ""
-        : "Working...";
+        : t("working_049ac8");
 
   const content = parts;
 

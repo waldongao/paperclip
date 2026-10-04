@@ -5,6 +5,7 @@ import type {
   ConnectionGrantStatus,
   ToolConnectionCredentialPolicy,
 } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 /**
  * Canonical user-facing vocabulary for connection identity (PAP-17835).
@@ -15,16 +16,18 @@ import type {
  * card cannot drift into three different names for the same thing.
  */
 
-export type ConnectionTypeLabel = "Personal" | "Company";
+// Display copy — translated, so not a literal union. Callers that need the
+// underlying distinction branch on `credentialPolicy`, never on this text.
+export type ConnectionTypeLabel = string;
 
 /** The two connection types shown throughout the product. */
 export function connectionTypeLabel(
   credentialPolicy: ToolConnectionCredentialPolicy,
 ): ConnectionTypeLabel {
-  return credentialPolicy === "per_user" ? "Personal" : "Company";
+  return credentialPolicy === "per_user" ? t("personal") : t("company");
 }
 
-const COMPANY_NAME_SUFFIX = " for the company";
+const COMPANY_NAME_SUFFIX = t("for_the_company");
 
 /** Keep company-owned connections unmistakable anywhere their name appears. */
 export function connectionNameForGrantKind(name: string, grantKind: ConnectionGrantKind): string {
@@ -41,7 +44,7 @@ export function connectionNameForCredentialPolicy(
 ): string {
   return connectionNameForGrantKind(
     name,
-    connectionTypeLabel(credentialPolicy) === "Company" ? "organization" : "user",
+    credentialPolicy === "per_user" ? "user" : "organization",
   );
 }
 
@@ -53,15 +56,15 @@ export function connectionNameForCredentialPolicy(
 export function grantStatusLabel(status: ConnectionGrantStatus | null): string {
   switch (status) {
     case "active":
-      return "Connected";
+      return t("connected");
     case "needs_reauthorization":
-      return "Needs attention";
+      return t("needs_attention");
     case "expired":
-      return "Expired";
+      return t("expired");
     case "revoked":
-      return "Revoked";
+      return t("revoked");
     default:
-      return "Not connected";
+      return t("not_connected");
   }
 }
 
@@ -92,8 +95,8 @@ export function grantAccountLabel(
 ): string {
   const tenantName = grant?.providerTenant?.name?.trim();
   if (tenantName) return tenantName;
-  if (grant?.kind === "user") return options.subjectLabel?.trim() || "Connected account";
-  return "Shared credential";
+  if (grant?.kind === "user") return options.subjectLabel?.trim() || t("connected_account");
+  return t("shared_credential");
 }
 
 /**
@@ -103,8 +106,8 @@ export function grantAccountLabel(
  */
 export function audienceSummary(grant: Pick<ConnectionGrant, "members"> | null): string {
   const count = grant?.members?.length ?? 0;
-  if (count === 0) return "All organization members";
-  return `${count} selected ${count === 1 ? "member" : "members"}`;
+  if (count === 0) return t("all_organization_members");
+  return t("zhPages.dd8f7d4ac093", { count: count });
 }
 
 export function audienceUserIds(grant: Pick<ConnectionGrant, "members"> | null): Set<string> {

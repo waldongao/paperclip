@@ -25,6 +25,8 @@ import {
 } from "./TaskChatComposerTakeoverContext";
 import { TaskChatRichInput } from "./TaskChatRichInput";
 import { matchSafeQuestionValidationPattern } from "./question-validation-pattern";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 type Question = PaperclipQuestionSet["questions"][number];
 type Answer = PaperclipQuestionResponse["answers"][string];
@@ -55,27 +57,27 @@ function answerError(
   answer: Answer | undefined,
 ): string | null {
   if (question.required && !answerHasValue(answer))
-    return "This question is required.";
+    return t("this_question_is_required");
   if (
     question.answerMode !== "text" &&
     answer?.customText !== undefined &&
     !answer.customText.trim()
   ) {
-    return "Enter a custom answer.";
+    return t("enter_a_custom_answer");
   }
   const value =
     question.answerMode === "text" ? answer?.text : answer?.customText;
   if (value == null || value.length === 0) return null;
   const validation = question.textValidation;
   if (validation?.minLength != null && value.length < validation.minLength)
-    return `Enter at least ${validation.minLength} characters.`;
+    return t("zhComponents.message_ad883001cf", { value1: validation.minLength });
   if (validation?.maxLength != null && value.length > validation.maxLength)
-    return `Enter no more than ${validation.maxLength} characters.`;
+    return t("zhComponents.message_d04bb76982", { value1: validation.maxLength });
   if (validation?.pattern) {
     const result = matchSafeQuestionValidationPattern(validation.pattern, value);
     if (result === "unsupported")
-      return "This question has an unsupported validation pattern.";
-    if (result === "no_match") return "Use the requested format.";
+      return t("this_question_has_an_unsupported_validation_patt");
+    if (result === "no_match") return t("use_the_requested_format");
   }
   if (
     validation?.inputType === "number" ||
@@ -86,12 +88,12 @@ function answerError(
       !Number.isFinite(numeric) ||
       (validation.inputType === "integer" && !Number.isInteger(numeric))
     ) {
-      return `Enter a valid ${validation.inputType}.`;
+      return t("zhComponents.message_07905a796c", { value1: validation.inputType });
     }
     if (validation.minimum != null && numeric < validation.minimum)
-      return `Enter a value of at least ${validation.minimum}.`;
+      return t("zhComponents.message_d195777a6b", { value1: validation.minimum });
     if (validation.maximum != null && numeric > validation.maximum)
-      return `Enter a value no greater than ${validation.maximum}.`;
+      return t("zhComponents.message_a983944411", { value1: validation.maximum });
   }
   return null;
 }
@@ -115,6 +117,7 @@ function SelectOption({
   disabled: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -157,7 +160,7 @@ function SelectOption({
           <span>{label}</span>
           {recommended ? (
             <span className="rounded-sm bg-background/70 px-1.5 py-0.5 text-(length:--text-micro) font-medium text-muted-foreground">
-              Recommended
+              {t("recommended")}
             </span>
           ) : null}
         </span>
@@ -178,6 +181,7 @@ export function QuestionResponseSummary({
   questionSet: PaperclipQuestionSet;
   response: PaperclipQuestionResponse;
 }) {
+  const { t } = useTranslation();
   return (
     <dl className="grid gap-2 text-sm">
       {questionSet.questions.map((question) => {
@@ -205,7 +209,7 @@ export function QuestionResponseSummary({
               </span>
             </dt>
             <dd className="mt-0.5 text-foreground">
-              {values.length > 0 ? values.join(", ") : "No answer"}
+              {values.length > 0 ? values.join(", ") : t("no_answer")}
             </dd>
           </div>
         );
@@ -226,6 +230,7 @@ export function QuestionForm({
   onSubmit,
   onCancel,
 }: QuestionFormProps) {
+  const { t } = useTranslation();
   const takeoverActions = useTaskChatComposerTakeoverActions();
   const initialDraft = draftKey
     ? loadStructuredDraft<{
@@ -288,7 +293,7 @@ export function QuestionForm({
   if (!question)
     return (
       <p className="text-sm text-muted-foreground">
-        No answerable questions were provided.
+        {t("no_answerable_questions_were_provided")}
       </p>
     );
   const answer = answers[question.id] ?? {};
@@ -360,7 +365,7 @@ export function QuestionForm({
       setError(
         cause instanceof Error
           ? cause.message
-          : "The answers could not be submitted.",
+          : t("the_answers_could_not_be_submitted"),
       );
     } finally {
       setWorking(null);
@@ -378,7 +383,7 @@ export function QuestionForm({
       setError(
         cause instanceof Error
           ? cause.message
-          : "The questions could not be cancelled.",
+          : t("the_questions_could_not_be_cancelled"),
       );
     } finally {
       setWorking(null);
@@ -397,26 +402,26 @@ export function QuestionForm({
     questionSet.questions.length > 1 ? (
       <nav
         className="flex shrink-0 items-center gap-1"
-        aria-label="Question pagination"
+        aria-label={t("question_pagination")}
       >
         <Button
           type="button"
           size="icon-xs"
           variant="ghost"
-          aria-label="Previous question"
+          aria-label={t("previous_question")}
           disabled={disabled || working != null || page === 0}
           onClick={() => setPage((current) => current - 1)}
         >
           <ChevronLeft aria-hidden />
         </Button>
         <span className="min-w-10 text-center tabular-nums">
-          {page + 1} of {questionSet.questions.length}
+          {page + 1} {t("zhComponents.text_de04fa0e29")} {questionSet.questions.length}
         </span>
         <Button
           type="button"
           size="icon-xs"
           variant="ghost"
-          aria-label="Next question"
+          aria-label={t("next_question")}
           disabled={disabled || working != null || isLastPage}
           onClick={() => setPage((current) => current + 1)}
         >
@@ -447,7 +452,7 @@ export function QuestionForm({
         )
           return;
         const target = event.target as HTMLElement;
-        if (target.matches("input, textarea, [contenteditable='true']")) return;
+        if (target.matches(t("input_textarea_contenteditable_true"))) return;
         const optionIndex = Number.parseInt(event.key, 10) - 1;
         const option = visibleOptions[optionIndex];
         if (!option || optionIndex < 0 || optionIndex > 8) return;
@@ -462,7 +467,7 @@ export function QuestionForm({
       ) : null}
       {question.answerMode === "text" ? (
         <div className="mb-2 flex items-center gap-3 text-xs text-muted-foreground">
-          {question.answerMode === "text" ? <span>Write an answer</span> : null}
+          {question.answerMode === "text" ? <span>{t("write_an_answer")}</span> : null}
         </div>
       ) : null}
       {pagination ? (
@@ -502,7 +507,7 @@ export function QuestionForm({
             value={answer.text ?? ""}
             disabled={disabled || working != null}
             onChange={(value) => updateAnswer({ text: value })}
-            placeholder="Write your answer"
+            placeholder={t("write_your_answer")}
             imageUploadHandler={imageUploadHandler}
             mentions={mentions}
             autoFocus
@@ -510,7 +515,7 @@ export function QuestionForm({
             onSubmit={() => {
               if (!inputUploading && currentError == null) progressOrSubmit();
             }}
-            attachAriaLabel={`Attach image to answer for ${question.prompt}`}
+            attachAriaLabel={t("zhComponents.message_a7c72c8412", { value1: question.prompt })}
           />
         </div>
       ) : (
@@ -533,8 +538,8 @@ export function QuestionForm({
                     [question.id]: event.target.value,
                   }))
                 }
-                placeholder="Filter choices"
-                aria-label={`Filter choices for ${question.prompt}`}
+                placeholder={t("filter_choices")}
+                aria-label={t("zhComponents.message_3b618c2a2a", { value1: question.prompt })}
                 className="pl-8"
               />
             </label>
@@ -556,7 +561,7 @@ export function QuestionForm({
             <div className="space-y-1.5">
               <SelectOption
                 id={`${id}-${question.id}-custom`}
-                label={question.customAnswer?.label ?? "Other"}
+                label={question.customAnswer?.label ?? t("other")}
                 selected={isCustomActive}
                 multiple={multiple}
                 disabled={disabled || working != null}
@@ -568,7 +573,7 @@ export function QuestionForm({
                   testId="question-other-answer-composer"
                   value={answer.customText ?? ""}
                   placeholder={
-                    question.customAnswer?.placeholder ?? "Type your answer"
+                    question.customAnswer?.placeholder ?? t("type_your_answer")
                   }
                   disabled={disabled || working != null}
                   onChange={(value) =>
@@ -582,7 +587,7 @@ export function QuestionForm({
                     if (!inputUploading && currentError == null)
                       progressOrSubmit();
                   }}
-                  attachAriaLabel={`Attach image to other answer for ${question.prompt}`}
+                  attachAriaLabel={t("zhComponents.message_5e9761bec9", { value1: question.prompt })}
                 />
               ) : null}
             </div>
@@ -613,7 +618,7 @@ export function QuestionForm({
               {working === "cancel" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}{" "}
-              Cancel
+              {t("cancel")}
             </Button>
           ) : null}
           {showQuestionActionButton ? (
@@ -631,7 +636,7 @@ export function QuestionForm({
               {working === "submit" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {questionSet.submitLabel ?? "Submit answers"}
+              {questionSet.submitLabel ?? t("submit_answers")}
             </Button>
           ) : null}
         </div>

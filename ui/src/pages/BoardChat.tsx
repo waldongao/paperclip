@@ -33,6 +33,8 @@ import { AgentIcon } from "../components/AgentIconPicker";
 import { cn, formatDateTime } from "../lib/utils";
 import type { FeedbackVoteValue } from "@paperclipai/shared";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 /**
  * Board Concierge Chat — a chat interface powered by the board-member skill.
@@ -48,7 +50,7 @@ const DEFAULT_CHAT_FRACTION = 2 / 3;
 
 /** Wrapped markdown in bubbles; pre/table scroll horizontally when needed. */
 const BOARD_CHAT_MARKDOWN_CLASS =
-  "max-w-full overflow-visible [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto";
+  t("max_w_full_overflow_visible_first_child_mt_0_las");
 
 const boardChatBubbleShell =
   "min-w-0 max-w-(--pct-85) break-words px-3 py-2 text-sm overflow-x-auto overflow-y-visible";
@@ -90,7 +92,7 @@ function TypingBubble() {
           "bg-card border border-border text-foreground [border-radius:14px_14px_14px_4px]",
         )}
       >
-        <span className="typing-dots" aria-label="typing">
+        <span className="typing-dots" aria-label={t("zhPages.typing")}>
           <span />
           <span />
           <span />
@@ -101,12 +103,13 @@ function TypingBubble() {
 }
 
 export function BoardChat() {
+  const { t } = useTranslation();
   const { selectedCompanyId, selectedCompany } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Conference Room" }]);
+    setBreadcrumbs([{ label: t("conference_room") }]);
   }, [setBreadcrumbs]);
 
   const splitContainerRef = useRef<HTMLDivElement>(null);
@@ -460,7 +463,7 @@ export function BoardChat() {
     if (!container) return;
 
     try {
-      const saved = sessionStorage.getItem("paperclip.boardChat.scrollTop");
+      const saved = sessionStorage.getItem(t("paperclip_boardchat_scrolltop"));
       if (saved != null) {
         const parsed = Number(saved);
         if (Number.isFinite(parsed)) {
@@ -511,7 +514,7 @@ export function BoardChat() {
         rafId = null;
         try {
           sessionStorage.setItem(
-            "paperclip.boardChat.scrollTop",
+            t("paperclip_boardchat_scrolltop"),
             String(container.scrollTop),
           );
         } catch { /* sessionStorage unavailable */ }
@@ -555,7 +558,7 @@ export function BoardChat() {
       setInput("");
       setStreamingText("");
       setErrorText("");
-      setStatusText("Connecting...");
+      setStatusText(t("connecting"));
 
       try {
         const controller = new AbortController();
@@ -573,10 +576,10 @@ export function BoardChat() {
         clearTimeout(fetchTimeout);
 
         if (!res.ok || !res.body) {
-          throw new Error("Board chat stream not available");
+          throw new Error(t("board_chat_stream_not_available"));
         }
 
-        setStatusText("Thinking...");
+        setStatusText(t("thinking"));
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -606,7 +609,7 @@ export function BoardChat() {
               } else if (event.type === "error") {
                 setErrorText(
                   event.message ||
-                    "The board assistant couldn't respond. Please try again.",
+                    t("the_board_assistant_couldnt_respond_please_try_a"),
                 );
                 setStatusText("");
               } else if (event.type === "done") {
@@ -634,7 +637,7 @@ export function BoardChat() {
         console.error("Board chat error:", err);
         setStatusText("");
         setErrorText(
-          "The board assistant is unavailable right now. Please try again in a moment.",
+          t("the_board_assistant_is_unavailable_right_now_ple"),
         );
       } finally {
         setSending(false);
@@ -658,9 +661,9 @@ export function BoardChat() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-sm">
-          <h2 className="text-lg font-semibold">No organization selected</h2>
+          <h2 className="text-lg font-semibold">{t("no_organization_selected")}</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            Select an organization to start chatting with your board concierge.
+            {t("select_an_organization_to_start_chatting_with_yo")}
           </p>
         </div>
       </div>
@@ -689,10 +692,10 @@ export function BoardChat() {
             />
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-semibold">
-                {ceoAgent?.name ?? "Conference Room"}
+                {ceoAgent?.name ?? t("conference_room")}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {selectedCompany?.name ?? "Your organization"}
+                {selectedCompany?.name ?? t("your_organization")}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
@@ -703,12 +706,12 @@ export function BoardChat() {
                     variant="ghost"
                     size="icon-sm"
                     className="text-muted-foreground"
-                    aria-label="chat history"
+                    aria-label={t("chat_history")}
                   >
                     <History className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">chat history</TooltipContent>
+                <TooltipContent side="bottom">{t("chat_history")}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -717,12 +720,12 @@ export function BoardChat() {
                     variant="ghost"
                     size="icon-sm"
                     className="text-muted-foreground"
-                    aria-label="new chat"
+                    aria-label={t("new_chat")}
                   >
                     <MessageSquarePlus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">new chat</TooltipContent>
+                <TooltipContent side="bottom">{t("new_chat")}</TooltipContent>
               </Tooltip>
             </div>
           </div>
@@ -744,11 +747,11 @@ export function BoardChat() {
                 const ceoName = ceoAgent.name;
                 const companyName = selectedCompany.name;
                 const missionLine = missionText
-                  ? ` — your mission is "${missionText}".`
+                  ? t("zhPages.d997028d5f64", { missionText: missionText })
                   : ".";
                 const welcomeBody =
-                  `Welcome to **${companyName}**! I'm ${ceoName}, your team lead. I've read through what you shared in the wizard${missionLine}\n\n` +
-                  `Here are a few things I can help you put on paper right now. Pick one below and I'll draft it for you using everything you told us.`;
+                  t("zhPages.c5e948ac7a2a", { companyName: companyName, ceoName: ceoName, missionLine: missionLine }) +
+                  t("zhPages.79db269c4a61");
 
                 const userHasReplied = sortedComments.some(
                   (c) => !c.authorAgentId && c.authorUserId !== "board-concierge",
@@ -756,20 +759,20 @@ export function BoardChat() {
 
                 const chips: Array<{ label: string; prompt: string }> = [
                   {
-                    label: "Draft an Organization Brief",
-                    prompt: `Draft a one-page Organization Brief for ${companyName} — include our mission, team roster, and first priorities.`,
+                    label: t("draft_an_organization_brief"),
+                    prompt: t("zhPages.cb6f9ba7f8d3", { companyName: companyName }),
                   },
                   {
-                    label: "Create a hiring plan",
-                    prompt: `Create a hiring plan for ${companyName}. List the next roles to hire, in priority order, with a short rationale for each.`,
+                    label: t("create_a_hiring_plan"),
+                    prompt: t("zhPages.442332139750", { companyName: companyName }),
                   },
                   {
-                    label: "Outline our first 30 days",
-                    prompt: `Outline our first 30 days. Break it into weekly priorities with who owns what.`,
+                    label: t("outline_our_first_30_days"),
+                    prompt: t("zhPages.9018ff4198a7"),
                   },
                   {
-                    label: "Write an intro pitch",
-                    prompt: `Write a short intro pitch for ${companyName} that I could reuse for investors, customers, or recruits.`,
+                    label: t("write_an_intro_pitch"),
+                    prompt: t("zhPages.0baa6a7f32da", { companyName: companyName }),
                   },
                 ];
 
@@ -829,7 +832,7 @@ export function BoardChat() {
                 const agent = comment.authorAgentId
                   ? agentMap.get(comment.authorAgentId) ?? null
                   : ceoAgent ?? null;
-                const agentName = agent?.name ?? "Assistant";
+                const agentName = agent?.name ?? t("assistant");
                 const agentIconValue = agent?.icon ?? null;
                 return (
                   <div key={comment.id} className="flex flex-col items-start">
@@ -906,9 +909,9 @@ export function BoardChat() {
               {sending && (
                 <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
                   <img src="/paperclip-thinking.svg" alt="" className="inline-block shrink-0" style={{ width: 14, height: 14 }} />
-                  <span>{statusText || "Thinking..."}</span>
+                  <span>{statusText || t("thinking")}</span>
                   {elapsedSec > 0 && (
-                    <span className="opacity-50">{elapsedSec.toFixed(1)}s</span>
+                    <span className="opacity-50">{elapsedSec.toFixed(1)}{t("zhPages.secondsSuffix")}</span>
                   )}
                 </div>
               )}
@@ -941,7 +944,7 @@ export function BoardChat() {
             <button
               type="button"
               onClick={() => scrollToLatest("smooth")}
-              aria-label="Jump to latest messages"
+              aria-label={t("jump_to_latest_messages")}
               // design-allow(card-pattern): floating scroll-to-bottom <button>, not a content card (C5a Run 3)
               className="absolute bottom-24 left-1/2 z-20 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors duration-150 hover:bg-accent hover:border-muted-foreground/30"
             >
@@ -967,12 +970,12 @@ export function BoardChat() {
               value={input}
               onChange={setInput}
               onSubmit={handleSend}
-              placeholder="Ask anything about your organization..."
+              placeholder={t("ask_anything_about_your_organization")}
               submitKey="enter"
               surface="translucent"
               submitting={sending}
               disabled={sending}
-              sendLabel="Send message"
+              sendLabel={t("send_message")}
               className="pointer-events-auto"
             />
           </div>
@@ -982,7 +985,7 @@ export function BoardChat() {
         <div
           role="separator"
           aria-orientation="vertical"
-          aria-label="Resize board chat and agent feed"
+          aria-label={t("resize_board_chat_and_agent_feed")}
           className="group relative hidden w-3 shrink-0 cursor-col-resize bg-background md:flex"
           onMouseDown={handleSplitDragStart}
         >
@@ -1007,7 +1010,7 @@ export function BoardChat() {
               size="icon"
               variant="secondary"
               className="fixed bottom-20 right-4 z-20 h-10 w-10 rounded-full shadow-lg"
-              aria-label="Open agent feed"
+              aria-label={t("open_agent_feed")}
             >
               <Activity className="h-4 w-4" />
             </Button>

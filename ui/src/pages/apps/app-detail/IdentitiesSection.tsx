@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Building2, Loader2, UserRound } from "lucide-react";
 import type {
@@ -42,6 +43,7 @@ import {
   personalGrantFor,
   type GrantStatusTone,
 } from "../connection-identity";
+import { useTranslation } from "@/i18n";
 
 const STATUS_CHIP: Record<GrantStatusTone, string> = {
   connected: brandChipBadge.green,
@@ -112,6 +114,7 @@ export function IdentitiesSection({
   onOpenAudience: (grantId: string) => void;
   onCloseAudience: () => void;
 }) {
+  const { t } = useTranslation();
   const grants = grantsQuery?.grants ?? [];
   const capabilities = grantsQuery?.capabilities;
   const currentUserId = grantsQuery?.currentUserId ?? null;
@@ -150,7 +153,7 @@ export function IdentitiesSection({
       <section className="space-y-5">
         <IdentitiesHeading />
         <InlineBanner tone="warning" compact>
-          We couldn't load who this connection acts as. Reload the page to try again.
+          {t("we_couldnt_load_who_this_connection_acts_as_relo")}
         </InlineBanner>
       </section>
     );
@@ -172,13 +175,13 @@ export function IdentitiesSection({
           personalGrant ? null : (
             <IdentityRow
               id="personal-identity"
-              title="Personal account"
+              title={t("personal_account")}
               status={null}
-              detail="Personal identity"
+              detail={t("personal_identity")}
               actions={capabilities?.canConnectAsCurrentUser ? (
                   <Button size="sm" disabled={connectPending} onClick={onConnectAsMe}>
                     {connectPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                    Connect as me
+                    {t("connect_as_me")}
                   </Button>
                 ) : null}
             />
@@ -188,18 +191,18 @@ export function IdentitiesSection({
             orgGrant.capabilities?.canEditAudience ? (
               <div className="flex justify-end">
                   <Button size="sm" variant="outline" onClick={() => onOpenAudience(orgGrant.id)}>
-                    Manage access
+                    {t("manage_access")}
                   </Button>
               </div>
             ) : null
           ) : (
             <IdentityRow
-              title="Organization account"
+              title={t("organization_account")}
               status={null}
-              detail="Organization identity"
+              detail={t("organization_identity")}
               actions={capabilities?.canCreateOrganizationGrant ? (
                   <Button size="sm" disabled={connectPending} onClick={onConnectOrganization}>
-                    Connect organization identity
+                    {t("connect_organization_identity")}
                   </Button>
                 ) : null}
             />
@@ -224,7 +227,8 @@ export function IdentitiesSection({
 }
 
 function IdentitiesHeading() {
-  return <h2 className="text-sm font-semibold text-foreground">Account</h2>;
+  const { t } = useTranslation();
+  return <h2 className="text-sm font-semibold text-foreground">{t("account_")}</h2>;
 }
 
 function ConnectionAudienceCallout({
@@ -238,6 +242,7 @@ function ConnectionAudienceCallout({
   connectedImage: string | null;
   status: ConnectionGrant["status"] | null;
 }) {
+  const { t } = useTranslation();
   const Icon = personal ? UserRound : Building2;
   return (
     <div className="flex items-start gap-4 rounded-lg border border-border bg-card p-5">
@@ -247,8 +252,8 @@ function ConnectionAudienceCallout({
       <div className="min-w-0 space-y-3">
         <p className="text-lg font-semibold text-foreground">
           {personal
-            ? "Only you can use this connection"
-            : "Anyone in your company can use this connection"}
+            ? t("only_you_can_use_this_connection")
+            : t("anyone_in_your_company_can_use_this_connection")}
         </p>
         {connectedName && status !== null ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -310,6 +315,7 @@ export function AudienceDialog({
   onCancel: () => void;
   onSave: (memberUserIds: string[]) => void;
 }) {
+  const { t } = useTranslation();
   const initialSelection = useMemo(() => audienceUserIds(grant), [grant]);
   const [scope, setScope] = useState<"all" | "selected">(initialSelection.size === 0 ? "all" : "selected");
   const [selected, setSelected] = useState<Set<string>>(initialSelection);
@@ -325,7 +331,7 @@ export function AudienceDialog({
     <Dialog open onOpenChange={(open) => { if (!open) onCancel(); }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Who can use this identity</DialogTitle>
+          <DialogTitle>{t("who_can_use_this_identity")}</DialogTitle>
           <DialogDescription>
             {grantAccountLabel(grant)} · {appName}
           </DialogDescription>
@@ -333,19 +339,19 @@ export function AudienceDialog({
 
         <div className="space-y-3">
           <RadioCardGroup
-            ariaLabel="Who can use this identity"
+            ariaLabel={t("who_can_use_this_identity")}
             value={scope}
             onValueChange={(next) => setScope(next as "all" | "selected")}
             options={[
               {
                 value: "all",
-                title: "All organization members",
-                description: "Anyone in this organization can have work use this identity.",
+                title: t("all_organization_members"),
+                description: t("anyone_in_this_organization_can_have_work_use_th"),
               },
               {
                 value: "selected",
-                title: "Selected members",
-                description: "Only the people you choose.",
+                title: t("selected_members"),
+                description: t("only_the_people_you_choose"),
               },
             ]}
           />
@@ -360,14 +366,13 @@ export function AudienceDialog({
               selectedUserIds={selected}
               onChange={setSelected}
               triggerLabel={selected.size === 0
-                ? "Choose people"
-                : `${selected.size} ${selected.size === 1 ? "person" : "people"} selected`}
+                ? t("choose_people")
+                : t("zhPages.ea6f7a5726e7", { size: selected.size , count: selected.size })}
             />
           ) : null}
 
           <p className="text-xs text-muted-foreground">
-            This controls whose work can use the identity. It does not change which agents have the
-            connection.
+            {t("this_controls_whose_work_can_use_the_identity_it")}
           </p>
 
           {error ? (
@@ -379,14 +384,14 @@ export function AudienceDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={onCancel} disabled={pending}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             disabled={pending || !canSave}
             onClick={() => onSave(scope === "all" ? [] : [...selected])}
           >
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Save audience
+            {t("save_audience")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -417,19 +422,20 @@ export function RevokeGrantDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation();
   const personal = grant.kind === "user";
   const title = personal
     ? isOwnIdentity
-      ? `Revoke your ${providerName} identity?`
-      : `Revoke this ${providerName} identity?`
-    : "Revoke the organization identity?";
+      ? t("zhPages.fd79f0f20ca3", { providerName: providerName })
+      : t("zhPages.8b9f687273d0", { providerName: providerName })
+    : t("revoke_the_organization_identity");
   const body = personal
     ? isOwnIdentity
-      ? "Agents will stop acting as you. Work that needs this identity can ask you to connect again."
-      : "Agents will stop acting as this person. They can connect again themselves; no one else can do it for them."
+      ? t("agents_will_stop_acting_as_you_work_that_needs_t")
+      : t("agents_will_stop_acting_as_this_person_they_can")
     : credentialPolicy === "per_user"
-      ? "Installed agents lose this shared identity immediately."
-      : "Eligible members and installed agents will lose this shared identity immediately.";
+      ? t("installed_agents_lose_this_shared_identity_immed")
+      : t("eligible_members_and_installed_agents_will_lose");
 
   return (
     <AlertDialog open onOpenChange={(open) => { if (!open) onCancel(); }}>
@@ -440,7 +446,7 @@ export function RevokeGrantDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending} autoFocus>
-            Cancel
+            {t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
@@ -449,7 +455,7 @@ export function RevokeGrantDialog({
               onConfirm();
             }}
           >
-            Revoke identity
+            {t("revoke_identity")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

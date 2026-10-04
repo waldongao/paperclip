@@ -1,3 +1,5 @@
+import { getCountNoun } from "@/components/localized-count";
+import { t } from "@/i18n";
 import { Profiler, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Agent, DocumentAnnotationThreadWithComments, IssueDocument } from "@paperclipai/shared";
@@ -16,6 +18,7 @@ import { DocumentAnnotationLayer, type AnnotationAnchorRect, type PendingAnchor 
 import { DocumentAnnotationPanel } from "./DocumentAnnotationPanel";
 import { DocumentAnnotationPopover } from "./DocumentAnnotationPopover";
 import type { CompanyUserProfile } from "@/lib/company-members";
+import { useTranslation } from "@/i18n";
 
 // Width of the right-hand comment gutter on desktop (lg+). The gutter is an
 // in-flow flex column beside the document, so it scrolls with the doc instead
@@ -76,6 +79,7 @@ export function IssueDocumentAnnotations({
   initialComposerAnchor,
   onInitialComposerAnchorConsumed,
 }: IssueDocumentAnnotationsProps) {
+  const { t } = useTranslation();
   const selectionDebugEnabled = isSelectionDebugEnabled();
   if (selectionDebugEnabled) initializeSelectionDebug();
   const containerRef = useRef<HTMLElement | null>(null);
@@ -130,13 +134,13 @@ export function IssueDocumentAnnotations({
 
   const newCommentDisabled = draftDirty || draftConflicted || historicalPreview || !doc.latestRevisionId;
   const newCommentDisabledReason = historicalPreview
-    ? "New comments are disabled while previewing a historical revision."
+    ? t("new_comments_are_disabled_while_previewing_a_his")
     : draftConflicted
-      ? "Resolve the document conflict before adding new comments."
+      ? t("resolve_the_document_conflict_before_adding_new")
       : draftDirty
-        ? "Save the draft to anchor new comments."
+        ? t("save_the_draft_to_anchor_new_comments")
         : !doc.latestRevisionId
-          ? "Document has no saved revision yet."
+          ? t("document_has_no_saved_revision_yet")
           : null;
 
   const handleSelectionAnchorChange = useCallback((anchor: PendingAnchor | null) => {
@@ -427,14 +431,14 @@ export function DocumentAnnotationsCountChip({
       onClick={onToggle}
       data-testid={`document-annotation-count-${docKey}`}
       aria-label={openCount === 0
-        ? `Open comments on ${docKey}`
-        : `Open ${openCount} unresolved comments on ${docKey}`}
+        ? t("zhComponents.message_dca1191486", { value1: docKey })
+        : t("zhComponents.message_febc559621", { value1: openCount, value2: docKey })}
       aria-expanded={panelOpen}
     >
       <MessageSquare className="h-3 w-3" aria-hidden="true" />
       <span className="tabular-nums">{openCount}</span>
       <span className="hidden sm:inline">
-        {openCount === 1 ? "comment" : "comments"}
+        {getCountNoun(openCount, "comment")}
       </span>
     </Button>
   );

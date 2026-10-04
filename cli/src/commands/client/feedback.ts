@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import pc from "picocolors";
@@ -74,22 +75,22 @@ interface FeedbackExportResult {
 }
 
 export function registerFeedbackCommands(program: Command): void {
-  const feedback = program.command("feedback").description("Inspect and export local feedback traces");
+  const feedback = program.command("feedback").description(tCli("Inspect and export local feedback traces"));
 
   addCommonClientOptions(
     feedback
       .command("report")
-      .description("Render a terminal report for company feedback traces")
-      .option("-C, --company-id <id>", "Company ID (overrides context default)")
-      .option("--target-type <type>", "Filter by target type")
-      .option("--vote <vote>", "Filter by vote value")
-      .option("--status <status>", "Filter by trace status")
-      .option("--project-id <id>", "Filter by project ID")
-      .option("--issue-id <id>", "Filter by issue ID")
-      .option("--from <iso8601>", "Only include traces created at or after this timestamp")
-      .option("--to <iso8601>", "Only include traces created at or before this timestamp")
-      .option("--shared-only", "Only include traces eligible for sharing/export")
-      .option("--payloads", "Include raw payload dumps in the terminal report", false)
+      .description(tCli("Render a terminal report for company feedback traces"))
+      .option("-C, --company-id <id>", tCli("Company ID (overrides context default)"))
+      .option("--target-type <type>", tCli("Filter by target type"))
+      .option("--vote <vote>", tCli("Filter by vote value"))
+      .option("--status <status>", tCli("Filter by trace status"))
+      .option("--project-id <id>", tCli("Filter by project ID"))
+      .option("--issue-id <id>", tCli("Filter by issue ID"))
+      .option("--from <iso8601>", tCli("Only include traces created at or after this timestamp"))
+      .option("--to <iso8601>", tCli("Only include traces created at or before this timestamp"))
+      .option("--shared-only", tCli("Only include traces eligible for sharing/export"))
+      .option("--payloads", tCli("Include raw payload dumps in the terminal report"), false)
       .action(async (opts: FeedbackReportOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -125,17 +126,17 @@ export function registerFeedbackCommands(program: Command): void {
   addCommonClientOptions(
     feedback
       .command("export")
-      .description("Export feedback votes and raw trace bundles into a folder plus zip archive")
-      .option("-C, --company-id <id>", "Company ID (overrides context default)")
-      .option("--target-type <type>", "Filter by target type")
-      .option("--vote <vote>", "Filter by vote value")
-      .option("--status <status>", "Filter by trace status")
-      .option("--project-id <id>", "Filter by project ID")
-      .option("--issue-id <id>", "Filter by issue ID")
-      .option("--from <iso8601>", "Only include traces created at or after this timestamp")
-      .option("--to <iso8601>", "Only include traces created at or before this timestamp")
-      .option("--shared-only", "Only include traces eligible for sharing/export")
-      .option("--out <path>", "Output directory (default: ./feedback-export-<timestamp>)")
+      .description(tCli("Export feedback votes and raw trace bundles into a folder plus zip archive"))
+      .option("-C, --company-id <id>", tCli("Company ID (overrides context default)"))
+      .option("--target-type <type>", tCli("Filter by target type"))
+      .option("--vote <vote>", tCli("Filter by vote value"))
+      .option("--status <status>", tCli("Filter by trace status"))
+      .option("--project-id <id>", tCli("Filter by project ID"))
+      .option("--issue-id <id>", tCli("Filter by issue ID"))
+      .option("--from <iso8601>", tCli("Only include traces created at or after this timestamp"))
+      .option("--to <iso8601>", tCli("Only include traces created at or before this timestamp"))
+      .option("--shared-only", tCli("Only include traces eligible for sharing/export"))
+      .option("--out <path>", tCli("Output directory (default: ./feedback-export-<timestamp>)"))
       .action(async (opts: FeedbackExportOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -172,8 +173,8 @@ export function registerFeedbackCommands(program: Command): void {
   addCommonClientOptions(
     feedback
       .command("trace")
-      .description("Get a feedback trace")
-      .argument("<traceId>", "Feedback trace ID")
+      .description(tCli("Get a feedback trace"))
+      .argument("<traceId>", tCli("Feedback trace ID"))
       .action(async (traceId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -187,8 +188,8 @@ export function registerFeedbackCommands(program: Command): void {
   addCommonClientOptions(
     feedback
       .command("bundle")
-      .description("Get a feedback trace bundle")
-      .argument("<traceId>", "Feedback trace ID")
+      .description(tCli("Get a feedback trace bundle"))
+      .argument("<traceId>", tCli("Feedback trace ID"))
       .action(async (traceId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -210,7 +211,7 @@ export async function resolveFeedbackCompanyId(
   const companyId = companies[0]?.id?.trim();
   if (!companyId) {
     throw new Error(
-      "Company ID is required. Pass --company-id, set PAPERCLIP_COMPANY_ID, or configure a CLI context default.",
+      tCli("Company ID is required. Pass --company-id, set PAPERCLIP_COMPANY_ID, or configure a CLI context default."),
     );
   }
   return companyId;
@@ -234,7 +235,7 @@ export function buildFeedbackTraceQuery(opts: FeedbackTraceQueryOptions, include
 export function normalizeFeedbackTraceExportFormat(value: string | undefined): "json" | "ndjson" {
   if (!value || value === "ndjson") return "ndjson";
   if (value === "json") return "json";
-  throw new Error(`Unsupported export format: ${value}`);
+  throw new Error(tCli("Unsupported export format: {{value}}", { value: value }));
 }
 
 export function serializeFeedbackTraces(traces: FeedbackTrace[], format: string | undefined): string {
@@ -262,7 +263,7 @@ export async function fetchFeedbackTraceBundle(
 ): Promise<FeedbackTraceBundle> {
   const bundle = await ctx.api.get<FeedbackTraceBundle>(apiPath`/api/feedback-traces/${traceId}/bundle`);
   if (!bundle) {
-    throw new Error(`Feedback trace bundle ${traceId} not found`);
+    throw new Error(tCli("Feedback trace bundle {{traceId}} not found", { traceId: traceId }));
   }
   return bundle;
 }
@@ -298,59 +299,59 @@ export function renderFeedbackReport(input: {
 }): string {
   const lines: string[] = [];
   lines.push("");
-  lines.push(pc.bold(pc.magenta("Paperclip Feedback Report")));
+  lines.push(pc.bold(pc.magenta(tCli("Paperclip Feedback Report"))));
   lines.push(pc.dim(new Date().toISOString()));
   lines.push(horizontalRule());
-  lines.push(`${pc.dim("Server:")}  ${input.apiBase}`);
-  lines.push(`${pc.dim("Company:")} ${input.companyId}`);
+  lines.push(`${pc.dim(tCli("Server:"))}  ${input.apiBase}`);
+  lines.push(`${pc.dim(tCli("Company:"))} ${input.companyId}`);
   lines.push("");
 
   if (input.traces.length === 0) {
-    lines.push(pc.yellow("[!!] No feedback traces found."));
+    lines.push(pc.yellow(tCli("[!!] No feedback traces found.")));
     lines.push("");
     return lines.join("\n");
   }
 
-  lines.push(pc.bold(pc.cyan("Summary")));
+  lines.push(pc.bold(pc.cyan(tCli("Summary"))));
   lines.push(horizontalRule());
-  lines.push(`  ${pc.green(pc.bold(String(input.summary.thumbsUp)))}  thumbs up`);
-  lines.push(`  ${pc.red(pc.bold(String(input.summary.thumbsDown)))}  thumbs down`);
-  lines.push(`  ${pc.yellow(pc.bold(String(input.summary.withReason)))}  downvotes with a reason`);
-  lines.push(`  ${pc.bold(String(input.summary.total))}  total traces`);
+  lines.push(tCli("  {{value0}}  thumbs up", { value0: pc.green(pc.bold(String(input.summary.thumbsUp))) }));
+  lines.push(tCli("  {{value0}}  thumbs down", { value0: pc.red(pc.bold(String(input.summary.thumbsDown))) }));
+  lines.push(tCli("  {{value0}}  downvotes with a reason", { value0: pc.yellow(pc.bold(String(input.summary.withReason))) }));
+  lines.push(tCli("  {{value0}}  total traces", { value0: pc.bold(String(input.summary.total)) }));
   lines.push("");
-  lines.push(pc.dim("Export status:"));
+  lines.push(pc.dim(tCli("Export status:")));
   for (const status of ["pending", "sent", "local_only", "failed"]) {
-    lines.push(`  ${padRight(status, 10)} ${input.summary.statuses[status] ?? 0}`);
+    lines.push(`  ${padRight(tCli(status), 10)} ${input.summary.statuses[status] ?? 0}`);
   }
   lines.push("");
-  lines.push(pc.bold(pc.cyan("Trace Details")));
+  lines.push(pc.bold(pc.cyan(tCli("Trace Details"))));
   lines.push(horizontalRule());
 
   for (const trace of input.traces) {
     const voteColor = trace.vote === "up" ? pc.green : pc.red;
     const voteIcon = trace.vote === "up" ? "^" : "v";
     const issueRef = trace.issueIdentifier ?? trace.issueId;
-    const label = trace.targetSummary.label?.trim() || trace.targetType;
+    const label = trace.targetSummary.label?.trim() || tCli(trace.targetType);
     const excerpt = compactText(trace.targetSummary.excerpt);
     const reason = readFeedbackReason(trace);
     lines.push(
       `  ${voteColor(voteIcon)} ${pc.bold(issueRef)} ${pc.dim(compactText(trace.issueTitle, 64))}`,
     );
     lines.push(
-      `    ${pc.dim("Trace:")} ${trace.id.slice(0, 8)}  ${pc.dim("Status:")} ${trace.status}  ${pc.dim("Date:")} ${formatTimestamp(trace.createdAt)}`,
+      `    ${pc.dim(tCli("Trace:"))} ${trace.id.slice(0, 8)}  ${pc.dim(tCli("Status:"))} ${tCli(trace.status)}  ${pc.dim(tCli("Date:"))} ${formatTimestamp(trace.createdAt)}`,
     );
-    lines.push(`    ${pc.dim("Target:")} ${label}`);
+    lines.push(`    ${pc.dim(tCli("Target:"))} ${label}`);
     if (excerpt) {
-      lines.push(`    ${pc.dim("Excerpt:")} ${excerpt}`);
+      lines.push(`    ${pc.dim(tCli("Excerpt:"))} ${excerpt}`);
     }
     if (reason) {
-      lines.push(`    ${pc.yellow(pc.bold("Reason:"))} ${pc.yellow(reason)}`);
+      lines.push(`    ${pc.yellow(pc.bold(tCli("Reason:")))} ${pc.yellow(reason)}`);
     }
     lines.push("");
   }
 
   if (input.includePayloads) {
-    lines.push(pc.bold(pc.cyan("Raw Payloads")));
+    lines.push(pc.bold(pc.cyan(tCli("Raw Payloads"))));
     lines.push(horizontalRule());
     for (const trace of input.traces) {
       if (!trace.payloadSnapshot) continue;
@@ -365,7 +366,7 @@ export function renderFeedbackReport(input: {
   }
 
   lines.push(horizontalRule());
-  lines.push(pc.dim(`Report complete. ${input.traces.length} trace(s) displayed.`));
+  lines.push(pc.dim(tCli("Report complete. {{count}} trace(s) displayed.", { count: input.traces.length })));
   lines.push("");
   return lines.join("\n");
 }
@@ -470,25 +471,25 @@ export async function writeFeedbackExportBundle(input: {
 export function renderFeedbackExportSummary(exported: FeedbackExportResult): string {
   const lines: string[] = [];
   lines.push("");
-  lines.push(pc.bold(pc.magenta("Paperclip Feedback Export")));
+  lines.push(pc.bold(pc.magenta(tCli("Paperclip Feedback Export"))));
   lines.push(pc.dim(exported.manifest.exportedAt));
   lines.push(horizontalRule());
-  lines.push(`${pc.dim("Company:")} ${exported.manifest.companyId}`);
-  lines.push(`${pc.dim("Output:")}  ${exported.outputDir}`);
-  lines.push(`${pc.dim("Archive:")} ${exported.zipPath}`);
+  lines.push(`${pc.dim(tCli("Company:"))} ${exported.manifest.companyId}`);
+  lines.push(`${pc.dim(tCli("Output:"))}  ${exported.outputDir}`);
+  lines.push(`${pc.dim(tCli("Archive:"))} ${exported.zipPath}`);
   lines.push("");
-  lines.push(pc.bold("Export Summary"));
+  lines.push(pc.bold(tCli("Export Summary")));
   lines.push(horizontalRule());
-  lines.push(`  ${pc.green(pc.bold(String(exported.manifest.summary.thumbsUp)))}  thumbs up`);
-  lines.push(`  ${pc.red(pc.bold(String(exported.manifest.summary.thumbsDown)))}  thumbs down`);
-  lines.push(`  ${pc.yellow(pc.bold(String(exported.manifest.summary.withReason)))}  with reason`);
-  lines.push(`  ${pc.bold(String(exported.manifest.summary.uniqueIssues))}  unique issues`);
+  lines.push(tCli("  {{value0}}  thumbs up", { value0: pc.green(pc.bold(String(exported.manifest.summary.thumbsUp))) }));
+  lines.push(tCli("  {{value0}}  thumbs down", { value0: pc.red(pc.bold(String(exported.manifest.summary.thumbsDown))) }));
+  lines.push(tCli("  {{value0}}  with reason", { value0: pc.yellow(pc.bold(String(exported.manifest.summary.withReason))) }));
+  lines.push(tCli("  {{value0}}  unique issues", { value0: pc.bold(String(exported.manifest.summary.uniqueIssues)) }));
   lines.push("");
-  lines.push(pc.dim("Files:"));
+  lines.push(pc.dim(tCli("Files:")));
   lines.push(`  ${path.join(exported.outputDir, "index.json")}`);
-  lines.push(`  ${path.join(exported.outputDir, "votes")} (${exported.manifest.files.votes.length} files)`);
-  lines.push(`  ${path.join(exported.outputDir, "traces")} (${exported.manifest.files.traces.length} files)`);
-  lines.push(`  ${path.join(exported.outputDir, "full-traces")} (${exported.manifest.files.fullTraces.length} bundles)`);
+  lines.push(tCli("  {{value0}} ({{value1}} files)", { value0: path.join(exported.outputDir, "votes"), value1: exported.manifest.files.votes.length }));
+  lines.push(tCli("  {{value0}} ({{value1}} files)", { value0: path.join(exported.outputDir, "traces"), value1: exported.manifest.files.traces.length }));
+  lines.push(tCli("  {{value0}} ({{value1}} bundles)", { value0: path.join(exported.outputDir, "full-traces"), value1: exported.manifest.files.fullTraces.length }));
   lines.push(`  ${exported.zipPath}`);
   lines.push("");
   return lines.join("\n");
@@ -556,11 +557,11 @@ async function ensureEmptyOutputDirectory(outputDir: string): Promise<void> {
   try {
     const info = await stat(outputDir);
     if (!info.isDirectory()) {
-      throw new Error(`Output path already exists and is not a directory: ${outputDir}`);
+      throw new Error(tCli("Output path already exists and is not a directory: {{outputDir}}", { outputDir: outputDir }));
     }
     const entries = await readdir(outputDir);
     if (entries.length > 0) {
-      throw new Error(`Output directory already exists and is not empty: ${outputDir}`);
+      throw new Error(tCli("Output directory already exists and is not empty: {{outputDir}}", { outputDir: outputDir }));
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "";

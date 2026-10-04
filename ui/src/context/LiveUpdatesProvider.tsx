@@ -25,6 +25,8 @@ import { queryKeys } from "../lib/queryKeys";
 import { toCompanyRelativePath } from "../lib/company-routes";
 import { useLocation } from "../lib/router";
 import { buildSameOriginWebSocketUrl } from "../lib/websocket-url";
+import { t } from "@/i18n";
+import { getDisplayLabel } from "@/lib/display-labels";
 
 const TOAST_COOLDOWN_WINDOW_MS = 10_000;
 const TOAST_COOLDOWN_MAX = 3;
@@ -138,13 +140,13 @@ function resolveActorLabel(
   actorId: string | null,
 ): string {
   if (actorType === "agent" && actorId) {
-    return resolveAgentName(queryClient, companyId, actorId) ?? `Agent ${shortId(actorId)}`;
+    return resolveAgentName(queryClient, companyId, actorId) ?? t("zhSupport.agentId", { id: shortId(actorId) });
   }
-  if (actorType === "system") return "System";
+  if (actorType === "system") return t("system");
   if (actorType === "user" && actorId) {
-    return resolveUserName(queryClient, companyId, actorId) ?? "Board";
+    return resolveUserName(queryClient, companyId, actorId) ?? t("board");
   }
-  return "Someone";
+  return t("someone");
 }
 
 interface IssueToastContext {
@@ -657,19 +659,19 @@ const RUN_TOAST_STATUSES = new Set(["failed", "timed_out", "cancelled"]);
 function describeIssueUpdate(details: Record<string, unknown> | null): string | null {
   if (!details) return null;
   const changes: string[] = [];
-  if (typeof details.status === "string") changes.push(`status -> ${details.status.replace(/_/g, " ")}`);
-  if (typeof details.priority === "string") changes.push(`priority -> ${details.priority}`);
+  if (typeof details.status === "string") changes.push(t("zhSupport.statusChanged", { status: getDisplayLabel(details.status) }));
+  if (typeof details.priority === "string") changes.push(t("zhSupport.priorityChanged", { priority: getDisplayLabel(details.priority) }));
   if (typeof details.assigneeAgentId === "string" || typeof details.assigneeUserId === "string") {
-    changes.push("reassigned");
+    changes.push(t("zhSupport.reassigned"));
   } else if (details.assigneeAgentId === null || details.assigneeUserId === null) {
-    changes.push("unassigned");
+    changes.push(t("zhSupport.unassigned"));
   }
   if (details.reopened === true) {
     const from = readString(details.reopenedFrom);
-    changes.push(from ? `reopened from ${from.replace(/_/g, " ")}` : "reopened");
+    changes.push(from ? t("zhSupport.reopenedFrom", { status: getDisplayLabel(from) }) : t("zhSupport.reopened"));
   }
-  if (typeof details.title === "string") changes.push("title changed");
-  if (typeof details.description === "string") changes.push("description changed");
+  if (typeof details.title === "string") changes.push(t("title_changed"));
+  if (typeof details.description === "string") changes.push(t("description_changed"));
   if (changes.length > 0) return changes.join(", ");
   return null;
 }
@@ -700,10 +702,10 @@ function buildActivityToast(
 
   if (action === "issue.created") {
     return {
-      title: `${actor} created ${issue.ref}`,
+      title: t("zhSupport.actorCreated", { actor, issue: issue.ref }),
       body: issue.title ? truncate(issue.title, 96) : undefined,
       tone: "success",
-      action: { label: `View ${issue.ref}`, href: issue.href },
+      action: { label: t("zhSupport.viewIssue", { issue: issue.ref }), href: issue.href },
       dedupeKey: `activity:${action}:${entityId}`,
     };
   }
@@ -722,10 +724,10 @@ function buildActivityToast(
         ? truncate(issue.title, 96)
         : issue.label;
     return {
-      title: `${actor} updated ${issue.ref}`,
+      title: t("zhSupport.actorUpdated", { actor, issue: issue.ref }),
       body: truncate(body, 100),
       tone: "info",
-      action: { label: `View ${issue.ref}`, href: issue.href },
+      action: { label: t("zhSupport.viewIssue", { issue: issue.ref }), href: issue.href },
       dedupeKey: `activity:${action}:${entityId}`,
     };
   }
@@ -737,14 +739,14 @@ function buildActivityToast(
   const reopenedFrom = readString(details?.reopenedFrom);
   const reopenedLabel = reopened
     ? reopenedFrom
-      ? `reopened from ${reopenedFrom.replace(/_/g, " ")}`
-      : "reopened"
+      ? t("zhSupport.reopenedFrom", { status: getDisplayLabel(reopenedFrom) })
+      : t("zhSupport.reopened")
     : null;
   const title = reopened
-    ? `${actor} reopened and commented on ${issue.ref}`
+    ? t("zhSupport.actorReopenedCommented", { actor, issue: issue.ref })
     : updated
-      ? `${actor} commented and updated ${issue.ref}`
-      : `${actor} commented on ${issue.ref}`;
+      ? t("zhSupport.actorCommentedUpdated", { actor, issue: issue.ref })
+      : t("zhSupport.actorCommented", { actor, issue: issue.ref });
   const body = bodySnippet
     ? reopenedLabel
       ? `${reopenedLabel} - ${bodySnippet.replace(/^#+\s*/m, "").replace(/\n/g, " ")}`
@@ -758,7 +760,7 @@ function buildActivityToast(
     title,
     body: body ? truncate(body, 96) : undefined,
     tone: "info",
-    action: { label: `View ${issue.ref}`, href: issue.href },
+    action: { label: t("zhSupport.viewIssue", { issue: issue.ref }), href: issue.href },
     dedupeKey: `activity:${action}:${entityId}:${commentId ?? "na"}`,
   };
 }
@@ -775,13 +777,13 @@ function buildJoinRequestToast(
   if (action !== "join.requested" && action !== "join.request_replayed") return null;
 
   const requestType = readString(details?.requestType);
-  const label = requestType === "agent" ? "Agent" : "Someone";
+  const label = requestType === "agent" ? t("agent_5ce2e6") : t("someone");
 
   return {
-    title: `${label} wants to join`,
-    body: "A new join request is waiting for approval.",
+    title: t("zhSupport.wantsJoin", { label }),
+    body: t("a_new_join_request_is_waiting_for_approval"),
     tone: "info",
-    action: { label: "View inbox", href: "/inbox/mine" },
+    action: { label: t("view_inbox"), href: "/inbox/mine" },
     dedupeKey: `join-request:${entityId}`,
   };
 }
@@ -797,11 +799,11 @@ function buildAgentStatusToast(
   if (!agentId || !status || !AGENT_TOAST_STATUSES.has(status)) return null;
 
   const tone = status === "error" ? "error" : "info";
-  const name = nameOf(agentId) ?? `Agent ${shortId(agentId)}`;
+  const name = nameOf(agentId) ?? t("zhSupport.agentId", { id: shortId(agentId) });
   const title =
     status === "running"
-      ? `${name} started`
-      : `${name} errored`;
+      ? t("zhSupport.agentStarted", { name })
+      : t("zhSupport.agentErrored", { name });
 
   const agents = queryClient.getQueryData<Agent[]>(queryKeys.agents.list(companyId));
   const agent = agents?.find((a) => a.id === agentId);
@@ -811,7 +813,7 @@ function buildAgentStatusToast(
     title,
     body,
     tone,
-    action: { label: "View agent", href: `/agents/${agentId}` },
+    action: { label: t("view_agent"), href: `/agents/${agentId}` },
     dedupeKey: `agent-status:${agentId}:${status}`,
   };
 }
@@ -827,20 +829,15 @@ function buildRunStatusToast(
 
   const error = readString(payload.error);
   const triggerDetail = readString(payload.triggerDetail);
-  const name = nameOf(agentId) ?? `Agent ${shortId(agentId)}`;
+  const name = nameOf(agentId) ?? t("zhSupport.agentId", { id: shortId(agentId) });
   const tone = status === "succeeded" ? "success" : status === "cancelled" ? "warn" : "error";
-  const statusLabel =
-    status === "succeeded" ? "succeeded"
-      : status === "failed" ? "failed"
-        : status === "timed_out" ? "timed out"
-          : "cancelled";
-  const title = `${name} run ${statusLabel}`;
+  const title = t("zhSupport.agentRunStatus", { name, status: getDisplayLabel(status).toLocaleLowerCase() });
 
   let body: string | undefined;
   if (error) {
     body = truncate(error, 100);
   } else if (triggerDetail) {
-    body = `Trigger: ${triggerDetail}`;
+    body = t("zhSupport.triggerDetail", { trigger: getDisplayLabel(triggerDetail) });
   }
 
   return {
@@ -848,7 +845,7 @@ function buildRunStatusToast(
     body,
     tone,
     ttlMs: status === "succeeded" ? 5000 : 7000,
-    action: { label: "View run", href: `/agents/${agentId}/runs/${runId}` },
+    action: { label: t("view_run_c8005b"), href: `/agents/${agentId}/runs/${runId}` },
     dedupeKey: `run-status:${runId}:${status}`,
   };
 }

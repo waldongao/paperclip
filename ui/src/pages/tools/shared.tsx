@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { ReactNode } from "react";
 import type {
   ToolRiskLevel,
@@ -9,10 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApiError } from "@/api/client";
+import { t, useTranslation } from "@/i18n";
 
 /** Risk classification badge for a catalog tool. */
 export function RiskBadge({ risk }: { risk: ToolRiskLevel | null | undefined }) {
-  if (!risk) return <Badge variant="outline">unknown</Badge>;
+  if (!risk) return <Badge variant="outline">{t("zhPages.b23a6a8439c0")}</Badge>;
   const variant =
     risk === "high" || risk === "critical"
       ? "destructive"
@@ -34,9 +36,9 @@ export function CapabilityBadges({
 }) {
   return (
     <span className="inline-flex flex-wrap gap-1">
-      {isReadOnly ? <Badge variant="outline">read-only</Badge> : null}
-      {isWrite ? <Badge variant="secondary">write</Badge> : null}
-      {isDestructive ? <Badge variant="destructive">destructive</Badge> : null}
+      {isReadOnly ? <Badge variant="outline">{t("zhPages.4fed3970dcc0")}</Badge> : null}
+      {isWrite ? <Badge variant="secondary">{t("zhPages.10fd874b68da")}</Badge> : null}
+      {isDestructive ? <Badge variant="destructive">{t("zhPages.1b933329d22a")}</Badge> : null}
     </span>
   );
 }
@@ -91,12 +93,12 @@ function decisionToStatusKey(decision: string): { key: string; label: string } {
       return { key: "block", label: "block" };
     case "require_approval":
     case "requires_approval":
-      return { key: "require-approval", label: "require approval" };
+      return { key: "require-approval", label: t("require_approval") };
     case "redact":
     case "redacted":
       return { key: "redacted", label: "redacted" };
     case "rate_limited":
-      return { key: "rate-limit", label: "rate limited" };
+      return { key: "rate-limit", label: t("rate_limited") };
     case "defer":
     case "deferred":
       return { key: "deferred", label: "deferred" };
@@ -116,7 +118,8 @@ export function DecisionBadge({ decision }: { decision: ToolPolicyDecision | str
 
 /** Compact relative time, falling back to absolute. */
 export function RelativeTime({ value }: { value: Date | string | null | undefined }) {
-  if (!value) return <span className="text-muted-foreground">never</span>;
+  const { t } = useTranslation();
+  if (!value) return <span className="text-muted-foreground">{t("zhPages.6497e4b3d7be")}</span>;
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return <span className="text-muted-foreground">—</span>;
   const diffMs = Date.now() - date.getTime();
@@ -124,14 +127,14 @@ export function RelativeTime({ value }: { value: Date | string | null | undefine
   const mins = Math.round(abs / 60000);
   const isFuture = diffMs < 0;
   let text: string;
-  if (mins < 1) text = "just now";
+  if (mins < 1) text = t("just_now");
   else {
     const value =
       mins < 60 ? `${mins}m` : mins < 1440 ? `${Math.round(mins / 60)}h` : `${Math.round(mins / 1440)}d`;
-    text = isFuture ? `in ${value}` : `${value} ago`;
+    text = isFuture ? t("zhPages.f8f86ab7a027", { value: value }) : t("zhPages.3606acf55093", { value: value });
   }
   return (
-    <span title={date.toLocaleString()} className="text-muted-foreground">
+    <span title={date.toLocaleString(i18n.resolvedLanguage ?? i18n.language)} className="text-muted-foreground">
       {text}
     </span>
   );
@@ -157,7 +160,7 @@ export function ToolsPageHeader({
   );
 }
 
-export function LoadingState({ label = "Loading…" }: { label?: string }) {
+export function LoadingState({ label = t("loading") }: { label?: string }) {
   return (
     <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
       <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
@@ -168,20 +171,21 @@ export function LoadingState({ label = "Loading…" }: { label?: string }) {
 
 /** Actionable error surface — surfaces the server message and HTTP status. */
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
+  const { t } = useTranslation();
   let message: string;
   if (error instanceof ApiError) {
     if (error.status === 403) {
-      message = "You do not have permission to view this. Tools & Access requires board/admin access.";
-    } else if (error.status === 404 || /route not found/i.test(error.message)) {
+      message = t("you_do_not_have_permission_to_view_this_tools_ac");
+    } else if (error.status === 404 || /route not found/i.test(error.rawMessage)) {
       // Snapshot-skew window: the route exists in this build but not on the live server snapshot yet.
-      message = "Tools & Access isn't available on this server yet — try refreshing after the next deployment.";
+      message = t("tools_access_isnt_available_on_this_server_yet_t");
     } else {
       message = error.message;
     }
   } else if (error instanceof Error) {
     message = error.message;
   } else {
-    message = "Something went wrong.";
+    message = t("something_went_wrong");
   }
   return (
     <Card className="border-destructive/40">
@@ -189,7 +193,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
         <div className="flex items-start gap-2 text-sm text-destructive">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
-            <p className="font-medium">Could not load this view</p>
+            <p className="font-medium">{t("could_not_load_this_view")}</p>
             <p className="text-destructive/80">{message}</p>
           </div>
         </div>
@@ -199,7 +203,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
             onClick={onRetry}
             className="self-start rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent"
           >
-            Retry
+            {t("retry")}
           </button>
         ) : null}
       </CardContent>
@@ -221,6 +225,7 @@ export function PendingBackendNotice({
   body: ReactNode;
   issue?: { identifier: string; href: string };
 }) {
+  const { t } = useTranslation();
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col gap-2 py-8">
@@ -231,7 +236,7 @@ export function PendingBackendNotice({
         <p className="max-w-2xl text-sm text-muted-foreground">{body}</p>
         {issue ? (
           <a href={issue.href} className="text-sm font-medium text-primary hover:underline">
-            Tracked in {issue.identifier} →
+            {t("tracked_in")} {issue.identifier} →
           </a>
         ) : null}
       </CardContent>

@@ -5,11 +5,13 @@ import {
   Field,
 } from "../../components/agent-config-primitives";
 import { ChoosePathButton } from "../../components/PathInstructionsModal";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
 const instructionsFileHint =
-  "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Prepended to the Gemini prompt at runtime.";
+  t("absolute_path_to_a_markdown_file_e_g_agents_md_t_e2bfe4");
 
 export function GeminiLocalConfigFields({
   isCreate,
@@ -21,6 +23,7 @@ export function GeminiLocalConfigFields({
   hideInstructionsFile,
   managedSandboxOnly,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   const rawEngine = isCreate
     ? values!.geminiEngine ?? "auto"
     : eff("adapterConfig", "engine", String(config.engine ?? "auto"));
@@ -34,7 +37,7 @@ export function GeminiLocalConfigFields({
         the ACP sub-fields below name host paths. The platform-managed
         environment owns both, so the managed-sandbox-only policy hides them.
       */}
-      {!managedSandboxOnly && <Field label="Execution engine" hint="Auto uses ACP when prerequisites pass and falls back to Gemini CLI with diagnostics.">
+      {!managedSandboxOnly && <Field label={t("execution_engine")} hint={t("auto_uses_acp_when_prerequisites_pass_and_falls_dbc7d4")}>
         <select
           className={inputClass}
           value={engine}
@@ -45,17 +48,17 @@ export function GeminiLocalConfigFields({
               : mark("adapterConfig", "engine", value === "auto" ? undefined : value);
           }}
         >
-          <option value="auto">Auto (ACP preferred)</option>
-          <option value="cli">Gemini CLI</option>
-          <option value="acp">ACP</option>
+          <option value="auto">{t("auto_acp_preferred")}</option>
+          <option value="cli">{t("gemini_cli")}</option>
+          <option value="acp">{t("acp")}</option>
         </select>
       </Field>}
       {acpSelected && (
         <>
           {!managedSandboxOnly && (
             <Field
-              label="ACP server command"
-              hint="Optional override for the Gemini ACP server command. Defaults to gemini --acp."
+              label={t("acp_server_command")}
+              hint={t("optional_override_for_the_gemini_acp_server_comm")}
             >
               <DraftInput
                 value={
@@ -70,11 +73,11 @@ export function GeminiLocalConfigFields({
                 }
                 immediate
                 className={inputClass}
-                placeholder="gemini --acp"
+                placeholder={"gemini --acp"}
               />
             </Field>
           )}
-          <Field label="ACP session mode" hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run.">
+          <Field label={t("acp_session_mode")} hint={t("persistent_keeps_acp_session_state_between_runs")}>
             <select
               className={inputClass}
               value={
@@ -89,13 +92,13 @@ export function GeminiLocalConfigFields({
                   : mark("adapterConfig", "mode", value);
               }}
             >
-              <option value="persistent">Persistent</option>
-              <option value="oneshot">One-shot</option>
+              <option value="persistent">{t("persistent")}</option>
+              <option value="oneshot">{t("one_shot")}</option>
             </select>
           </Field>
           <Field
-            label="ACP non-interactive permissions"
-            hint="Fallback if the ACP agent asks for input outside an interactive session."
+            label={t("acp_non_interactive_permissions")}
+            hint={t("fallback_if_the_acp_agent_asks_for_input_outside")}
           >
             <select
               className={inputClass}
@@ -111,14 +114,14 @@ export function GeminiLocalConfigFields({
                   : mark("adapterConfig", "nonInteractivePermissions", value);
               }}
             >
-              <option value="deny">Deny</option>
-              <option value="fail">Fail</option>
+              <option value="deny">{t("deny")}</option>
+              <option value="fail">{t("fail")}</option>
             </select>
           </Field>
           {!managedSandboxOnly && (
             <Field
-              label="ACP state directory"
-              hint="Optional ACP session state directory. Defaults to Paperclip-managed organization/agent scoped storage."
+              label={t("acp_state_directory")}
+              hint={t("optional_acp_session_state_directory_defaults_to")}
             >
               <div className="flex items-center gap-2">
                 <DraftInput
@@ -141,8 +144,8 @@ export function GeminiLocalConfigFields({
             </Field>
           )}
           <Field
-            label="ACP warm process idle ms"
-            hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
+            label={t("acp_warm_process_idle_ms")}
+            hint={t("defaults_to_0_which_closes_the_acp_process_after")}
           >
             {isCreate ? (
               <input
@@ -167,7 +170,7 @@ export function GeminiLocalConfigFields({
         </>
       )}
       {!hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={t("agent_instructions_file")} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={

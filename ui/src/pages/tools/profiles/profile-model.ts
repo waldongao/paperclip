@@ -5,6 +5,7 @@ import type {
   ToolRiskLevel,
 } from "@paperclipai/shared";
 import type { ToolProfileEntryInput } from "@/api/tools";
+import { t } from "@/i18n";
 
 /**
  * Pure domain model for the prosumer access-profile wizard (PAP-10997).
@@ -31,9 +32,9 @@ export function toolCapability(tool: ToolCatalogEntry): ToolCapability {
 }
 
 export const CAPABILITY_LABEL: Record<ToolCapability, string> = {
-  read: "Read-only",
-  write: "Makes changes",
-  destructive: "Destructive",
+  read: t("read_only_9b19a5"),
+  write: t("makes_changes"),
+  destructive: t("destructive"),
 };
 
 // --- App grouping ----------------------------------------------------------
@@ -66,7 +67,7 @@ export function groupCatalogByApp(
       const name =
         (tool.applicationId ? applicationsById.get(tool.applicationId) : null) ??
         connectionsById.get(tool.connectionId) ??
-        "Tools";
+        t("tools");
       group = {
         appKey,
         applicationId: tool.applicationId,
@@ -131,16 +132,16 @@ export function appCheckState(group: AppGroup, selection: AppSelection | undefin
 export function appSelectionLabel(group: AppGroup, selection: AppSelection | undefined): string {
   const total = group.tools.length;
   const state = appCheckState(group, selection);
-  if (state === "unchecked") return "None selected";
+  if (state === "unchecked") return t("none_selected");
   if (selection?.kind === "all" || (selection?.kind === "all_except" && selection.excluded.length === 0)) {
-    return `All ${group.name} tools (${total})`;
+    return t("zhPages.dba331bfd44f", { name: group.name, total: total });
   }
   if (selection?.kind === "all_except") {
     const n = selection.excluded.length;
-    return `All ${group.name} except ${n}`;
+    return t("zhPages.66b6f301ab62", { name: group.name, n: n });
   }
   const n = selectedToolIds(group, selection).size;
-  return `${n} of ${total} ${group.name} tools`;
+  return t("zhPages.a57b46a167cf", { n: n, total: total, name: group.name });
 }
 
 // --- Checkbox reducers -----------------------------------------------------
@@ -368,11 +369,11 @@ export interface TemplateDef {
 }
 
 export const TEMPLATES: TemplateDef[] = [
-  { key: "read_only", title: "Read-only", description: "See and fetch, but never change anything." },
-  { key: "everyday", title: "Everyday work", description: "Read and make routine changes — no destructive tools." },
-  { key: "full_access", title: "Full access", description: "Everything every connected app offers." },
-  { key: "scratch", title: "Start from scratch", description: "An empty profile you build up tool by tool." },
-  { key: "copy", title: "Copy an existing profile", description: "Start from a profile you already have." },
+  { key: "read_only", title: t("read_only_9b19a5"), description: t("see_and_fetch_but_never_change_anything") },
+  { key: "everyday", title: t("everyday_work"), description: t("read_and_make_routine_changes_no_destructive_too") },
+  { key: "full_access", title: t("full_access"), description: t("everything_every_connected_app_offers") },
+  { key: "scratch", title: t("start_from_scratch"), description: t("an_empty_profile_you_build_up_tool_by_tool") },
+  { key: "copy", title: t("copy_an_existing_profile"), description: t("start_from_a_profile_you_already_have") },
 ];
 
 function capabilityPredicate(key: TemplateKey): (tool: ToolCatalogEntry) => boolean {

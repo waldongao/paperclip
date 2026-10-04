@@ -8,6 +8,7 @@ import {
   sanitizeRememberedPathForCompany,
 } from "../lib/company-page-memory";
 
+
 const STORAGE_KEY = "paperclip.companyPaths";
 
 function getCompanyPaths(): Record<string, string> {

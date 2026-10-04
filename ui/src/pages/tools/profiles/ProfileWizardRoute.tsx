@@ -6,6 +6,7 @@ import { advancedTabHref } from "../tool-tabs";
 import { ToolsAdminGate } from "./ToolsAdminGate";
 import { ProfileWizard } from "./ProfileWizard";
 import { TEMPLATES, type TemplateKey } from "./profile-model";
+import { useTranslation } from "@/i18n";
 
 /**
  * Full-page host for the access-profile create/resume wizard (PAP-10997 §B).
@@ -14,6 +15,7 @@ import { TEMPLATES, type TemplateKey } from "./profile-model";
  * the rest of the tool-access surface.
  */
 export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
+  const { t } = useTranslation();
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const params = useParams<{ profileId?: string }>();
@@ -28,16 +30,16 @@ export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Organization", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Access profiles", href: advancedTabHref("profiles") },
-      { label: mode === "edit" ? "Resume draft" : "New profile" },
+      { label: selectedCompany?.name ?? t("organization"), href: "/dashboard" },
+      { label: t("apps"), href: "/apps" },
+      { label: t("access_profiles"), href: advancedTabHref("profiles") },
+      { label: mode === "edit" ? t("resume_draft") : t("new_profile") },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name, mode]);
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to create a profile.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("select_an_organization_to_create_a_profile")}</div>;
   }
 
   return (
@@ -45,10 +47,10 @@ export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-4 sm:p-6">
         <header>
           <h1 className="text-xl font-bold text-foreground">
-            {mode === "edit" ? "Finish your profile" : "New access profile"}
+            {mode === "edit" ? t("finish_your_profile") : t("new_access_profile")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose which tools this profile allows, then assign it to the agents that need them.
+            {t("choose_which_tools_this_profile_allows_then_assi")}
           </p>
         </header>
         <ProfileWizard

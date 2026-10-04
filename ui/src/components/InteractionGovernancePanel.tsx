@@ -15,14 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { resolverPolicyLabel } from "../lib/interaction-audience";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 const INTERACTION_KIND_LABELS: Record<IssueThreadInteractionKind, string> = {
-  suggest_tasks: "Suggested tasks",
-  ask_user_questions: "Ask user questions",
-  request_confirmation: "Confirmations",
-  request_checkbox_confirmation: "Checkbox confirmations",
-  request_item_verdicts: "Item verdicts",
-  connection_intent: "Connection requests",
+  suggest_tasks: t("suggested_tasks"),
+  ask_user_questions: t("ask_user_questions"),
+  request_confirmation: t("confirmations"),
+  request_checkbox_confirmation: t("checkbox_confirmations"),
+  request_item_verdicts: t("item_verdicts"),
+  connection_intent: t("connection_requests"),
 };
 
 /**
@@ -48,25 +50,25 @@ const NARROWING_POLICIES: readonly IssueThreadInteractionCanonicalResolverPolicy
 ];
 
 const UNSET_LABELS: Record<GovernanceField, string> = {
-  defaultPolicy: "Anyone (default)",
-  cap: "No cap",
+  defaultPolicy: t("anyone_default"),
+  cap: t("no_cap_2e991b"),
 };
 
 const UNSET_EFFECTS: Record<GovernanceField, string> = {
-  defaultPolicy: "New cards are open — the board or any agent can respond, including the one that asked.",
-  cap: "A request keeps whatever audience it asks for.",
+  defaultPolicy: t("new_cards_are_open_the_board_or_any_agent_can_re"),
+  cap: t("a_request_keeps_whatever_audience_it_asks_for"),
 };
 
 const DEFAULT_POLICY_EFFECTS: Record<IssueThreadInteractionCanonicalResolverPolicy, string> = {
   anyone: UNSET_EFFECTS.defaultPolicy,
-  not_creator: "New cards exclude the agent that created them, so the answer comes from someone else.",
-  human_only: "New cards wait for a person on the board. Agents are turned away.",
+  not_creator: t("new_cards_exclude_the_agent_that_created_them_so"),
+  human_only: t("new_cards_wait_for_a_person_on_the_board_agents"),
 };
 
 const CAP_EFFECTS: Record<IssueThreadInteractionCanonicalResolverPolicy, string> = {
   anyone: UNSET_EFFECTS.cap,
-  not_creator: "Even a card that asks for Anyone is narrowed to exclude its creator.",
-  human_only: "Every card of this kind waits for a person, whatever it asked for.",
+  not_creator: t("even_a_card_that_asks_for_anyone_is_narrowed_to"),
+  human_only: t("every_card_of_this_kind_waits_for_a_person_whate"),
 };
 
 function governanceOptions(field: GovernanceField): {
@@ -236,22 +238,19 @@ export function InteractionGovernancePanel({
   isPending?: boolean;
   errorMessage?: string | null;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4" data-testid="company-settings-interaction-governance-section">
       <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        Interaction governance
+        {t("interaction_governance")}
       </div>
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Thread interactions are open by default:{" "}
-          <span className="font-medium text-foreground">Anyone</span> in the organization — the
-          board or any agent, including the one that asked — can respond. Narrow a kind
-          only when you need to.{" "}
-          <span className="font-medium text-foreground">Default policy</span> is the
-          audience new cards get when the requester does not ask for one;{" "}
-          <span className="font-medium text-foreground">Cap</span> narrows every request of
-          that kind and can never widen one. Tool-approval confirmations always stay{" "}
-          <span className="font-medium text-foreground">Human only</span>.
+          {t("thread_interactions_are_open_by_default")}{" "}
+          <span className="font-medium text-foreground">{t("anyone")}</span> {t("in_the_organization_the_board_or_any_agent_inclu")}{" "}
+          <span className="font-medium text-foreground">{t("default_policy")}</span> {t("is_the_audience_new_cards_get_when_the_requester")}{" "}
+          <span className="font-medium text-foreground">{t("cap")}</span> {t("narrows_every_request_of_that_kind_and_can_never")}{" "}
+          <span className="font-medium text-foreground">{t("human_only")}</span>.
         </p>
         {/*
          * Responsive: below `sm` the row collapses to a single column so the
@@ -262,13 +261,13 @@ export function InteractionGovernancePanel({
          */}
         <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-x-4 sm:gap-y-2.5">
           <div className="hidden text-xs font-medium text-muted-foreground uppercase tracking-wide sm:block">
-            Kind
+            {t("kind")}
           </div>
           <div className="hidden text-xs font-medium text-muted-foreground uppercase tracking-wide sm:block">
-            Default policy
+            {t("default_policy")}
           </div>
           <div className="hidden text-xs font-medium text-muted-foreground uppercase tracking-wide sm:block">
-            Cap
+            {t("cap")}
           </div>
           {ISSUE_THREAD_INTERACTION_KINDS.map((kind) => {
             const entry = governance[kind] ?? {};
@@ -279,8 +278,8 @@ export function InteractionGovernancePanel({
                 <GovernanceSelect
                   field="defaultPolicy"
                   testId={`governance-${kind}-default`}
-                  ariaLabel={`Default resolver audience for ${kindLabel}`}
-                  mobileLabel="Default policy"
+                  ariaLabel={t("zhComponents.message_5a30b9c593", { value1: kindLabel })}
+                  mobileLabel={t("default_policy")}
                   value={toGovernanceSelectValue(entry.defaultPolicy)}
                   disabled={isPending}
                   onChange={(v) => onChange(kind, "defaultPolicy", v)}
@@ -288,8 +287,8 @@ export function InteractionGovernancePanel({
                 <GovernanceSelect
                   field="cap"
                   testId={`governance-${kind}-cap`}
-                  ariaLabel={`Resolver cap for ${kindLabel}`}
-                  mobileLabel="Cap"
+                  ariaLabel={t("zhComponents.message_71aabd217e", { value1: kindLabel })}
+                  mobileLabel={t("cap")}
                   value={toGovernanceSelectValue(entry.cap)}
                   disabled={isPending}
                   onChange={(v) => onChange(kind, "cap", v)}

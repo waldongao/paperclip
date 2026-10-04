@@ -21,6 +21,7 @@ import type {
 } from "@paperclipai/shared";
 import { api } from "./client";
 
+
 /**
  * Normalized UI contribution record returned by `GET /api/plugins/ui-contributions`.
  *

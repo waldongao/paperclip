@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import {
   chmodSync,
   copyFileSync,
@@ -287,14 +288,14 @@ function formatSeededWorktreeExecutionQuarantineSummary(
   summary: SeededWorktreeExecutionQuarantineSummary,
 ): string {
   return [
-    `disabled timer heartbeats: ${summary.disabledTimerHeartbeats}`,
-    `reset running agents: ${summary.resetRunningAgents}`,
-    `quarantined in-progress issues: ${summary.quarantinedInProgressIssues}`,
-    `unassigned todo issues: ${summary.unassignedTodoIssues}`,
-    `unassigned review issues: ${summary.unassignedReviewIssues}`,
-    `stopped project workspace runtimes: ${summary.stoppedProjectWorkspaceRuntimes}`,
-    `stopped execution workspace runtimes: ${summary.stoppedExecutionWorkspaceRuntimes}`,
-    `stopped runtime services: ${summary.stoppedRuntimeServices}`,
+    tCli("disabled timer heartbeats: {{value1}}", { value1: String(summary.disabledTimerHeartbeats) }),
+    tCli("reset running agents: {{value1}}", { value1: String(summary.resetRunningAgents) }),
+    tCli("quarantined in-progress issues: {{value1}}", { value1: String(summary.quarantinedInProgressIssues) }),
+    tCli("unassigned todo issues: {{value1}}", { value1: String(summary.unassignedTodoIssues) }),
+    tCli("unassigned review issues: {{value1}}", { value1: String(summary.unassignedReviewIssues) }),
+    tCli("stopped project workspace runtimes: {{value1}}", { value1: String(summary.stoppedProjectWorkspaceRuntimes) }),
+    tCli("stopped execution workspace runtimes: {{value1}}", { value1: String(summary.stoppedExecutionWorkspaceRuntimes) }),
+    tCli("stopped runtime services: {{value1}}", { value1: String(summary.stoppedRuntimeServices) }),
   ].join(", ");
 }
 
@@ -303,11 +304,11 @@ const WORKTREE_NAME_PREFIX = "paperclip-";
 function resolveWorktreeMakeName(name: string): string {
   const value = nonEmpty(name);
   if (!value) {
-    throw new Error("Worktree name is required.");
+    throw new Error(tCli("Worktree name is required."));
   }
   if (!/^[A-Za-z0-9._-]+$/.test(value)) {
     throw new Error(
-      "Worktree name must contain only letters, numbers, dots, underscores, or dashes.",
+      tCli("Worktree name must contain only letters, numbers, dots, underscores, or dashes."),
     );
   }
   return value.startsWith(WORKTREE_NAME_PREFIX) ? value : `${WORKTREE_NAME_PREFIX}${value}`;
@@ -328,18 +329,18 @@ type ConfiguredStorage = {
 
 function assertStorageCompanyPrefix(companyId: string, objectKey: string): void {
   if (!objectKey.startsWith(`${companyId}/`) || objectKey.includes("..")) {
-    throw new Error(`Invalid object key for company ${companyId}.`);
+    throw new Error(tCli("Invalid object key for company {{value1}}.", { value1: String(companyId) }));
   }
 }
 
 function normalizeStorageObjectKey(objectKey: string): string {
   const normalized = objectKey.replace(/\\/g, "/").trim();
   if (!normalized || normalized.startsWith("/")) {
-    throw new Error("Invalid object key.");
+    throw new Error(tCli("Invalid object key."));
   }
   const parts = normalized.split("/").filter((part) => part.length > 0);
   if (parts.length === 0 || parts.some((part) => part === "." || part === "..")) {
-    throw new Error("Invalid object key.");
+    throw new Error(tCli("Invalid object key."));
   }
   return parts.join("/");
 }
@@ -348,7 +349,7 @@ function resolveLocalStoragePath(baseDir: string, objectKey: string): string {
   const resolved = path.resolve(baseDir, normalizeStorageObjectKey(objectKey));
   const root = path.resolve(baseDir);
   if (resolved !== root && !resolved.startsWith(`${root}${path.sep}`)) {
-    throw new Error("Invalid object key path.");
+    throw new Error(tCli("Invalid object key path."));
   }
   return resolved;
 }
@@ -383,7 +384,7 @@ async function s3BodyToBuffer(body: unknown): Promise<Buffer> {
     return Buffer.from(await candidate.arrayBuffer());
   }
 
-  throw new Error("Unsupported storage response body.");
+  throw new Error(tCli("Unsupported storage response body."));
 }
 
 function normalizeS3Prefix(prefix: string | undefined): string {
@@ -464,7 +465,7 @@ function createConfiguredStorageFromPaperclipConfig(config: PaperclipConfig): Co
 function openConfiguredStorage(configPath: string): ConfiguredStorage {
   const config = readConfig(configPath);
   if (!config) {
-    throw new Error(`Config not found at ${configPath}.`);
+    throw new Error(tCli("Config not found at {{value1}}.", { value1: String(configPath) }));
   }
   return createConfiguredStorageFromPaperclipConfig(config);
 }
@@ -680,7 +681,7 @@ function detectGitBranchName(cwd: string): string | null {
 function validateGitBranchName(cwd: string, branchName: string): string {
   const value = nonEmpty(branchName);
   if (!value) {
-    throw new Error("Branch name is required.");
+    throw new Error(tCli("Branch name is required."));
   }
   try {
     execFileSync("git", ["check-ref-format", "--branch", value], {
@@ -688,7 +689,7 @@ function validateGitBranchName(cwd: string, branchName: string): string {
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch (error) {
-    throw new Error(`Invalid branch name "${branchName}": ${extractExecSyncErrorMessage(error) ?? String(error)}`);
+    throw new Error(tCli("Invalid branch name \"{{value1}}\": {{value2}}", { value1: String(branchName), value2: String(extractExecSyncErrorMessage(error) ?? String(error)) }));
   }
   return value;
 }
@@ -701,7 +702,7 @@ function isPrimaryGitWorktree(cwd: string): boolean {
 function resolvePrimaryGitRepoRoot(cwd: string): string {
   const workspace = detectGitWorkspaceInfo(cwd);
   if (!workspace) {
-    throw new Error("Current directory is not inside a git repository.");
+    throw new Error(tCli("Current directory is not inside a git repository."));
   }
   if (workspace.gitDir === workspace.commonDir) {
     return workspace.root;
@@ -911,7 +912,7 @@ export function resolveWorktreeReseedSource(input: WorktreeReseedOptions): Resol
 
   if (fromSelector && hasExplicitConfigSource) {
     throw new Error(
-      "Use either --from <worktree> or --from-config/--from-data-dir/--from-instance, not both.",
+      tCli("Use either --from <worktree> or --from-config/--from-data-dir/--from-instance, not both."),
     );
   }
 
@@ -936,7 +937,7 @@ export function resolveWorktreeReseedSource(input: WorktreeReseedOptions): Resol
   }
 
   throw new Error(
-    "Pass --from <worktree> or --from-config/--from-instance explicitly so the reseed source is unambiguous.",
+    tCli("Pass --from <worktree> or --from-config/--from-instance explicitly so the reseed source is unambiguous."),
   );
 }
 
@@ -965,7 +966,7 @@ export function resolveWorktreeReseedTargetPaths(input: {
 
   if (!homeDir || !instanceId) {
     throw new Error(
-      `Target config ${input.configPath} does not look like a worktree-local Paperclip instance. Expected PAPERCLIP_HOME and PAPERCLIP_INSTANCE_ID in the adjacent .env.`,
+      tCli("Target config {{value1}} does not look like a worktree-local Paperclip instance. Expected PAPERCLIP_HOME and PAPERCLIP_INSTANCE_ID in the adjacent .env.", { value1: String(input.configPath) }),
     );
   }
 
@@ -1042,13 +1043,13 @@ async function ensureRepairTargetWorktree(input: {
   );
 
   if (existsSync(targetPath)) {
-    throw new Error(`Target path already exists but is not a registered git worktree: ${targetPath}`);
+    throw new Error(tCli("Target path already exists but is not a registered git worktree: {{value1}}", { value1: String(targetPath) }));
   }
 
   mkdirSync(path.dirname(targetPath), { recursive: true });
 
   const spinner = p.spinner();
-  spinner.start(`Creating git worktree for ${branchName}...`);
+  spinner.start(tCli("Creating git worktree for {{value1}}...", { value1: String(branchName) }));
   try {
     execFileSync("git", resolveGitWorktreeAddArgs({
       branchName,
@@ -1058,9 +1059,9 @@ async function ensureRepairTargetWorktree(input: {
       cwd: repoRoot,
       stdio: ["ignore", "pipe", "pipe"],
     });
-    spinner.stop(`Created git worktree at ${targetPath}.`);
+    spinner.stop(tCli("Created git worktree at {{value1}}.", { value1: String(targetPath) }));
   } catch (error) {
-    spinner.stop(pc.red("Failed to create git worktree."));
+    spinner.stop(pc.red(tCli("Failed to create git worktree.")));
     throw new Error(extractExecSyncErrorMessage(error) ?? String(error));
   }
 
@@ -1080,7 +1081,7 @@ function resolveSourceConnectionString(config: PaperclipConfig, envEntries: Reco
     const connectionString = nonEmpty(envEntries.DATABASE_URL) ?? nonEmpty(config.database.connectionString);
     if (!connectionString) {
       throw new Error(
-        "Source instance uses postgres mode but has no connection string in config or adjacent .env.",
+        tCli("Source instance uses postgres mode but has no connection string in config or adjacent .env."),
       );
     }
     return connectionString;
@@ -1127,7 +1128,7 @@ export function copySeededSecretsKey(input: {
 
   if (!existsSync(sourceKeyFilePath)) {
     throw new Error(
-      `Cannot seed worktree database because source local_encrypted secrets key was not found at ${sourceKeyFilePath}.`,
+      tCli("Cannot seed worktree database because source local_encrypted secrets key was not found at {{value1}}.", { value1: String(sourceKeyFilePath) }),
     );
   }
 
@@ -1151,7 +1152,7 @@ export async function ensureEmbeddedPostgres(
     EmbeddedPostgres = mod.default as EmbeddedPostgresCtor;
   } catch {
     throw new Error(
-      "Embedded PostgreSQL support requires dependency `embedded-postgres`. Reinstall dependencies and try again.",
+      tCli("Embedded PostgreSQL support requires dependency `embedded-postgres`. Reinstall dependencies and try again."),
     );
   }
   await prepareEmbeddedPostgresNativeRuntime();
@@ -1160,6 +1161,7 @@ export async function ensureEmbeddedPostgres(
   const runningPid = readRunningPostmasterPid(postmasterPidFile);
   if (runningPid) {
     if (options.allowExisting === false) {
+      // Seed diagnostics classify this internal error; localize only at display.
       throw new Error(
         `Cannot seed target embedded PostgreSQL at ${dataDir} while it is already running (pid=${runningPid}). `
         + "Stop the worktree service that owns this database, then retry the seed.",
@@ -1190,7 +1192,7 @@ export async function ensureEmbeddedPostgres(
       await instance.initialise();
     } catch (error) {
       throw formatEmbeddedPostgresError(error, {
-        fallbackMessage: `Failed to initialize embedded PostgreSQL cluster in ${dataDir} on port ${port}`,
+        fallbackMessage: tCli("Failed to initialize embedded PostgreSQL cluster in {{value1}} on port {{value2}}", { value1: String(dataDir), value2: String(port) }),
         recentLogs: logBuffer.getRecentLogs(),
       });
     }
@@ -1202,7 +1204,7 @@ export async function ensureEmbeddedPostgres(
     await instance.start();
   } catch (error) {
     throw formatEmbeddedPostgresError(error, {
-      fallbackMessage: `Failed to start embedded PostgreSQL on port ${port}`,
+      fallbackMessage: tCli("Failed to start embedded PostgreSQL on port {{value1}}", { value1: String(port) }),
       recentLogs: logBuffer.getRecentLogs(),
     });
   }
@@ -1389,8 +1391,7 @@ export async function quarantineSeededWorktreeExecutionState(
             companyId: issue.companyId,
             issueId: issue.id,
             body:
-              "Quarantined during worktree seed so copied in-flight work does not auto-run in this isolated instance. " +
-              "Reassign or unblock here only if you intentionally want the worktree instance to own this task.",
+              tCli("Quarantined during worktree seed so copied in-flight work does not auto-run in this isolated instance. Reassign or unblock here only if you intentionally want the worktree instance to own this task."),
           });
         } else if (issue.status === "todo") {
           summary.unassignedTodoIssues += 1;
@@ -1475,18 +1476,18 @@ export function resolveWorktreeSeedMigrationRevision(
     appliedMigrationNames.size !== expectedAppliedPrefix.length ||
     expectedAppliedPrefix.some((migration) => !appliedMigrationNames.has(migration))
   ) {
-    throw new Error("Migration journal is not a prefix of this Paperclip checkout's migration journal.");
+    throw new Error(tCli("Migration journal is not a prefix of this Paperclip checkout's migration journal."));
   }
 
   if (requirement === "upToDate" && migrationState.status !== "upToDate") {
     throw new Error(
-      `Migration journal is not current (${migrationState.pendingMigrations.length} pending migration(s)).`,
+      tCli("Migration journal is not current ({{value1}} pending migration(s)).", { value1: String(migrationState.pendingMigrations.length) }),
     );
   }
 
   const migrationRevision = expectedAppliedPrefix.at(-1);
   if (!migrationRevision) {
-    throw new Error("Migration journal has no applied revision.");
+    throw new Error(tCli("Migration journal has no applied revision."));
   }
   return migrationRevision;
 }
@@ -1618,10 +1619,11 @@ async function inspectVerifiedSeedDatabase(
       .limit(1)
       .then((rows) => rows[0] ?? null);
     if (!admin) {
+      // Preserve the English reason consumed by seed diagnostic classification.
       throw new Error(
         requiresCredentialAccount
           ? "No auth user has a non-empty credential account, instance-admin role, and active company membership. Authenticated worktree seeding requires a credential-backed instance administrator."
-          : "No auth user has an instance-admin role and active company membership for local-trusted worktree seeding.",
+          : tCli("No auth user has an instance-admin role and active company membership for local-trusted worktree seeding."),
       );
     }
 
@@ -1639,7 +1641,7 @@ async function inspectVerifiedSeedDatabase(
       .limit(1)
       .then((rows) => rows[0] ?? null);
     if (!representative) {
-      throw new Error("No representative cloned company and issue pair is readable.");
+      throw new Error(tCli("No representative cloned company and issue pair is readable."));
     }
 
     const summary: WorktreeSeedValidationSummary = {
@@ -1661,7 +1663,7 @@ async function inspectVerifiedSeedDatabase(
       || summary.companyCount < 1
       || summary.issueCount < 1
     ) {
-      throw new Error("Seed validation found an incomplete auth, membership, company, or issue shape.");
+      throw new Error(tCli("Seed validation found an incomplete auth, membership, company, or issue shape."));
     }
 
     return {
@@ -1720,7 +1722,7 @@ async function seedWorktreeDatabase(input: {
     input.onPhase?.(
       "source_validation",
       "succeeded",
-      `Validated migration ${sourceValidation.summary.migrationRevision}, ${sourceValidation.summary.companyCount} company record(s), and ${sourceValidation.summary.issueCount} issue record(s).`,
+      tCli("Validated migration {{value1}}, {{value2}} company record(s), and {{value3}} issue record(s).", { value1: String(sourceValidation.summary.migrationRevision), value2: String(sourceValidation.summary.companyCount), value3: String(sourceValidation.summary.issueCount) }),
     );
     copySeededSecretsKey({
       sourceConfigPath: input.sourceConfigPath,
@@ -1741,7 +1743,7 @@ async function seedWorktreeDatabase(input: {
       excludeTables: seedPlan.excludedTables,
       nullifyColumns: seedPlan.nullifyColumns,
     });
-    input.onPhase?.("snapshot", "succeeded", `Created ${path.basename(backup.backupFile)}.`);
+    input.onPhase?.("snapshot", "succeeded", tCli("Created {{value1}}.", { value1: String(path.basename(backup.backupFile)) }));
 
     input.onPhase?.("restore", "started");
     targetHandle = await ensureEmbeddedPostgres(
@@ -1769,18 +1771,18 @@ async function seedWorktreeDatabase(input: {
       "execution_quarantine",
       "succeeded",
       input.preserveLiveWork
-        ? "Preserved copied live work by explicit request."
+        ? tCli("Preserved copied live work by explicit request.")
         : formatSeededWorktreeExecutionQuarantineSummary(executionQuarantine),
     );
     input.onPhase?.("routine_pause", "started");
     const pausedScheduledRoutines = await pauseSeededScheduledRoutines(targetConnectionString);
-    input.onPhase?.("routine_pause", "succeeded", `Paused ${pausedScheduledRoutines} scheduled routine(s).`);
+    input.onPhase?.("routine_pause", "succeeded", tCli("Paused {{value1}} scheduled routine(s).", { value1: String(pausedScheduledRoutines) }));
     input.onPhase?.("workspace_rebind", "started");
     const reboundWorkspaces = await rebindSeededProjectWorkspaces({
       targetConnectionString,
       currentCwd: input.targetPaths.cwd,
     });
-    input.onPhase?.("workspace_rebind", "succeeded", `Rebound ${reboundWorkspaces.length} workspace path(s).`);
+    input.onPhase?.("workspace_rebind", "succeeded", tCli("Rebound {{value1}} workspace path(s).", { value1: String(reboundWorkspaces.length) }));
     input.onPhase?.("post_restore_validation", "started");
     const targetValidation = await inspectVerifiedSeedDatabase(
       targetConnectionString,
@@ -1792,7 +1794,7 @@ async function seedWorktreeDatabase(input: {
     input.onPhase?.(
       "post_restore_validation",
       "succeeded",
-      `Validated migration ${targetValidation.summary.migrationRevision}.`,
+      tCli("Validated migration {{value1}}.", { value1: String(targetValidation.summary.migrationRevision) }),
     );
 
     return {
@@ -1827,19 +1829,19 @@ export function formatWorktreeSeedFailureDiagnostic(
     phase === "restore"
     && /database system is shutting down|terminating connection due to administrator command/i.test(message)
   ) {
-    return "Target embedded PostgreSQL shut down during restore. Stop any competing worktree service and retry the seed.";
+    return tCli("Target embedded PostgreSQL shut down during restore. Stop any competing worktree service and retry the seed.");
   }
   if (phase === "restore" && /Cannot seed target embedded PostgreSQL.+already running/i.test(message)) {
-    return "Target embedded PostgreSQL is owned by a running worktree service. Stop that service and retry the seed.";
+    return tCli("Target embedded PostgreSQL is owned by a running worktree service. Stop that service and retry the seed.");
   }
   if (
     /No auth user has a non-empty credential account, instance-admin role, and active company membership/i.test(
       message,
     )
   ) {
-    return "Seed validation could not find a credential-backed instance administrator with an active company membership. Authenticated instances must create or sign in an administrator before seeding.";
+    return tCli("Seed validation could not find a credential-backed instance administrator with an active company membership. Authenticated instances must create or sign in an administrator before seeding.");
   }
-  return `Seed failed during ${phase}.`;
+  return tCli("Seed failed during {{value1}}.", { value1: tCli(String(phase)) });
 }
 
 function dispatchSeedInterruption(signal: NodeJS.Signals): void {
@@ -1899,7 +1901,7 @@ export function readWorktreeSeedManifest(configPath: string): WorktreeSeedManife
     parsed = JSON.parse(readFileSync(manifestPath, "utf8"));
   } catch (error) {
     throw new Error(
-      `Invalid worktree seed manifest at ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`,
+      tCli("Invalid worktree seed manifest at {{value1}}: {{value2}}", { value1: String(manifestPath), value2: String(error instanceof Error ? error.message : String(error)) }),
     );
   }
   const value = parsed as Partial<WorktreeSeedManifest>;
@@ -1940,7 +1942,7 @@ export function readWorktreeSeedManifest(configPath: string): WorktreeSeedManife
     || !diagnosticsValid
     || !verifiedTerminalValid
   ) {
-    throw new Error(`Invalid worktree seed manifest at ${manifestPath}.`);
+    throw new Error(tCli("Invalid worktree seed manifest at {{value1}}.", { value1: String(manifestPath) }));
   }
   return value as WorktreeSeedManifest;
 }
@@ -1997,7 +1999,7 @@ function updateWorktreeSeedManifest(input: {
 }): WorktreeSeedManifest {
   const markers = resolveWorktreeSeedMarkerPaths(input.configPath);
   const current = readWorktreeSeedManifest(input.configPath);
-  if (!current) throw new Error(`Worktree seed manifest does not exist at ${markers.manifest}.`);
+  if (!current) throw new Error(tCli("Worktree seed manifest does not exist at {{value1}}.", { value1: String(markers.manifest) }));
   const at = (input.now ?? new Date()).toISOString();
   const nextState = input.state ?? current.state;
   const diagnostic = {
@@ -2029,7 +2031,7 @@ function readLegacyWorktreeSeedPendingMarker(filePath: string): LegacyWorktreeSe
     parsed = JSON.parse(readFileSync(filePath, "utf8"));
   } catch (error) {
     throw new Error(
-      `Invalid worktree seed-pending marker at ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+      tCli("Invalid worktree seed-pending marker at {{value1}}: {{value2}}", { value1: String(filePath), value2: String(error instanceof Error ? error.message : String(error)) }),
     );
   }
 
@@ -2041,7 +2043,7 @@ function readLegacyWorktreeSeedPendingMarker(filePath: string): LegacyWorktreeSe
     || typeof (parsed as { sourceConfigPath?: unknown }).sourceConfigPath !== "string"
     || !(parsed as { sourceConfigPath: string }).sourceConfigPath.trim()
   ) {
-    throw new Error(`Invalid worktree seed-pending marker at ${filePath}.`);
+    throw new Error(tCli("Invalid worktree seed-pending marker at {{value1}}.", { value1: String(filePath) }));
   }
 
   return parsed as LegacyWorktreeSeedPendingMarker;
@@ -2124,14 +2126,14 @@ async function acquireWorktreeSeedLock(lockPath: string): Promise<() => Promise<
     );
     if (currentOwner && !processIsAlive(currentOwner.pid)) {
       throw new Error(
-        `Worktree seed lock ${lockPath} belongs to exited process ${currentOwner.pid}. `
-        + "Verify that no seed is running, then remove the stale lock and retry.",
+        tCli("Worktree seed lock {{value1}} belongs to exited process {{value2}}. ", { value1: String(lockPath), value2: String(currentOwner.pid) })
+        + tCli("Verify that no seed is running, then remove the stale lock and retry."),
       );
     }
     if (!currentOwner && malformedLockIsStale) {
       throw new Error(
-        `Worktree seed lock ${lockPath} is stale or malformed. `
-        + "Verify that no seed is running, then remove the stale lock and retry.",
+        tCli("Worktree seed lock {{value1}} is stale or malformed. ", { value1: String(lockPath) })
+        + tCli("Verify that no seed is running, then remove the stale lock and retry."),
       );
     }
     await new Promise((resolve) => setTimeout(resolve, WORKTREE_SEED_LOCK_POLL_MS));
@@ -2141,7 +2143,7 @@ async function acquireWorktreeSeedLock(lockPath: string): Promise<() => Promise<
 function startWorktreeSeedAttempt(configPath: string, now = new Date()): WorktreeSeedManifest {
   const markers = resolveWorktreeSeedMarkerPaths(configPath);
   const current = readWorktreeSeedManifest(configPath);
-  if (!current) throw new Error(`Worktree seed manifest does not exist at ${markers.manifest}.`);
+  if (!current) throw new Error(tCli("Worktree seed manifest does not exist at {{value1}}.", { value1: String(markers.manifest) }));
   const at = now.toISOString();
   const next: WorktreeSeedManifest = {
     ...current,
@@ -2181,7 +2183,7 @@ async function runVerifiedWorktreeSeed(input: {
       phase: previous.phase,
       status: "failed",
       state: "failed",
-      message: "The previous seed attempt ended without a terminal result.",
+      message: tCli("The previous seed attempt ended without a terminal result."),
     });
   }
   startWorktreeSeedAttempt(input.configPath);
@@ -2192,7 +2194,7 @@ async function runVerifiedWorktreeSeed(input: {
       phase: activePhase,
       status: "failed",
       state: "failed",
-      message: `Seed interrupted by ${signal} during ${activePhase}.`,
+      message: tCli("Seed interrupted by {{value1}} during {{value2}}.", { value1: String(signal), value2: String(activePhase) }),
     });
   });
 
@@ -2221,7 +2223,7 @@ async function runVerifiedWorktreeSeed(input: {
       },
     });
     if (!details.snapshotAt || !details.migrationRevision || !details.validation) {
-      throw new Error("Seed implementation returned without required validation evidence.");
+      throw new Error(tCli("Seed implementation returned without required validation evidence."));
     }
     updateWorktreeSeedManifest({
       configPath: input.configPath,
@@ -2231,8 +2233,8 @@ async function runVerifiedWorktreeSeed(input: {
       snapshotAt: details.snapshotAt,
       migrationRevision: details.migrationRevision,
       message:
-        `Verified ${details.validation.companyCount} company record(s), `
-        + `${details.validation.issueCount} issue record(s), auth, admin, membership, and migration state.`,
+        tCli("Verified {{value1}} company record(s), ", { value1: String(details.validation.companyCount) })
+        + tCli("{{value1}} issue record(s), auth, admin, membership, and migration state.", { value1: String(details.validation.issueCount) }),
     });
     return details;
   } catch (error) {
@@ -2297,7 +2299,7 @@ export async function ensureWorktreeSeeded(
     ?? undefined;
   if (!explicitSourceConfigPath && registeredBaseWorkspaceCwd && (!registeredProjectWorkspaceId || !expectedCompanyId)) {
     throw new Error(
-      "Managed worktree seed registration is incomplete; project workspace and company bindings are required.",
+      tCli("Managed worktree seed registration is incomplete; project workspace and company bindings are required."),
     );
   }
 
@@ -2311,7 +2313,7 @@ export async function ensureWorktreeSeeded(
   });
 
   if (initialManifest && initialManifest.targetInstanceId !== registeredSeedSource.targetInstanceId) {
-    throw new Error("Worktree seed manifest target instance does not match the registered target instance.");
+    throw new Error(tCli("Worktree seed manifest target instance does not match the registered target instance."));
   }
 
   // Resolve all authority-bearing paths before creating the lock. The manifest is
@@ -2331,14 +2333,14 @@ export async function ensureWorktreeSeeded(
     if (!manifest && existsSync(markers.pending)) {
       const currentLegacyPending = readLegacyWorktreeSeedPendingMarker(markers.pending);
       if (currentLegacyPending.sourceConfigPath !== legacyPending?.sourceConfigPath) {
-        throw new Error("Worktree seed source diagnostics changed while waiting for the seed lock.");
+        throw new Error(tCli("Worktree seed source diagnostics changed while waiting for the seed lock."));
       }
       markWorktreeSeedPending({
         configPath,
         sourceConfigPath: registeredSeedSource.configPath,
         targetInstanceId: targetPaths.instanceId,
         seedMode: "minimal",
-        diagnosticMessage: "Re-derived seed source diagnostics from the registered canonical source.",
+        diagnosticMessage: tCli("Re-derived seed source diagnostics from the registered canonical source."),
       });
       manifest = readWorktreeSeedManifest(configPath);
     }
@@ -2352,7 +2354,7 @@ export async function ensureWorktreeSeeded(
           sourceConfigPath: registeredSeedSource.configPath,
           targetInstanceId: targetPaths.instanceId,
           seedMode: "minimal",
-          diagnosticMessage: "Validated existing legacy worktree database schema before adoption.",
+          diagnosticMessage: tCli("Validated existing legacy worktree database schema before adoption."),
         });
         startWorktreeSeedAttempt(configPath);
         updateWorktreeSeedManifest({
@@ -2362,7 +2364,7 @@ export async function ensureWorktreeSeeded(
           state: "verified",
           snapshotAt: new Date().toISOString(),
           migrationRevision: legacyEvidence.migrationRevision,
-          message: "Adopted an existing legacy worktree database after validating its migration journal and core schema.",
+          message: tCli("Adopted an existing legacy worktree database after validating its migration journal and core schema."),
         });
         return { seeded: false, reason: "legacy_database" };
       }
@@ -2372,11 +2374,11 @@ export async function ensureWorktreeSeeded(
         sourceConfigPath: registeredSeedSource.configPath,
         targetInstanceId: targetPaths.instanceId,
         seedMode: "minimal",
-        diagnosticMessage: "No verified seed or compatible legacy database was found; provisioning is required.",
+        diagnosticMessage: tCli("No verified seed or compatible legacy database was found; provisioning is required."),
       });
       manifest = readWorktreeSeedManifest(configPath);
       if (!manifest) {
-        throw new Error("Failed to create a pending worktree seed manifest.");
+        throw new Error(tCli("Failed to create a pending worktree seed manifest."));
       }
     }
     if (
@@ -2388,7 +2390,7 @@ export async function ensureWorktreeSeeded(
         sourceConfigPath: registeredSeedSource.configPath,
         targetInstanceId: manifest.targetInstanceId,
         seedMode: manifest.seedMode,
-        diagnosticMessage: "Re-derived seed source diagnostics from the registered canonical source.",
+        diagnosticMessage: tCli("Re-derived seed source diagnostics from the registered canonical source."),
       });
       manifest = readWorktreeSeedManifest(configPath)!;
     }
@@ -2404,11 +2406,11 @@ export async function ensureWorktreeSeeded(
 
     const sourceConfig = readConfig(sourceConfigPath);
     if (!sourceConfig) {
-      throw new Error(`Source config not found at ${sourceConfigPath}.`);
+      throw new Error(tCli("Source config not found at {{value1}}.", { value1: String(sourceConfigPath) }));
     }
     const targetConfig = readConfig(configPath);
     if (!targetConfig) {
-      throw new Error(`Target config not found at ${configPath}.`);
+      throw new Error(tCli("Target config not found at {{value1}}.", { value1: String(configPath) }));
     }
 
     const seedDatabase = dependencies.seedDatabase ?? seedWorktreeDatabase;
@@ -2444,7 +2446,7 @@ async function runWorktreeInit(opts: WorktreeInitOptions): Promise<void> {
   );
   const seedMode = opts.seedMode ?? "minimal";
   if (!isWorktreeSeedMode(seedMode)) {
-    throw new Error(`Unsupported seed mode "${seedMode}". Expected one of: minimal, full.`);
+    throw new Error(tCli("Unsupported seed mode \"{{value1}}\". Expected one of: minimal, full.", { value1: String(seedMode) }));
   }
   const instanceId = sanitizeWorktreeInstanceId(opts.instance ?? worktreeName);
   const paths = resolveWorktreeLocalPaths({
@@ -2461,7 +2463,7 @@ async function runWorktreeInit(opts: WorktreeInitOptions): Promise<void> {
 
   if ((existsSync(paths.configPath) || existsSync(paths.instanceRoot)) && !opts.force) {
     throw new Error(
-      `Worktree config already exists at ${paths.configPath} or instance data exists at ${paths.instanceRoot}. Re-run with --force to replace it.`,
+      tCli("Worktree config already exists at {{value1}} or instance data exists at {{value2}}. Re-run with --force to replace it.", { value1: String(paths.configPath), value2: String(paths.instanceRoot) }),
     );
   }
 
@@ -2553,11 +2555,11 @@ async function runWorktreeInit(opts: WorktreeInitOptions): Promise<void> {
   if (opts.seed !== false) {
     if (!sourceConfig) {
       throw new Error(
-        `Cannot seed worktree database because source config was not found at ${sourceConfigPath}. Use --no-seed or provide --from-config.`,
+        tCli("Cannot seed worktree database because source config was not found at {{value1}}. Use --no-seed or provide --from-config.", { value1: String(sourceConfigPath) }),
       );
     }
     const spinner = p.spinner();
-    spinner.start(`Seeding isolated worktree database from source instance (${seedMode})...`);
+    spinner.start(tCli("Seeding isolated worktree database from source instance ({{value1}})...", { value1: String(seedMode) }));
     const markers = resolveWorktreeSeedMarkerPaths(paths.configPath);
     const releaseSeedLock = await acquireWorktreeSeedLock(markers.lock);
     try {
@@ -2576,48 +2578,48 @@ async function runWorktreeInit(opts: WorktreeInitOptions): Promise<void> {
       seedExecutionQuarantineSummary = seeded.executionQuarantine;
       pausedScheduledRoutineCount = seeded.pausedScheduledRoutines;
       reboundWorkspaceSummary = seeded.reboundWorkspaces;
-      spinner.stop(`Seeded isolated worktree database (${seedMode}).`);
+      spinner.stop(tCli("Seeded isolated worktree database ({{value1}}).", { value1: String(seedMode) }));
     } catch (error) {
-      spinner.stop(pc.red("Failed to seed worktree database."));
+      spinner.stop(pc.red(tCli("Failed to seed worktree database.")));
       throw error;
     } finally {
       await releaseSeedLock();
     }
   }
 
-  p.log.message(pc.dim(`Repo config: ${paths.configPath}`));
-  p.log.message(pc.dim(`Repo env: ${paths.envPath}`));
-  p.log.message(pc.dim(`Isolated home: ${paths.homeDir}`));
-  p.log.message(pc.dim(`Instance: ${paths.instanceId}`));
-  p.log.message(pc.dim(`Worktree badge: ${branding.name} (${branding.color})`));
-  p.log.message(pc.dim(`Server port: ${serverPort} | DB port: ${databasePort}`));
+  p.log.message(pc.dim(tCli("Repo config: {{value1}}", { value1: String(paths.configPath) })));
+  p.log.message(pc.dim(tCli("Repo env: {{value1}}", { value1: String(paths.envPath) })));
+  p.log.message(pc.dim(tCli("Isolated home: {{value1}}", { value1: String(paths.homeDir) })));
+  p.log.message(pc.dim(tCli("Instance: {{value1}}", { value1: String(paths.instanceId) })));
+  p.log.message(pc.dim(tCli("Worktree badge: {{value1}} ({{value2}})", { value1: String(branding.name), value2: String(branding.color) })));
+  p.log.message(pc.dim(tCli("Server port: {{value1}} | DB port: {{value2}}", { value1: String(serverPort), value2: String(databasePort) })));
   if (copiedGitHooks?.copied) {
     p.log.message(
-      pc.dim(`Mirrored git hooks: ${copiedGitHooks.sourceHooksPath} -> ${copiedGitHooks.targetHooksPath}`),
+      pc.dim(tCli("Mirrored git hooks: {{value1}} -> {{value2}}", { value1: String(copiedGitHooks.sourceHooksPath), value2: String(copiedGitHooks.targetHooksPath) })),
     );
   }
   if (seedSummary) {
-    p.log.message(pc.dim(`Seed mode: ${seedMode}`));
-    p.log.message(pc.dim(`Seed snapshot: ${seedSummary}`));
+    p.log.message(pc.dim(tCli("Seed mode: {{value1}}", { value1: String(seedMode) })));
+    p.log.message(pc.dim(tCli("Seed snapshot: {{value1}}", { value1: String(seedSummary) })));
     if (opts.preserveLiveWork) {
-      p.log.warning("Preserved copied live work; this worktree instance may auto-run source-instance assignments.");
+      p.log.warning(tCli("Preserved copied live work; this worktree instance may auto-run source-instance assignments."));
     } else if (seedExecutionQuarantineSummary) {
       p.log.message(
-        pc.dim(`Seed execution quarantine: ${formatSeededWorktreeExecutionQuarantineSummary(seedExecutionQuarantineSummary)}`),
+        pc.dim(tCli("Seed execution quarantine: {{value1}}", { value1: String(formatSeededWorktreeExecutionQuarantineSummary(seedExecutionQuarantineSummary)) })),
       );
     }
     if (pausedScheduledRoutineCount != null) {
-      p.log.message(pc.dim(`Paused scheduled routines: ${pausedScheduledRoutineCount}`));
+      p.log.message(pc.dim(tCli("Paused scheduled routines: {{value1}}", { value1: String(pausedScheduledRoutineCount) })));
     }
     for (const rebound of reboundWorkspaceSummary) {
       p.log.message(
-        pc.dim(`Rebound workspace ${rebound.name}: ${rebound.fromCwd} -> ${rebound.toCwd}`),
+        pc.dim(tCli("Rebound workspace {{value1}}: {{value2}} -> {{value3}}", { value1: String(rebound.name), value2: String(rebound.fromCwd), value3: String(rebound.toCwd) })),
       );
     }
   }
   p.outro(
     pc.green(
-      `Worktree ready. Run Paperclip inside this repo and the CLI/server will use ${paths.instanceId} automatically.`,
+      tCli("Worktree ready. Run Paperclip inside this repo and the CLI/server will use {{value1}} automatically.", { value1: String(paths.instanceId) }),
     ),
   );
 }
@@ -2633,33 +2635,33 @@ export async function worktreeEnsureSeededCommand(opts: WorktreeEnsureSeededOpti
   p.intro(pc.bgCyan(pc.black(" paperclipai worktree ensure-seeded ")));
 
   const spinner = p.spinner();
-  spinner.start("Checking isolated worktree database seed state...");
+  spinner.start(tCli("Checking isolated worktree database seed state..."));
   try {
     const result = await ensureWorktreeSeeded(opts);
     if (result.seeded) {
-      spinner.stop("Seeded isolated worktree database (minimal).");
+      spinner.stop(tCli("Seeded isolated worktree database (minimal)."));
     } else if (result.reason === "legacy_database") {
-      spinner.stop("Validated and adopted an existing legacy worktree database.");
+      spinner.stop(tCli("Validated and adopted an existing legacy worktree database."));
     } else {
-      spinner.stop("Worktree database already has a verified seed manifest.");
+      spinner.stop(tCli("Worktree database already has a verified seed manifest."));
     }
     if (result.details) {
-      p.log.message(pc.dim(`Seed snapshot: ${result.details.backupSummary}`));
+      p.log.message(pc.dim(tCli("Seed snapshot: {{value1}}", { value1: String(result.details.backupSummary) })));
       p.log.message(
         pc.dim(
-          `Seed execution quarantine: ${formatSeededWorktreeExecutionQuarantineSummary(result.details.executionQuarantine)}`,
+          tCli("Seed execution quarantine: {{value1}}", { value1: String(formatSeededWorktreeExecutionQuarantineSummary(result.details.executionQuarantine)) }),
         ),
       );
-      p.log.message(pc.dim(`Paused scheduled routines: ${result.details.pausedScheduledRoutines}`));
+      p.log.message(pc.dim(tCli("Paused scheduled routines: {{value1}}", { value1: String(result.details.pausedScheduledRoutines) })));
       for (const rebound of result.details.reboundWorkspaces) {
         p.log.message(
-          pc.dim(`Rebound workspace ${rebound.name}: ${rebound.fromCwd} -> ${rebound.toCwd}`),
+          pc.dim(tCli("Rebound workspace {{value1}}: {{value2}} -> {{value3}}", { value1: String(rebound.name), value2: String(rebound.fromCwd), value3: String(rebound.toCwd) })),
         );
       }
     }
-    p.outro(pc.green("Worktree database seed complete."));
+    p.outro(pc.green(tCli("Worktree database seed complete.")));
   } catch (error) {
-    spinner.stop(pc.red("Failed to seed worktree database."));
+    spinner.stop(pc.red(tCli("Failed to seed worktree database.")));
     throw error;
   }
 }
@@ -2674,7 +2676,7 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
   const sourceConfigPath = resolveSourceConfigPath(opts);
   const targetPath = resolveWorktreeMakeTargetPath(name);
   if (existsSync(targetPath)) {
-    throw new Error(`Target path already exists: ${targetPath}`);
+    throw new Error(tCli("Target path already exists: {{value1}}", { value1: String(targetPath) }));
   }
 
   mkdirSync(path.dirname(targetPath), { recursive: true });
@@ -2687,7 +2689,7 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
       });
     } catch (error) {
       throw new Error(
-        `Failed to fetch from remote "${remote}": ${extractExecSyncErrorMessage(error) ?? String(error)}`,
+        tCli("Failed to fetch from remote \"{{value1}}\": {{value2}}", { value1: String(remote), value2: String(extractExecSyncErrorMessage(error) ?? String(error)) }),
       );
     }
   }
@@ -2700,15 +2702,15 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
   });
 
   const spinner = p.spinner();
-  spinner.start(`Creating git worktree at ${targetPath}...`);
+  spinner.start(tCli("Creating git worktree at {{value1}}...", { value1: String(targetPath) }));
   try {
     execFileSync("git", worktreeArgs, {
       cwd: sourceCwd,
       stdio: ["ignore", "pipe", "pipe"],
     });
-    spinner.stop(`Created git worktree at ${targetPath}.`);
+    spinner.stop(tCli("Created git worktree at {{value1}}.", { value1: String(targetPath) }));
   } catch (error) {
-    spinner.stop(pc.red("Failed to create git worktree."));
+    spinner.stop(pc.red(tCli("Failed to create git worktree.")));
     throw new Error(extractExecSyncErrorMessage(error) ?? String(error));
   }
 
@@ -2750,16 +2752,16 @@ export function resolvePnpmInstallInvocation(
 
 function installDependenciesBestEffort(targetPath: string): void {
   const installSpinner = p.spinner();
-  installSpinner.start("Installing dependencies...");
+  installSpinner.start(tCli("Installing dependencies..."));
   const pnpm = resolvePnpmInstallInvocation();
   try {
     execFileSync(pnpm.command, [...pnpm.argsPrefix, "install"], {
       cwd: targetPath,
       stdio: ["ignore", "pipe", "pipe"],
     });
-    installSpinner.stop("Installed dependencies.");
+    installSpinner.stop(tCli("Installed dependencies."));
   } catch (error) {
-    installSpinner.stop(pc.yellow("Failed to install dependencies (continuing anyway)."));
+    installSpinner.stop(pc.yellow(tCli("Failed to install dependencies (continuing anyway).")));
     p.log.warning(extractExecSyncErrorMessage(error) ?? String(error));
   }
 }
@@ -2920,8 +2922,8 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
   );
 
   if (!hasBranch && !hasTargetDir && !hasInstanceData && !linkedWorktree) {
-    p.log.info("Nothing to clean up — no branch, worktree directory, or instance data found.");
-    p.outro(pc.green("Already clean."));
+    p.log.info(tCli("Nothing to clean up — no branch, worktree directory, or instance data found."));
+    p.outro(pc.green(tCli("Already clean.")));
     return;
   }
 
@@ -2933,19 +2935,19 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
     const onRemote = branchExistsOnAnyRemote(sourceCwd, name);
     if (onRemote) {
       p.log.info(
-        `Branch "${name}" has unique local commits, but the branch also exists on a remote — safe to delete locally.`,
+        tCli("Branch \"{{value1}}\" has unique local commits, but the branch also exists on a remote — safe to delete locally.", { value1: String(name) }),
       );
     } else {
       problems.push(
-        `Branch "${name}" has commits not found on any other branch or remote. ` +
-          `Deleting it will lose work. Push it first, or use --force.`,
+        tCli("Branch \"{{value1}}\" has commits not found on any other branch or remote. ", { value1: String(name) }) +
+          tCli("Deleting it will lose work. Push it first, or use --force.", {  }),
       );
     }
   }
 
   if (hasTargetDir && worktreePathHasUncommittedChanges(targetPath)) {
     problems.push(
-      `Worktree directory ${targetPath} has uncommitted changes. Commit or stash first, or use --force.`,
+      tCli("Worktree directory {{value1}} has uncommitted changes. Commit or stash first, or use --force.", { value1: String(targetPath) }),
     );
   }
 
@@ -2953,11 +2955,11 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
     for (const problem of problems) {
       p.log.error(problem);
     }
-    throw new Error("Safety checks failed. Resolve the issues above or re-run with --force.");
+    throw new Error(tCli("Safety checks failed. Resolve the issues above or re-run with --force."));
   }
   if (problems.length > 0 && opts.force) {
     for (const problem of problems) {
-      p.log.warning(`Overridden by --force: ${problem}`);
+      p.log.warning(tCli("Overridden by --force: {{value1}}", { value1: String(problem) }));
     }
   }
 
@@ -2968,7 +2970,7 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
     const worktreeDirExists = existsSync(linkedWorktree.worktree);
     const spinner = p.spinner();
     if (worktreeDirExists) {
-      spinner.start(`Removing git worktree at ${linkedWorktree.worktree}...`);
+      spinner.start(tCli("Removing git worktree at {{value1}}...", { value1: String(linkedWorktree.worktree) }));
       try {
         const removeArgs = ["worktree", "remove", linkedWorktree.worktree];
         if (opts.force) removeArgs.push("--force");
@@ -2976,18 +2978,18 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
           cwd: sourceCwd,
           stdio: ["ignore", "pipe", "pipe"],
         });
-        spinner.stop(`Removed git worktree at ${linkedWorktree.worktree}.`);
+        spinner.stop(tCli("Removed git worktree at {{value1}}.", { value1: String(linkedWorktree.worktree) }));
       } catch (error) {
-        spinner.stop(pc.yellow(`Could not remove worktree cleanly, will prune instead.`));
+        spinner.stop(pc.yellow(tCli("Could not remove worktree cleanly, will prune instead.", {  })));
         p.log.warning(extractExecSyncErrorMessage(error) ?? String(error));
       }
     } else {
-      spinner.start("Pruning stale worktree entry...");
+      spinner.start(tCli("Pruning stale worktree entry..."));
       execFileSync("git", ["worktree", "prune"], {
         cwd: sourceCwd,
         stdio: ["ignore", "pipe", "pipe"],
       });
-      spinner.stop("Pruned stale worktree entry.");
+      spinner.stop(tCli("Pruned stale worktree entry."));
     }
   } else {
     // Even without a linked worktree, prune to clean up any orphaned entries
@@ -3000,24 +3002,24 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
   // 3b. Remove the worktree directory if it still exists (e.g. partial creation)
   if (existsSync(targetPath)) {
     const spinner = p.spinner();
-    spinner.start(`Removing worktree directory ${targetPath}...`);
+    spinner.start(tCli("Removing worktree directory {{value1}}...", { value1: String(targetPath) }));
     rmSync(targetPath, { recursive: true, force: true });
-    spinner.stop(`Removed worktree directory ${targetPath}.`);
+    spinner.stop(tCli("Removed worktree directory {{value1}}.", { value1: String(targetPath) }));
   }
 
   // 3c. Delete the local branch (now safe — worktree is gone)
   if (localBranchExists(sourceCwd, name)) {
     const spinner = p.spinner();
-    spinner.start(`Deleting local branch "${name}"...`);
+    spinner.start(tCli("Deleting local branch \"{{value1}}\"...", { value1: String(name) }));
     try {
       const deleteFlag = opts.force ? "-D" : "-d";
       execFileSync("git", ["branch", deleteFlag, name], {
         cwd: sourceCwd,
         stdio: ["ignore", "pipe", "pipe"],
       });
-      spinner.stop(`Deleted local branch "${name}".`);
+      spinner.stop(tCli("Deleted local branch \"{{value1}}\".", { value1: String(name) }));
     } catch (error) {
-      spinner.stop(pc.yellow(`Could not delete branch "${name}".`));
+      spinner.stop(pc.yellow(tCli("Could not delete branch \"{{value1}}\".", { value1: String(name) })));
       p.log.warning(extractExecSyncErrorMessage(error) ?? String(error));
     }
   }
@@ -3025,12 +3027,12 @@ export async function worktreeCleanupCommand(nameArg: string, opts: WorktreeClea
   // 3d. Remove instance data
   if (existsSync(instanceRoot)) {
     const spinner = p.spinner();
-    spinner.start(`Removing instance data at ${instanceRoot}...`);
+    spinner.start(tCli("Removing instance data at {{value1}}...", { value1: String(instanceRoot) }));
     rmSync(instanceRoot, { recursive: true, force: true });
-    spinner.stop(`Removed instance data at ${instanceRoot}.`);
+    spinner.stop(tCli("Removed instance data at {{value1}}.", { value1: String(instanceRoot) }));
   }
 
-  p.outro(pc.green("Cleanup complete."));
+  p.outro(pc.green(tCli("Cleanup complete.")));
 }
 
 export async function worktreeEnvCommand(opts: WorktreeEnvOptions): Promise<void> {
@@ -3110,7 +3112,7 @@ function resolveAttachmentLookupStorages(input: {
 async function openConfiguredDb(configPath: string): Promise<OpenDbHandle> {
   const config = readConfig(configPath);
   if (!config) {
-    throw new Error(`Config not found at ${configPath}.`);
+    throw new Error(tCli("Config not found at {{value1}}.", { value1: String(configPath) }));
   }
   const envEntries = readPaperclipEnvEntries(resolvePaperclipEnvFile(configPath));
   let embeddedHandle: EmbeddedPostgresHandle | null = null;
@@ -3127,10 +3129,10 @@ async function openConfiguredDb(configPath: string): Promise<OpenDbHandle> {
     if (migrationState.status !== "upToDate") {
       const pending =
         migrationState.reason === "pending-migrations"
-          ? ` Pending migrations: ${migrationState.pendingMigrations.join(", ")}.`
+          ? tCli(" Pending migrations: {{value1}}.", { value1: String(migrationState.pendingMigrations.join(", ")) })
           : "";
       throw new Error(
-        `Database for ${configPath} is not up to date.${pending} Run \`pnpm db:migrate\` (or start Paperclip once) before using worktree merge history.`,
+        tCli("Database for {{value1}} is not up to date.{{value2}} Run `pnpm db:migrate` (or start Paperclip once) before using worktree merge history.", { value1: String(configPath), value2: String(pending) }),
       );
     }
     const db = createDb(connectionString) as ClosableDb;
@@ -3181,7 +3183,7 @@ async function resolveMergeCompany(input: {
       (company) => company.id === selector || company.issuePrefix.toLowerCase() === selector.toLowerCase(),
     );
     if (!matched) {
-      throw new Error(`Could not resolve company "${selector}" in both source and target databases.`);
+      throw new Error(tCli("Could not resolve company \"{{value1}}\" in both source and target databases.", { value1: String(selector) }));
     }
     return matched;
   }
@@ -3191,13 +3193,13 @@ async function resolveMergeCompany(input: {
   }
 
   if (shared.length === 0) {
-    throw new Error("Source and target databases do not share a company id. Pass --company explicitly once both sides match.");
+    throw new Error(tCli("Source and target databases do not share a company id. Pass --company explicitly once both sides match."));
   }
 
   const options = shared
     .map((company) => `${company.issuePrefix} (${company.name})`)
     .join(", ");
-  throw new Error(`Multiple shared companies found. Re-run with --company <id-or-prefix>. Options: ${options}`);
+  throw new Error(tCli("Multiple shared companies found. Re-run with --company <id-or-prefix>. Options: {{value1}}", { value1: String(options) }));
 }
 
 function renderMergePlan(plan: Awaited<ReturnType<typeof collectMergePlan>>["plan"], extras: {
@@ -3213,26 +3215,26 @@ function renderMergePlan(plan: Awaited<ReturnType<typeof collectMergePlan>>["pla
     return `${value.slice(0, Math.max(0, maxWidth - 1)).trimEnd()}…`;
   };
   const lines = [
-    `Mode: preview`,
-    `Source: ${extras.sourcePath}`,
-    `Target: ${extras.targetPath}`,
-    `Company: ${plan.companyName} (${plan.issuePrefix})`,
+    tCli("Mode: preview", {  }),
+    tCli("Source: {{value1}}", { value1: String(extras.sourcePath) }),
+    tCli("Target: {{value1}}", { value1: String(extras.targetPath) }),
+    tCli("Company: {{value1}} ({{value2}})", { value1: String(plan.companyName), value2: String(plan.issuePrefix) }),
     "",
-    "Projects",
-    `- import: ${plan.counts.projectsToImport}`,
+    tCli("Projects"),
+    tCli("- import: {{value1}}", { value1: String(plan.counts.projectsToImport) }),
     "",
-    "Issues",
-    `- insert: ${plan.counts.issuesToInsert}`,
-    `- already present: ${plan.counts.issuesExisting}`,
-    `- shared/imported issues with drift: ${plan.counts.issueDrift}`,
+    tCli("Issues"),
+    tCli("- insert: {{value1}}", { value1: String(plan.counts.issuesToInsert) }),
+    tCli("- already present: {{value1}}", { value1: String(plan.counts.issuesExisting) }),
+    tCli("- shared/imported issues with drift: {{value1}}", { value1: String(plan.counts.issueDrift) }),
   ];
 
   if (plan.projectImports.length > 0) {
     lines.push("");
-    lines.push("Planned project imports");
+    lines.push(tCli("Planned project imports"));
     for (const project of plan.projectImports) {
       lines.push(
-        `- ${project.source.name} (${project.workspaces.length} workspace${project.workspaces.length === 1 ? "" : "s"})`,
+        tCli("- {{value1}} ({{value2}} workspace{{value3}})", { value1: String(project.source.name), value2: String(project.workspaces.length), value3: String(project.workspaces.length === 1 ? "" : tCli("s")) }),
       );
     }
   }
@@ -3240,15 +3242,15 @@ function renderMergePlan(plan: Awaited<ReturnType<typeof collectMergePlan>>["pla
   const issueInserts = plan.issuePlans.filter((item): item is PlannedIssueInsert => item.action === "insert");
   if (issueInserts.length > 0) {
     lines.push("");
-    lines.push("Planned issue imports");
+    lines.push(tCli("Planned issue imports"));
     for (const issue of issueInserts) {
       const projectNote =
         (issue.projectResolution === "mapped" || issue.projectResolution === "imported")
         && issue.mappedProjectName
-          ? ` project->${issue.projectResolution === "imported" ? "import:" : ""}${issue.mappedProjectName}`
+          ? tCli(" project->{{value1}}{{value2}}", { value1: String(issue.projectResolution === "imported" ? tCli("import:") : ""), value2: String(issue.mappedProjectName) })
           : "";
-      const adjustments = issue.adjustments.length > 0 ? ` [${issue.adjustments.join(", ")}]` : "";
-      const prefix = `- ${issue.source.identifier ?? issue.source.id} -> ${issue.previewIdentifier} (${issue.targetStatus}${projectNote})`;
+      const adjustments = issue.adjustments.length > 0 ? ` [${issue.adjustments.map((adjustment) => tCli(adjustment)).join(", ")}]` : "";
+      const prefix = `- ${issue.source.identifier ?? issue.source.id} -> ${issue.previewIdentifier} (${tCli(issue.targetStatus)}${projectNote})`;
       const title = oneLine(issue.source.title);
       const suffix = `${adjustments}${title ? ` ${title}` : ""}`;
       lines.push(
@@ -3259,44 +3261,44 @@ function renderMergePlan(plan: Awaited<ReturnType<typeof collectMergePlan>>["pla
 
   if (plan.scopes.includes("comments")) {
     lines.push("");
-    lines.push("Comments");
-    lines.push(`- insert: ${plan.counts.commentsToInsert}`);
-    lines.push(`- already present: ${plan.counts.commentsExisting}`);
-    lines.push(`- skipped (missing parent): ${plan.counts.commentsMissingParent}`);
+    lines.push(tCli("Comments"));
+    lines.push(tCli("- insert: {{value1}}", { value1: String(plan.counts.commentsToInsert) }));
+    lines.push(tCli("- already present: {{value1}}", { value1: String(plan.counts.commentsExisting) }));
+    lines.push(tCli("- skipped (missing parent): {{value1}}", { value1: String(plan.counts.commentsMissingParent) }));
   }
 
   lines.push("");
-  lines.push("Documents");
-  lines.push(`- insert: ${plan.counts.documentsToInsert}`);
-  lines.push(`- merge existing: ${plan.counts.documentsToMerge}`);
-  lines.push(`- already present: ${plan.counts.documentsExisting}`);
-  lines.push(`- skipped (conflicting key): ${plan.counts.documentsConflictingKey}`);
-  lines.push(`- skipped (missing parent): ${plan.counts.documentsMissingParent}`);
-  lines.push(`- revisions insert: ${plan.counts.documentRevisionsToInsert}`);
+  lines.push(tCli("Documents"));
+  lines.push(tCli("- insert: {{value1}}", { value1: String(plan.counts.documentsToInsert) }));
+  lines.push(tCli("- merge existing: {{value1}}", { value1: String(plan.counts.documentsToMerge) }));
+  lines.push(tCli("- already present: {{value1}}", { value1: String(plan.counts.documentsExisting) }));
+  lines.push(tCli("- skipped (conflicting key): {{value1}}", { value1: String(plan.counts.documentsConflictingKey) }));
+  lines.push(tCli("- skipped (missing parent): {{value1}}", { value1: String(plan.counts.documentsMissingParent) }));
+  lines.push(tCli("- revisions insert: {{value1}}", { value1: String(plan.counts.documentRevisionsToInsert) }));
 
   lines.push("");
-  lines.push("Attachments");
-  lines.push(`- insert: ${plan.counts.attachmentsToInsert}`);
-  lines.push(`- already present: ${plan.counts.attachmentsExisting}`);
-  lines.push(`- skipped (missing parent): ${plan.counts.attachmentsMissingParent}`);
+  lines.push(tCli("Attachments"));
+  lines.push(tCli("- insert: {{value1}}", { value1: String(plan.counts.attachmentsToInsert) }));
+  lines.push(tCli("- already present: {{value1}}", { value1: String(plan.counts.attachmentsExisting) }));
+  lines.push(tCli("- skipped (missing parent): {{value1}}", { value1: String(plan.counts.attachmentsMissingParent) }));
 
   lines.push("");
-  lines.push("Adjustments");
-  lines.push(`- cleared assignee agents: ${plan.adjustments.clear_assignee_agent}`);
-  lines.push(`- cleared projects: ${plan.adjustments.clear_project}`);
-  lines.push(`- cleared project workspaces: ${plan.adjustments.clear_project_workspace}`);
-  lines.push(`- cleared goals: ${plan.adjustments.clear_goal}`);
-  lines.push(`- cleared comment author agents: ${plan.adjustments.clear_author_agent}`);
-  lines.push(`- cleared document agents: ${plan.adjustments.clear_document_agent}`);
-  lines.push(`- cleared document revision agents: ${plan.adjustments.clear_document_revision_agent}`);
-  lines.push(`- cleared attachment author agents: ${plan.adjustments.clear_attachment_agent}`);
-  lines.push(`- coerced in_progress to todo: ${plan.adjustments.coerce_in_progress_to_todo}`);
+  lines.push(tCli("Adjustments"));
+  lines.push(tCli("- cleared assignee agents: {{value1}}", { value1: String(plan.adjustments.clear_assignee_agent) }));
+  lines.push(tCli("- cleared projects: {{value1}}", { value1: String(plan.adjustments.clear_project) }));
+  lines.push(tCli("- cleared project workspaces: {{value1}}", { value1: String(plan.adjustments.clear_project_workspace) }));
+  lines.push(tCli("- cleared goals: {{value1}}", { value1: String(plan.adjustments.clear_goal) }));
+  lines.push(tCli("- cleared comment author agents: {{value1}}", { value1: String(plan.adjustments.clear_author_agent) }));
+  lines.push(tCli("- cleared document agents: {{value1}}", { value1: String(plan.adjustments.clear_document_agent) }));
+  lines.push(tCli("- cleared document revision agents: {{value1}}", { value1: String(plan.adjustments.clear_document_revision_agent) }));
+  lines.push(tCli("- cleared attachment author agents: {{value1}}", { value1: String(plan.adjustments.clear_attachment_agent) }));
+  lines.push(tCli("- coerced in_progress to todo: {{value1}}", { value1: String(plan.adjustments.coerce_in_progress_to_todo) }));
 
   lines.push("");
-  lines.push("Not imported in this phase");
-  lines.push(`- heartbeat runs: ${extras.unsupportedRunCount}`);
+  lines.push(tCli("Not imported in this phase"));
+  lines.push(tCli("- heartbeat runs: {{value1}}", { value1: String(extras.unsupportedRunCount) }));
   lines.push("");
-  lines.push("Identifiers shown above are provisional preview values. `--apply` reserves fresh issue numbers at write time.");
+  lines.push(tCli("Identifiers shown above are provisional preview values. `--apply` reserves fresh issue numbers at write time."));
 
   return lines.join("\n");
 }
@@ -3523,7 +3525,7 @@ async function collectMergePlan(input: {
   ]);
 
   if (!targetCompanyRow) {
-    throw new Error(`Target company ${companyId} was not found.`);
+    throw new Error(tCli("Target company {{value1}} was not found.", { value1: String(companyId) }));
   }
 
   const plan = buildWorktreeMergePlan({
@@ -3604,31 +3606,31 @@ async function promptForProjectMappings(input: {
     );
     const importSelectionValue = `__import__:${sourceProjectId}`;
     const selection = await p.select<string | null>({
-      message: `Project "${sourceProject.name}" is missing in target. How should ${input.plan.issuePrefix} imports handle it?`,
+      message: tCli("Project \"{{value1}}\" is missing in target. How should {{value2}} imports handle it?", { value1: String(sourceProject.name), value2: String(input.plan.issuePrefix) }),
       options: [
         {
           value: importSelectionValue,
-          label: `Import ${sourceProject.name}`,
-          hint: "Create the project and copy its workspace settings",
+          label: tCli("Import {{value1}}", { value1: String(sourceProject.name) }),
+          hint: tCli("Create the project and copy its workspace settings"),
         },
         ...(nameMatch
           ? [{
               value: nameMatch.id,
-              label: `Map to ${nameMatch.name}`,
-              hint: "Recommended: exact name match",
+              label: tCli("Map to {{value1}}", { value1: String(nameMatch.name) }),
+              hint: tCli("Recommended: exact name match"),
             }]
           : []),
         {
           value: null,
-          label: "Leave unset",
-          hint: "Keep imported issues without a project",
+          label: tCli("Leave unset"),
+          hint: tCli("Keep imported issues without a project"),
         },
         ...targetChoices.filter((choice) => choice.value !== nameMatch?.id),
       ],
       initialValue: nameMatch?.id ?? null,
     });
     if (p.isCancel(selection)) {
-      throw new Error("Project mapping cancelled.");
+      throw new Error(tCli("Project mapping cancelled."));
     }
     if (selection === importSelectionValue) {
       importProjectIds.add(sourceProjectId);
@@ -3652,8 +3654,8 @@ export async function worktreeListCommand(opts: WorktreeListOptions): Promise<vo
 
   for (const choice of choices) {
     const flags = [
-      choice.isCurrent ? "current" : null,
-      choice.hasPaperclipConfig ? "paperclip" : "no-paperclip-config",
+      choice.isCurrent ? tCli("current") : null,
+      choice.hasPaperclipConfig ? "paperclip" : tCli("no-paperclip-config"),
     ].filter((value): value is string => value !== null);
     p.log.message(`${choice.branchLabel}  ${choice.worktree}  [${flags.join(", ")}]`);
   }
@@ -3678,7 +3680,7 @@ function resolveWorktreeEndpointFromSelector(
   const trimmed = selector.trim();
   const allowCurrent = opts?.allowCurrent !== false;
   if (trimmed.length === 0) {
-    throw new Error("Worktree selector cannot be empty.");
+    throw new Error(tCli("Worktree selector cannot be empty."));
   }
 
   const currentEndpoint = resolveCurrentWorktreeEndpoint();
@@ -3694,7 +3696,7 @@ function resolveWorktreeEndpointFromSelector(
     }
     const configPath = path.resolve(directPath, ".paperclip", "config.json");
     if (!existsSync(configPath)) {
-      throw new Error(`Resolved worktree path ${directPath} does not contain .paperclip/config.json.`);
+      throw new Error(tCli("Resolved worktree path {{value1}} does not contain .paperclip/config.json.", { value1: String(directPath) }));
     }
     return {
       rootPath: directPath,
@@ -3712,11 +3714,11 @@ function resolveWorktreeEndpointFromSelector(
   );
   if (!matched) {
     throw new Error(
-      `Could not resolve worktree "${selector}". Use a path, a listed worktree directory name, branch name, or "current".`,
+      tCli("Could not resolve worktree \"{{value1}}\". Use a path, a listed worktree directory name, branch name, or \"current\".", { value1: String(selector) }),
     );
   }
   if (!matched.hasPaperclipConfig && !matched.isCurrent) {
-    throw new Error(`Resolved worktree "${selector}" does not look like a Paperclip worktree.`);
+    throw new Error(tCli("Resolved worktree \"{{value1}}\" does not look like a Paperclip worktree.", { value1: String(selector) }));
   }
   return resolveEndpointFromChoice(matched);
 }
@@ -3730,17 +3732,17 @@ async function promptForSourceEndpoint(excludeWorktreePath?: string): Promise<Re
     .map((choice) => ({
       value: choice.isCurrent ? "__current__" : choice.worktree,
       label: choice.branchLabel,
-      hint: `${choice.worktree}${choice.isCurrent ? " (current)" : ""}`,
+      hint: `${choice.worktree}${choice.isCurrent ? tCli(" (current)") : ""}`,
     }));
   if (choices.length === 0) {
-    throw new Error("No Paperclip worktrees were found. Run `paperclipai worktree:list` to inspect the repo worktrees.");
+    throw new Error(tCli("No Paperclip worktrees were found. Run `paperclipai worktree:list` to inspect the repo worktrees."));
   }
   const selection = await p.select<string>({
-    message: "Choose the source worktree to import from",
+    message: tCli("Choose the source worktree to import from"),
     options: choices,
   });
   if (p.isCancel(selection)) {
-    throw new Error("Source worktree selection cancelled.");
+    throw new Error(tCli("Source worktree selection cancelled."));
   }
   if (selection === "__current__") {
     return currentEndpoint;
@@ -4143,11 +4145,11 @@ async function applyMergePlan(input: {
 
 export async function worktreeMergeHistoryCommand(sourceArg: string | undefined, opts: WorktreeMergeHistoryOptions): Promise<void> {
   if (opts.apply && opts.dry) {
-    throw new Error("Use either --apply or --dry, not both.");
+    throw new Error(tCli("Use either --apply or --dry, not both."));
   }
 
   if (sourceArg && opts.from) {
-    throw new Error("Use either the positional source argument or --from, not both.");
+    throw new Error(tCli("Use either the positional source argument or --from, not both."));
   }
 
   const targetEndpoint = opts.to
@@ -4160,7 +4162,7 @@ export async function worktreeMergeHistoryCommand(sourceArg: string | undefined,
       : await promptForSourceEndpoint(targetEndpoint.rootPath);
 
   if (path.resolve(sourceEndpoint.configPath) === path.resolve(targetEndpoint.configPath)) {
-    throw new Error("Source and target Paperclip configs are the same. Choose different --from/--to worktrees.");
+    throw new Error(tCli("Source and target Paperclip configs are the same. Choose different --from/--to worktrees."));
   }
 
   const scopes = parseWorktreeMergeScopes(opts.scope);
@@ -4218,11 +4220,11 @@ export async function worktreeMergeHistoryCommand(sourceArg: string | undefined,
     const confirmed = opts.yes
       ? true
       : await p.confirm({
-        message: `Import ${collected.plan.counts.issuesToInsert} issues and ${collected.plan.counts.commentsToInsert} comments from ${sourceEndpoint.label} into ${targetEndpoint.label}?`,
+        message: tCli("Import {{value1}} issues and {{value2}} comments from {{value3}} into {{value4}}?", { value1: String(collected.plan.counts.issuesToInsert), value2: String(collected.plan.counts.commentsToInsert), value3: String(sourceEndpoint.label), value4: String(targetEndpoint.label) }),
         initialValue: false,
       });
     if (p.isCancel(confirmed) || !confirmed) {
-      p.log.warn("Import cancelled.");
+      p.log.warn(tCli("Import cancelled."));
       return;
     }
 
@@ -4235,12 +4237,12 @@ export async function worktreeMergeHistoryCommand(sourceArg: string | undefined,
     });
     if (applied.skippedMissingAttachmentObjects > 0) {
       p.log.warn(
-        `Skipped ${applied.skippedMissingAttachmentObjects} attachments whose source files were missing from storage.`,
+        tCli("Skipped {{value1}} attachments whose source files were missing from storage.", { value1: String(applied.skippedMissingAttachmentObjects) }),
       );
     }
     p.outro(
       pc.green(
-        `Imported ${applied.insertedProjects} projects (${applied.insertedProjectWorkspaces} workspaces), ${applied.insertedIssues} issues, ${applied.insertedComments} comments, ${applied.insertedDocuments} documents (${applied.insertedDocumentRevisions} revisions, ${applied.mergedDocuments} merged), and ${applied.insertedAttachments} attachments into ${company.issuePrefix}.`,
+        tCli("Imported {{value1}} projects ({{value2}} workspaces), {{value3}} issues, {{value4}} comments, {{value5}} documents ({{value6}} revisions, {{value7}} merged), and {{value8}} attachments into {{value9}}.", { value1: String(applied.insertedProjects), value2: String(applied.insertedProjectWorkspaces), value3: String(applied.insertedIssues), value4: String(applied.insertedComments), value5: String(applied.insertedDocuments), value6: String(applied.insertedDocumentRevisions), value7: String(applied.mergedDocuments), value8: String(applied.insertedAttachments), value9: String(company.issuePrefix) }),
       ),
     );
   } finally {
@@ -4254,7 +4256,7 @@ async function backupWorktreeReseedTarget(input: {
   targetPaths: WorktreeLocalPaths;
 }): Promise<string> {
   if (input.targetConfig.database.mode !== "embedded-postgres") {
-    throw new Error("Managed worktree repair requires an embedded PostgreSQL target.");
+    throw new Error(tCli("Managed worktree repair requires an embedded PostgreSQL target."));
   }
   const targetHandle = await ensureEmbeddedPostgres(
     input.targetConfig.database.embeddedPostgresDataDir,
@@ -4280,7 +4282,7 @@ async function backupWorktreeReseedTarget(input: {
 async function runWorktreeReseed(opts: WorktreeReseedOptions): Promise<void> {
   const seedMode = opts.seedMode ?? "full";
   if (!isWorktreeSeedMode(seedMode)) {
-    throw new Error(`Unsupported seed mode "${seedMode}". Expected one of: minimal, full.`);
+    throw new Error(tCli("Unsupported seed mode \"{{value1}}\". Expected one of: minimal, full.", { value1: String(seedMode) }));
   }
 
   const targetEndpoint = opts.to
@@ -4289,19 +4291,19 @@ async function runWorktreeReseed(opts: WorktreeReseedOptions): Promise<void> {
   const source = resolveWorktreeReseedSource(opts);
 
   if (path.resolve(source.configPath) === path.resolve(targetEndpoint.configPath)) {
-    throw new Error("Source and target Paperclip configs are the same. Choose different --from/--to values.");
+    throw new Error(tCli("Source and target Paperclip configs are the same. Choose different --from/--to values."));
   }
   if (!existsSync(source.configPath)) {
-    throw new Error(`Source config not found at ${source.configPath}.`);
+    throw new Error(tCli("Source config not found at {{value1}}.", { value1: String(source.configPath) }));
   }
 
   const targetConfig = readConfig(targetEndpoint.configPath);
   if (!targetConfig) {
-    throw new Error(`Target config not found at ${targetEndpoint.configPath}.`);
+    throw new Error(tCli("Target config not found at {{value1}}.", { value1: String(targetEndpoint.configPath) }));
   }
   const sourceConfig = readConfig(source.configPath);
   if (!sourceConfig) {
-    throw new Error(`Source config not found at ${source.configPath}.`);
+    throw new Error(tCli("Source config not found at {{value1}}.", { value1: String(source.configPath) }));
   }
 
   const targetPaths = resolveWorktreeReseedTargetPaths({
@@ -4311,27 +4313,27 @@ async function runWorktreeReseed(opts: WorktreeReseedOptions): Promise<void> {
   const runningTargetPid = resolveRunningEmbeddedPostgresPid(targetConfig);
   if (runningTargetPid && !opts.allowLiveTarget) {
     throw new Error(
-      `Target worktree database appears to be running (pid ${runningTargetPid}). Stop Paperclip in ${targetEndpoint.rootPath} before reseeding, or re-run with --allow-live-target if you want to override this guard.`,
+      tCli("Target worktree database appears to be running (pid {{value1}}). Stop Paperclip in {{value2}} before reseeding, or re-run with --allow-live-target if you want to override this guard.", { value1: String(runningTargetPid), value2: String(targetEndpoint.rootPath) }),
     );
   }
 
   const confirmed = opts.yes
     ? true
     : await p.confirm({
-      message: `Overwrite the isolated Paperclip DB for ${targetEndpoint.label} from ${source.label} using ${seedMode} seed mode?`,
+      message: tCli("Overwrite the isolated Paperclip DB for {{value1}} from {{value2}} using {{value3}} seed mode?", { value1: String(targetEndpoint.label), value2: String(source.label), value3: String(seedMode) }),
       initialValue: false,
     });
   if (p.isCancel(confirmed) || !confirmed) {
-    p.log.warn("Reseed cancelled.");
+    p.log.warn(tCli("Reseed cancelled."));
     return;
   }
 
   if (runningTargetPid && opts.allowLiveTarget) {
-    p.log.warning(`Proceeding even though the target embedded PostgreSQL appears to be running (pid ${runningTargetPid}).`);
+    p.log.warning(tCli("Proceeding even though the target embedded PostgreSQL appears to be running (pid {{value1}}).", { value1: String(runningTargetPid) }));
   }
 
   const spinner = p.spinner();
-  spinner.start(`Reseeding ${targetEndpoint.label} from ${source.label} (${seedMode})...`);
+  spinner.start(tCli("Reseeding {{value1}} from {{value2}} ({{value3}})...", { value1: String(targetEndpoint.label), value2: String(source.label), value3: String(seedMode) }));
   const markers = resolveWorktreeSeedMarkerPaths(targetEndpoint.configPath);
   mkdirSync(path.dirname(markers.lock), { recursive: true });
   const releaseSeedLock = await acquireWorktreeSeedLock(markers.lock);
@@ -4339,7 +4341,7 @@ async function runWorktreeReseed(opts: WorktreeReseedOptions): Promise<void> {
     let targetBackupSummary: string | null = null;
     if (opts.backupTarget) {
       targetBackupSummary = await backupWorktreeReseedTarget({ targetConfig, targetPaths });
-      p.log.message(pc.dim(`Recoverable pre-repair backup: ${targetBackupSummary}`));
+      p.log.message(pc.dim(tCli("Recoverable pre-repair backup: {{value1}}", { value1: String(targetBackupSummary) })));
     }
     markWorktreeSeedPending({
       configPath: targetEndpoint.configPath,
@@ -4359,26 +4361,26 @@ async function runWorktreeReseed(opts: WorktreeReseedOptions): Promise<void> {
       expectedCompanyId: nonEmpty(process.env.PAPERCLIP_SEED_EXPECTED_COMPANY_ID) ?? undefined,
       seedDatabase: seedWorktreeDatabase,
     });
-    spinner.stop(`Reseeded ${targetEndpoint.label} (${seedMode}).`);
-    p.log.message(pc.dim(`Source: ${source.configPath}`));
-    p.log.message(pc.dim(`Target: ${targetEndpoint.configPath}`));
-    p.log.message(pc.dim(`Seed snapshot: ${seeded.backupSummary}`));
+    spinner.stop(tCli("Reseeded {{value1}} ({{value2}}).", { value1: String(targetEndpoint.label), value2: String(seedMode) }));
+    p.log.message(pc.dim(tCli("Source: {{value1}}", { value1: String(source.configPath) })));
+    p.log.message(pc.dim(tCli("Target: {{value1}}", { value1: String(targetEndpoint.configPath) })));
+    p.log.message(pc.dim(tCli("Seed snapshot: {{value1}}", { value1: String(seeded.backupSummary) })));
     if (opts.preserveLiveWork) {
-      p.log.warning("Preserved copied live work; this worktree instance may auto-run source-instance assignments.");
+      p.log.warning(tCli("Preserved copied live work; this worktree instance may auto-run source-instance assignments."));
     } else {
       p.log.message(
-        pc.dim(`Seed execution quarantine: ${formatSeededWorktreeExecutionQuarantineSummary(seeded.executionQuarantine)}`),
+        pc.dim(tCli("Seed execution quarantine: {{value1}}", { value1: String(formatSeededWorktreeExecutionQuarantineSummary(seeded.executionQuarantine)) })),
       );
     }
-    p.log.message(pc.dim(`Paused scheduled routines: ${seeded.pausedScheduledRoutines}`));
+    p.log.message(pc.dim(tCli("Paused scheduled routines: {{value1}}", { value1: String(seeded.pausedScheduledRoutines) })));
     for (const rebound of seeded.reboundWorkspaces) {
       p.log.message(
-        pc.dim(`Rebound workspace ${rebound.name}: ${rebound.fromCwd} -> ${rebound.toCwd}`),
+        pc.dim(tCli("Rebound workspace {{value1}}: {{value2}} -> {{value3}}", { value1: String(rebound.name), value2: String(rebound.fromCwd), value3: String(rebound.toCwd) })),
       );
     }
-    p.outro(pc.green(`Reseed complete for ${targetEndpoint.label}.`));
+    p.outro(pc.green(tCli("Reseed complete for {{value1}}.", { value1: String(targetEndpoint.label) })));
   } catch (error) {
-    spinner.stop(pc.red("Failed to reseed worktree database."));
+    spinner.stop(pc.red(tCli("Failed to reseed worktree database.")));
     throw error;
   } finally {
     await releaseSeedLock();
@@ -4397,7 +4399,7 @@ export async function worktreeRepairCommand(opts: WorktreeRepairOptions): Promis
 
   const seedMode = opts.seedMode ?? "minimal";
   if (!isWorktreeSeedMode(seedMode)) {
-    throw new Error(`Unsupported seed mode "${seedMode}". Expected one of: minimal, full.`);
+    throw new Error(tCli("Unsupported seed mode \"{{value1}}\". Expected one of: minimal, full.", { value1: String(seedMode) }));
   }
 
   const target = await ensureRepairTargetWorktree({
@@ -4406,17 +4408,17 @@ export async function worktreeRepairCommand(opts: WorktreeRepairOptions): Promis
     opts,
   });
   if (!target) {
-    p.log.warn("Current checkout is the primary repo worktree. Pass --branch to create or repair a linked worktree.");
-    p.outro(pc.yellow("No worktree repaired."));
+    p.log.warn(tCli("Current checkout is the primary repo worktree. Pass --branch to create or repair a linked worktree."));
+    p.outro(pc.yellow(tCli("No worktree repaired.")));
     return;
   }
 
   const source = resolveWorktreeRepairSource(opts);
   if (!existsSync(source.configPath)) {
-    throw new Error(`Source config not found at ${source.configPath}.`);
+    throw new Error(tCli("Source config not found at {{value1}}.", { value1: String(source.configPath) }));
   }
   if (path.resolve(source.configPath) === path.resolve(target.configPath)) {
-    throw new Error("Source and target Paperclip configs are the same. Use --from-config/--from-instance to point repair at a different source.");
+    throw new Error(tCli("Source and target Paperclip configs are the same. Use --from-config/--from-instance to point repair at a different source."));
   }
 
   const targetConfig = existsSync(target.configPath) ? readConfig(target.configPath) : null;
@@ -4426,8 +4428,8 @@ export async function worktreeRepairCommand(opts: WorktreeRepairOptions): Promis
   );
 
   if (targetConfig && targetHasWorktreeEnv && opts.noSeed) {
-    p.log.message(pc.dim(`Target ${target.label} already has worktree-local config/env. Skipping reseed because --no-seed was passed.`));
-    p.outro(pc.green(`Worktree metadata already looks healthy for ${target.label}.`));
+    p.log.message(pc.dim(tCli("Target {{value1}} already has worktree-local config/env. Skipping reseed because --no-seed was passed.", { value1: String(target.label) })));
+    p.outro(pc.green(tCli("Worktree metadata already looks healthy for {{value1}}.", { value1: String(target.label) })));
     return;
   }
 
@@ -4452,11 +4454,11 @@ export async function worktreeRepairCommand(opts: WorktreeRepairOptions): Promis
   const runningTargetPid = readRunningPostmasterPid(path.resolve(repairPaths.embeddedPostgresDataDir, "postmaster.pid"));
   if (runningTargetPid && !opts.allowLiveTarget) {
     throw new Error(
-      `Target worktree database appears to be running (pid ${runningTargetPid}). Stop Paperclip in ${target.rootPath} before repairing, or re-run with --allow-live-target if you want to override this guard.`,
+      tCli("Target worktree database appears to be running (pid {{value1}}). Stop Paperclip in {{value2}} before repairing, or re-run with --allow-live-target if you want to override this guard.", { value1: String(runningTargetPid), value2: String(target.rootPath) }),
     );
   }
   if (runningTargetPid && opts.allowLiveTarget) {
-    p.log.warning(`Proceeding even though the target embedded PostgreSQL appears to be running (pid ${runningTargetPid}).`);
+    p.log.warning(tCli("Proceeding even though the target embedded PostgreSQL appears to be running (pid {{value1}}).", { value1: String(runningTargetPid) }));
   }
 
   const originalCwd = process.cwd();
@@ -4478,114 +4480,114 @@ export async function worktreeRepairCommand(opts: WorktreeRepairOptions): Promis
 }
 
 export function registerWorktreeCommands(program: Command): void {
-  const worktree = program.command("worktree").description("Worktree-local Paperclip instance helpers");
+  const worktree = program.command("worktree").description(tCli("Worktree-local Paperclip instance helpers"));
 
   program
     .command("worktree:make")
-    .description("Create ~/NAME as a git worktree, then initialize an isolated Paperclip instance inside it")
-    .argument("<name>", "Worktree name — auto-prefixed with paperclip- if needed (created at ~/paperclip-NAME)")
-    .option("--start-point <ref>", "Remote ref to base the new branch on (env: PAPERCLIP_WORKTREE_START_POINT)")
-    .option("--instance <id>", "Explicit isolated instance id")
-    .option("--home <path>", `Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: ${DEFAULT_WORKTREE_HOME})`)
-    .option("--from-config <path>", "Source config.json to seed from")
-    .option("--from-data-dir <path>", "Source PAPERCLIP_HOME used when deriving the source config")
-    .option("--from-instance <id>", "Source instance id when deriving the source config", "default")
-    .option("--server-port <port>", "Preferred server port", (value) => Number(value))
-    .option("--db-port <port>", "Preferred embedded Postgres port", (value) => Number(value))
-    .option("--seed-mode <mode>", "Seed profile: minimal or full (default: minimal)", "minimal")
-    .option("--preserve-live-work", "Do not quarantine copied agent work or workspace runtime services in the seeded worktree", false)
-    .option("--no-seed", "Skip database seeding from the source instance")
-    .option("--force", "Replace existing repo-local config and isolated instance data", false)
+    .description(tCli("Create ~/NAME as a git worktree, then initialize an isolated Paperclip instance inside it"))
+    .argument("<name>", tCli("Worktree name — auto-prefixed with paperclip- if needed (created at ~/paperclip-NAME)"))
+    .option("--start-point <ref>", tCli("Remote ref to base the new branch on (env: PAPERCLIP_WORKTREE_START_POINT)"))
+    .option("--instance <id>", tCli("Explicit isolated instance id"))
+    .option("--home <path>", tCli("Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: {{value1}})", { value1: String(DEFAULT_WORKTREE_HOME) }))
+    .option("--from-config <path>", tCli("Source config.json to seed from"))
+    .option("--from-data-dir <path>", tCli("Source PAPERCLIP_HOME used when deriving the source config"))
+    .option("--from-instance <id>", tCli("Source instance id when deriving the source config"), "default")
+    .option("--server-port <port>", tCli("Preferred server port"), (value) => Number(value))
+    .option("--db-port <port>", tCli("Preferred embedded Postgres port"), (value) => Number(value))
+    .option("--seed-mode <mode>", tCli("Seed profile: minimal or full (default: minimal)"), "minimal")
+    .option("--preserve-live-work", tCli("Do not quarantine copied agent work or workspace runtime services in the seeded worktree"), false)
+    .option("--no-seed", tCli("Skip database seeding from the source instance"))
+    .option("--force", tCli("Replace existing repo-local config and isolated instance data"), false)
     .action(worktreeMakeCommand);
 
   worktree
     .command("init")
-    .description("Create repo-local config/env and an isolated instance for this worktree")
-    .option("--name <name>", "Display name used to derive the instance id")
-    .option("--instance <id>", "Explicit isolated instance id")
-    .option("--home <path>", `Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: ${DEFAULT_WORKTREE_HOME})`)
-    .option("--from-config <path>", "Source config.json to seed from")
-    .option("--from-data-dir <path>", "Source PAPERCLIP_HOME used when deriving the source config")
-    .option("--from-instance <id>", "Source instance id when deriving the source config", "default")
-    .option("--server-port <port>", "Preferred server port", (value) => Number(value))
-    .option("--db-port <port>", "Preferred embedded Postgres port", (value) => Number(value))
-    .option("--seed-mode <mode>", "Seed profile: minimal or full (default: minimal)", "minimal")
-    .option("--preserve-live-work", "Do not quarantine copied agent work or workspace runtime services in the seeded worktree", false)
-    .option("--no-seed", "Skip database seeding from the source instance")
-    .option("--force", "Replace existing repo-local config and isolated instance data", false)
+    .description(tCli("Create repo-local config/env and an isolated instance for this worktree"))
+    .option("--name <name>", tCli("Display name used to derive the instance id"))
+    .option("--instance <id>", tCli("Explicit isolated instance id"))
+    .option("--home <path>", tCli("Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: {{value1}})", { value1: String(DEFAULT_WORKTREE_HOME) }))
+    .option("--from-config <path>", tCli("Source config.json to seed from"))
+    .option("--from-data-dir <path>", tCli("Source PAPERCLIP_HOME used when deriving the source config"))
+    .option("--from-instance <id>", tCli("Source instance id when deriving the source config"), "default")
+    .option("--server-port <port>", tCli("Preferred server port"), (value) => Number(value))
+    .option("--db-port <port>", tCli("Preferred embedded Postgres port"), (value) => Number(value))
+    .option("--seed-mode <mode>", tCli("Seed profile: minimal or full (default: minimal)"), "minimal")
+    .option("--preserve-live-work", tCli("Do not quarantine copied agent work or workspace runtime services in the seeded worktree"), false)
+    .option("--no-seed", tCli("Skip database seeding from the source instance"))
+    .option("--force", tCli("Replace existing repo-local config and isolated instance data"), false)
     .action(worktreeInitCommand);
 
   worktree
     .command("env")
-    .description("Print shell exports for the current worktree-local Paperclip instance")
-    .option("-c, --config <path>", "Path to config file")
-    .option("--json", "Print JSON instead of shell exports")
+    .description(tCli("Print shell exports for the current worktree-local Paperclip instance"))
+    .option("-c, --config <path>", tCli("Path to config file"))
+    .option("--json", tCli("Print JSON instead of shell exports"))
     .action(worktreeEnvCommand);
 
   worktree
     .command("ensure-seeded")
-    .description("Seed a seed-pending worktree database exactly once from its source instance")
-    .option("-c, --config <path>", "Path to the target worktree config file")
-    .option("--from-config <path>", "Source config.json to seed from (defaults to the seed-pending marker)")
-    .option("--from-data-dir <path>", "Source PAPERCLIP_HOME used when deriving the source config")
-    .option("--from-instance <id>", "Source instance id when deriving the source config")
-    .option("--preserve-live-work", "Do not quarantine copied agent work or workspace runtime services", false)
+    .description(tCli("Seed a seed-pending worktree database exactly once from its source instance"))
+    .option("-c, --config <path>", tCli("Path to the target worktree config file"))
+    .option("--from-config <path>", tCli("Source config.json to seed from (defaults to the seed-pending marker)"))
+    .option("--from-data-dir <path>", tCli("Source PAPERCLIP_HOME used when deriving the source config"))
+    .option("--from-instance <id>", tCli("Source instance id when deriving the source config"))
+    .option("--preserve-live-work", tCli("Do not quarantine copied agent work or workspace runtime services"), false)
     .action(worktreeEnsureSeededCommand);
 
   program
     .command("worktree:list")
-    .description("List git worktrees visible from this repo and whether they look like Paperclip worktrees")
-    .option("--json", "Print JSON instead of text output")
+    .description(tCli("List git worktrees visible from this repo and whether they look like Paperclip worktrees"))
+    .option("--json", tCli("Print JSON instead of text output"))
     .action(worktreeListCommand);
 
   program
     .command("worktree:merge-history")
-    .description("Preview or import issue/comment history from another worktree into the current instance")
-    .argument("[source]", "Optional source worktree path, directory name, or branch name (back-compat alias for --from)")
-    .option("--from <worktree>", "Source worktree path, directory name, branch name, or current")
-    .option("--to <worktree>", "Target worktree path, directory name, branch name, or current (defaults to current)")
-    .option("--company <id-or-prefix>", "Shared company id or issue prefix inside the chosen source/target instances")
-    .option("--scope <items>", "Comma-separated scopes to import (issues, comments)", "issues,comments")
-    .option("--apply", "Apply the import after previewing the plan", false)
-    .option("--dry", "Preview only and do not import anything", false)
-    .option("--yes", "Skip the interactive confirmation prompt when applying", false)
+    .description(tCli("Preview or import issue/comment history from another worktree into the current instance"))
+    .argument("[source]", tCli("Optional source worktree path, directory name, or branch name (back-compat alias for --from)"))
+    .option("--from <worktree>", tCli("Source worktree path, directory name, branch name, or current"))
+    .option("--to <worktree>", tCli("Target worktree path, directory name, branch name, or current (defaults to current)"))
+    .option("--company <id-or-prefix>", tCli("Shared company id or issue prefix inside the chosen source/target instances"))
+    .option("--scope <items>", tCli("Comma-separated scopes to import (issues, comments)"), "issues,comments")
+    .option("--apply", tCli("Apply the import after previewing the plan"), false)
+    .option("--dry", tCli("Preview only and do not import anything"), false)
+    .option("--yes", tCli("Skip the interactive confirmation prompt when applying"), false)
     .action(worktreeMergeHistoryCommand);
 
   worktree
     .command("reseed")
-    .description("Re-seed an existing worktree-local instance from another Paperclip instance or worktree")
-    .option("--from <worktree>", "Source worktree path, directory name, branch name, or current")
-    .option("--to <worktree>", "Target worktree path, directory name, branch name, or current (defaults to current)")
-    .option("--from-config <path>", "Source config.json to seed from")
-    .option("--from-data-dir <path>", "Source PAPERCLIP_HOME used when deriving the source config")
-    .option("--from-instance <id>", "Source instance id when deriving the source config")
-    .option("--seed-mode <mode>", "Seed profile: minimal or full (default: full)", "full")
-    .option("--preserve-live-work", "Do not quarantine copied agent work or workspace runtime services in the seeded worktree", false)
-    .option("--yes", "Skip the destructive confirmation prompt", false)
-    .option("--allow-live-target", "Override the guard that requires the target worktree DB to be stopped first", false)
-    .option("--backup-target", "Retain a recoverable full backup of the isolated target DB before reseeding", false)
+    .description(tCli("Re-seed an existing worktree-local instance from another Paperclip instance or worktree"))
+    .option("--from <worktree>", tCli("Source worktree path, directory name, branch name, or current"))
+    .option("--to <worktree>", tCli("Target worktree path, directory name, branch name, or current (defaults to current)"))
+    .option("--from-config <path>", tCli("Source config.json to seed from"))
+    .option("--from-data-dir <path>", tCli("Source PAPERCLIP_HOME used when deriving the source config"))
+    .option("--from-instance <id>", tCli("Source instance id when deriving the source config"))
+    .option("--seed-mode <mode>", tCli("Seed profile: minimal or full (default: full)"), "full")
+    .option("--preserve-live-work", tCli("Do not quarantine copied agent work or workspace runtime services in the seeded worktree"), false)
+    .option("--yes", tCli("Skip the destructive confirmation prompt"), false)
+    .option("--allow-live-target", tCli("Override the guard that requires the target worktree DB to be stopped first"), false)
+    .option("--backup-target", tCli("Retain a recoverable full backup of the isolated target DB before reseeding"), false)
     .action(worktreeReseedCommand);
 
   worktree
     .command("repair")
-    .description("Create or repair a linked worktree-local Paperclip instance without touching the primary checkout")
-    .option("--branch <name>", "Existing branch/worktree selector to repair, or a branch name to create under .paperclip/worktrees")
-    .option("--home <path>", `Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: ${DEFAULT_WORKTREE_HOME})`)
-    .option("--from-config <path>", "Source config.json to seed from")
-    .option("--from-data-dir <path>", "Source PAPERCLIP_HOME used when deriving the source config")
-    .option("--from-instance <id>", "Source instance id when deriving the source config (default: default)")
-    .option("--seed-mode <mode>", "Seed profile: minimal or full (default: minimal)", "minimal")
-    .option("--preserve-live-work", "Do not quarantine copied agent work or workspace runtime services in the seeded worktree", false)
-    .option("--no-seed", "Repair metadata only and skip reseeding when bootstrapping a missing worktree config", false)
-    .option("--allow-live-target", "Override the guard that requires the target worktree DB to be stopped first", false)
+    .description(tCli("Create or repair a linked worktree-local Paperclip instance without touching the primary checkout"))
+    .option("--branch <name>", tCli("Existing branch/worktree selector to repair, or a branch name to create under .paperclip/worktrees"))
+    .option("--home <path>", tCli("Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: {{value1}})", { value1: String(DEFAULT_WORKTREE_HOME) }))
+    .option("--from-config <path>", tCli("Source config.json to seed from"))
+    .option("--from-data-dir <path>", tCli("Source PAPERCLIP_HOME used when deriving the source config"))
+    .option("--from-instance <id>", tCli("Source instance id when deriving the source config (default: default)"))
+    .option("--seed-mode <mode>", tCli("Seed profile: minimal or full (default: minimal)"), "minimal")
+    .option("--preserve-live-work", tCli("Do not quarantine copied agent work or workspace runtime services in the seeded worktree"), false)
+    .option("--no-seed", tCli("Repair metadata only and skip reseeding when bootstrapping a missing worktree config"), false)
+    .option("--allow-live-target", tCli("Override the guard that requires the target worktree DB to be stopped first"), false)
     .action(worktreeRepairCommand);
 
   program
     .command("worktree:cleanup")
-    .description("Safely remove a worktree, its branch, and its isolated instance data")
-    .argument("<name>", "Worktree name — auto-prefixed with paperclip- if needed")
-    .option("--instance <id>", "Explicit instance id (if different from the worktree name)")
-    .option("--home <path>", `Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: ${DEFAULT_WORKTREE_HOME})`)
-    .option("--force", "Bypass safety checks (uncommitted changes, unique commits)", false)
+    .description(tCli("Safely remove a worktree, its branch, and its isolated instance data"))
+    .argument("<name>", tCli("Worktree name — auto-prefixed with paperclip- if needed"))
+    .option("--instance <id>", tCli("Explicit instance id (if different from the worktree name)"))
+    .option("--home <path>", tCli("Home root for worktree instances (env: PAPERCLIP_WORKTREES_DIR, default: {{value1}})", { value1: String(DEFAULT_WORKTREE_HOME) }))
+    .option("--force", tCli("Bypass safety checks (uncommitted changes, unique commits)"), false)
     .action(worktreeCleanupCommand);
 }

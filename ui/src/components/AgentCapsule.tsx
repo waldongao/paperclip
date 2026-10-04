@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "motion/react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 
 /**
  * AgentCapsule — the brand "capsule is the agent" motif (PAP-118).
@@ -46,9 +47,9 @@ const SIZE_PRESETS: Record<AgentCapsuleSizePreset, { width: number; height: numb
 };
 
 const STATE_ARIA: Record<AgentCapsuleState, string> = {
-  slot: "empty agent slot",
-  configured: "agent configured, offline",
-  online: "agent online",
+  slot: t("empty_agent_slot"),
+  configured: t("agent_configured_offline"),
+  online: t("agent_online"),
 };
 
 export interface AgentCapsuleProps

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 
 export interface CollectionToolbarProps {
   /** Primary context such as tabs, a view title, or a result count. */
@@ -30,7 +31,7 @@ export function CollectionToolbar({
   actions,
   feedback,
   className,
-  ariaLabel = "Collection controls",
+  ariaLabel = t("collection_controls"),
 }: CollectionToolbarProps) {
   return (
     <div

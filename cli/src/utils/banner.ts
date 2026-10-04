@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import pc from "picocolors";
 
 const PAPERCLIP_ART = [
@@ -9,7 +10,7 @@ const PAPERCLIP_ART = [
   "╚═╝     ╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚═╝╚═╝     ",
 ] as const;
 
-const TAGLINE = "The app people use to manage AI agents for work";
+const TAGLINE = tCli("The app people use to manage AI agents for work");
 
 export function printPaperclipCliBanner(): void {
   const lines = [

@@ -1,4 +1,5 @@
-/**
+
+import { t } from "@/i18n";/**
  * Exhaustive product disposition for Paperclip Runner Protocol surfaces.
  *
  * This is intentionally separate from the renderer: adding a protocol event
@@ -84,42 +85,42 @@ const governanceEvents = [
 ] as const;
 
 export const TASK_PROTOCOL_EVENT_SURFACE_REGISTRY: Readonly<Record<string, TaskProtocolSurfaceRegistration>> = Object.freeze({
-  ...Object.fromEntries(providerEvents.map((eventType) => [eventType, inline("provider_activity", "Task Page/Runner Protocol/Provider semantics", "Provider-neutral semantic activity is readable in the task turn.")])),
-  "workspace.change.updated": inline("workspace_change", "Task Page/Runner Protocol/Workspace changes", "In-progress workspace changes update one diff card."),
-  "workspace.diff.recorded": inline("workspace_change", "Task Page/Runner Protocol/Workspace changes", "The runner-verified final diff replaces the in-progress revision."),
-  "workspace.file.referenced": inline("workspace_file", "Task Page/Runner Protocol/File references", "Verified references open a bounded preview and the production file viewer."),
-  "semantic_tool.input": folded("tool", "Semantic operations reuse the production tool row."),
-  "semantic_tool.result": folded("tool", "Semantic operation outcomes update the matching tool row."),
-  "semantic_tool.reconciled": folded("tool", "Recovered semantic operation outcomes update the matching tool row without duplicating it."),
-  "mcp_app.tool_input": folded("tool", "MCP inputs reuse the production tool row."),
-  "mcp_app.tool_result": folded("tool", "MCP outcomes update the matching tool row."),
-  "mcp_app.action.requested": folded("interaction", "Action requests materialize as authoritative issue-thread interactions."),
-  "mcp_app.action.resolved": folded("interaction", "Action resolution is shown on the authoritative interaction card."),
-  "runtime_request.created": inline("runtime_request", "Task Page/Runner Protocol/Runtime requests", "Pending provider runtime requests remain visible and actionable when a resolver is available."),
-  "runtime_request.resolved": folded("runtime_request", "Resolution updates the existing request card."),
-  "runtime_request.expired": folded("runtime_request", "Expiry updates the existing request card."),
-  "runtime_request.cancelled": folded("runtime_request", "Cancellation updates the existing request card."),
-  ...Object.fromEntries(interactionLifecycleEvents.map((eventType) => [eventType, folded("interaction", "The control-plane interaction record is canonical and owns rendering." )])),
-  "run.result.proposed": inline("run_result", "Task Page/Runner Protocol/Results and terminal states", "Structured completion, evidence, verification, blockers, and artifacts remain inspectable."),
-  "run.result.accepted": folded("run_result", "Acceptance updates the existing result without duplicating it."),
-  "run.result.rejected": folded("run_result", "Rejected results remain part of run governance rather than a second completion card."),
-  "run.terminal": inline("run_terminal", "Task Page/Runner Protocol/Results and terminal states", "Terminal outcome and stop reason remain visible."),
-  ...Object.fromEntries(runnerLifecycleEvents.map((eventType) => [eventType, folded("turn", "Routine lifecycle transitions are summarized by the run turn and composer state.")])),
-  ...Object.fromEntries(diagnosticEvents.map((eventType) => [eventType, folded("system_notice", "Actionable failure text is folded into the run or system notice.")])),
-  ...Object.fromEntries(itemEvents.map((eventType) => [eventType, folded("conversation_or_tool", "Item payloads normalize into messages, reasoning, tools, diffs, or usage." )])),
-  "sandbox.metric": debugOnly("run_debug", "Sandbox telemetry is available in run details, not the primary task thread."),
-  ...Object.fromEntries(mcpLifecycleEvents.map((eventType) => [eventType, debugOnly("run_debug", "MCP application transport lifecycle remains in run details unless it produces an actionable failure.")])),
-  ...Object.fromEntries(governanceEvents.map((eventType) => [eventType, folded("governance", "Authoritative task status, attention, and interaction records own this state." )])),
+  ...Object.fromEntries(providerEvents.map((eventType) => [eventType, inline("provider_activity", t("task_page_runner_protocol_provider_semantics"), t("provider_neutral_semantic_activity_is_readable_i"))])),
+  "workspace.change.updated": inline("workspace_change", t("task_page_runner_protocol_workspace_changes"), t("in_progress_workspace_changes_update_one_diff_ca")),
+  "workspace.diff.recorded": inline("workspace_change", t("task_page_runner_protocol_workspace_changes"), t("the_runner_verified_final_diff_replaces_the_in_p")),
+  "workspace.file.referenced": inline("workspace_file", t("task_page_runner_protocol_file_references"), t("verified_references_open_a_bounded_preview_and_t")),
+  "semantic_tool.input": folded("tool", t("semantic_operations_reuse_the_production_tool_ro")),
+  "semantic_tool.result": folded("tool", t("semantic_operation_outcomes_update_the_matching")),
+  "semantic_tool.reconciled": folded("tool", t("recovered_semantic_operation_outcomes_update_the")),
+  "mcp_app.tool_input": folded("tool", t("mcp_inputs_reuse_the_production_tool_row")),
+  "mcp_app.tool_result": folded("tool", t("mcp_outcomes_update_the_matching_tool_row")),
+  "mcp_app.action.requested": folded("interaction", t("action_requests_materialize_as_authoritative_iss")),
+  "mcp_app.action.resolved": folded("interaction", t("action_resolution_is_shown_on_the_authoritative")),
+  "runtime_request.created": inline("runtime_request", t("task_page_runner_protocol_runtime_requests"), t("pending_provider_runtime_requests_remain_visible")),
+  "runtime_request.resolved": folded("runtime_request", t("resolution_updates_the_existing_request_card")),
+  "runtime_request.expired": folded("runtime_request", t("expiry_updates_the_existing_request_card")),
+  "runtime_request.cancelled": folded("runtime_request", t("cancellation_updates_the_existing_request_card")),
+  ...Object.fromEntries(interactionLifecycleEvents.map((eventType) => [eventType, folded("interaction", t("the_control_plane_interaction_record_is_canonica") )])),
+  "run.result.proposed": inline("run_result", t("task_page_runner_protocol_results_and_terminal_s"), t("structured_completion_evidence_verification_bloc")),
+  "run.result.accepted": folded("run_result", t("acceptance_updates_the_existing_result_without_d")),
+  "run.result.rejected": folded("run_result", t("rejected_results_remain_part_of_run_governance_r")),
+  "run.terminal": inline("run_terminal", t("task_page_runner_protocol_results_and_terminal_s"), t("terminal_outcome_and_stop_reason_remain_visible")),
+  ...Object.fromEntries(runnerLifecycleEvents.map((eventType) => [eventType, folded("turn", t("routine_lifecycle_transitions_are_summarized_by"))])),
+  ...Object.fromEntries(diagnosticEvents.map((eventType) => [eventType, folded("system_notice", t("actionable_failure_text_is_folded_into_the_run_o"))])),
+  ...Object.fromEntries(itemEvents.map((eventType) => [eventType, folded("conversation_or_tool", t("item_payloads_normalize_into_messages_reasoning") )])),
+  "sandbox.metric": debugOnly("run_debug", t("sandbox_telemetry_is_available_in_run_details_no")),
+  ...Object.fromEntries(mcpLifecycleEvents.map((eventType) => [eventType, debugOnly("run_debug", t("mcp_application_transport_lifecycle_remains_in_r"))])),
+  ...Object.fromEntries(governanceEvents.map((eventType) => [eventType, folded("governance", t("authoritative_task_status_attention_and_interact") )])),
 });
 
 export const TASK_PROTOCOL_REQUEST_SURFACE_REGISTRY = Object.freeze({
-  "runtime.permission": inline("runtime_request", "Task Page/Runner Protocol/Runtime requests", "Permission choices render on the runtime request card."),
-  "runtime.input": inline("runtime_request", "Task Page/Runner Protocol/Runtime requests", "Structured runtime input renders on the runtime request card."),
-  "issue_thread.request_confirmation": inline("interaction", "Task Page/Runner Protocol/Interactions", "Uses the production confirmation card."),
-  "issue_thread.request_checkbox_confirmation": inline("interaction", "Task Page/Runner Protocol/Interactions", "Uses the production bounded checkbox card."),
-  "issue_thread.request_item_verdicts": inline("interaction", "Task Page/Runner Protocol/Interactions", "Uses the production per-item verdict card."),
-  "issue_thread.ask_user_questions": inline("interaction", "Task Page/Runner Protocol/Interactions", "Uses the production typed question controls."),
-  "issue_thread.suggest_tasks": inline("interaction", "Task Page/Runner Protocol/Interactions", "Uses the production task suggestion tree."),
+  "runtime.permission": inline("runtime_request", t("task_page_runner_protocol_runtime_requests"), t("permission_choices_render_on_the_runtime_request")),
+  "runtime.input": inline("runtime_request", t("task_page_runner_protocol_runtime_requests"), t("structured_runtime_input_renders_on_the_runtime")),
+  "issue_thread.request_confirmation": inline("interaction", t("task_page_runner_protocol_interactions"), t("uses_the_production_confirmation_card")),
+  "issue_thread.request_checkbox_confirmation": inline("interaction", t("task_page_runner_protocol_interactions"), t("uses_the_production_bounded_checkbox_card")),
+  "issue_thread.request_item_verdicts": inline("interaction", t("task_page_runner_protocol_interactions"), t("uses_the_production_per_item_verdict_card")),
+  "issue_thread.ask_user_questions": inline("interaction", t("task_page_runner_protocol_interactions"), t("uses_the_production_typed_question_controls")),
+  "issue_thread.suggest_tasks": inline("interaction", t("task_page_runner_protocol_interactions"), t("uses_the_production_task_suggestion_tree")),
 });
 
 export const TASK_PROTOCOL_RESULT_DISPOSITION_REGISTRY = Object.freeze({

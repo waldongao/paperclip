@@ -16,6 +16,8 @@ import { cn } from "../../lib/utils";
 import { ExternalObjectStatusIcon } from "../ExternalObjectStatusIcon";
 import { PropertyRow } from "./primitives";
 import { ExpandRelationListButton } from "./relation-controls";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 const EXTERNAL_OBJECT_PROPERTY_PREVIEW_COUNT = 5;
 
@@ -32,8 +34,8 @@ function externalObjectRowDisplayKey(group: IssueExternalObjectGroup): string {
   const displayKey = pill.displayKey?.trim();
   if (displayKey) return displayKey;
   if (pill.providerKey === "github") {
-    if (pill.objectType === "pull_request") return "Github PR";
-    if (pill.objectType === "issue") return "Github Issue";
+    if (pill.objectType === "pull_request") return t("github_pr");
+    if (pill.objectType === "issue") return t("github_issue");
   }
   return externalObjectDisplayLabel(pill.providerKey, pill.objectType);
 }
@@ -58,7 +60,7 @@ function githubObjectPropertyValue(url: string | null | undefined): string | nul
     const [, owner, repo, kind, number] = parsed.pathname.split("/");
     if (!owner || !repo || !number) return null;
     if (kind === "pull") return `PR ${number}`;
-    if (kind === "issues") return `Issue ${number}`;
+    if (kind === "issues") return t("zhComponents.message_05f4fe3be7", { value1: number });
     return null;
   } catch {
     return null;
@@ -79,7 +81,7 @@ function externalObjectPropertyValue(group: IssueExternalObjectGroup): string {
 
 function isMergedExternalObject(group: IssueExternalObjectGroup): boolean {
   const statusLabel = externalObjectPropertyStatusLabel(group);
-  return group.pill.statusIconKey === "git-merge" || statusLabel.toLowerCase() === "merged";
+  return group.pill.statusIconKey === "git-merge" || group.pill.statusLabel?.toLowerCase() === "merged";
 }
 
 function externalObjectPropertyTone(group: IssueExternalObjectGroup): string {
@@ -167,6 +169,7 @@ export function ExternalObjectRows({
   externalObjectsError?: boolean;
   onRetryExternalObjects?: () => void;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -175,9 +178,9 @@ export function ExternalObjectRows({
 
   if (externalObjectsError) {
     return (
-      <PropertyRow label="External objects">
+      <PropertyRow label={t("external_objects")}>
         <span className="text-xs text-muted-foreground">
-          Couldn't load external objects.
+          {t("couldnt_load_external_objects")}
           {onRetryExternalObjects ? (
             <>
               {" "}
@@ -186,7 +189,7 @@ export function ExternalObjectRows({
                 className="text-primary underline-offset-2 hover:underline"
                 onClick={onRetryExternalObjects}
               >
-                Retry
+                {t("retry")}
               </button>
             </>
           ) : null}
@@ -197,7 +200,7 @@ export function ExternalObjectRows({
 
   if (externalObjectsLoading) {
     return (
-      <PropertyRow label="External objects">
+      <PropertyRow label={t("external_objects")}>
         <span className="h-4 w-24 animate-pulse rounded bg-muted/40" />
       </PropertyRow>
     );
@@ -226,7 +229,7 @@ export function ExternalObjectRows({
           );
         })}
       {expanded || hiddenExternalObjectCount > 0 ? (
-        <PropertyRow label="References">
+        <PropertyRow label={t("references")}>
           <ExpandRelationListButton
             hiddenCount={hiddenExternalObjectCount}
             expanded={expanded}

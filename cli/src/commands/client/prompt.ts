@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import type { Agent, Issue, IssueComment } from "@paperclipai/shared";
 import { addIssueCommentSchema, createIssueSchema } from "@paperclipai/shared";
@@ -39,13 +40,13 @@ export function registerPromptCommands(program: Command): void {
   addCommonClientOptions(
     program
       .command("agent-prompt")
-      .description("Create/update Paperclip work for an agent using an agent API key")
-      .argument("<agent>", "Agent ID, shortname, or name")
-      .argument("<agentApiKey>", "Agent API key")
-      .argument("<prompt...>", "Prompt text")
-      .option("--issue <issueId>", "Append as a comment to an existing issue")
-      .option("--title <title>", "Issue title when creating a new issue")
-      .option("--no-wake", "Do not wake the agent after creating/updating work")
+      .description(tCli("Create/update Paperclip work for an agent using an agent API key"))
+      .argument("<agent>", tCli("Agent ID, shortname, or name"))
+      .argument("<agentApiKey>", tCli("Agent API key"))
+      .argument("<prompt...>", tCli("Prompt text"))
+      .option("--issue <issueId>", tCli("Append as a comment to an existing issue"))
+      .option("--title <title>", tCli("Issue title when creating a new issue"))
+      .option("--no-wake", tCli("Do not wake the agent after creating/updating work"))
       .action(async (agent: string, agentApiKey: string, promptParts: string[], opts: PromptOptions) => {
         try {
           const result = await runAgentPrompt(agent, promptParts.join(" "), {
@@ -64,13 +65,13 @@ export function registerPromptCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("prompt")
-      .description("Create/update Paperclip work using an agent persona")
-      .argument("<prompt...>", "Prompt text")
-      .option("--agent <agent>", "Agent ID, shortname, or name; defaults to profile/identity agent")
-      .option("--api-key-env <name>", "Read the agent API key from this environment variable")
-      .option("--issue <issueId>", "Append as a comment to an existing issue")
-      .option("--title <title>", "Issue title when creating a new issue")
-      .option("--no-wake", "Do not wake the agent after creating/updating work")
+      .description(tCli("Create/update Paperclip work using an agent persona"))
+      .argument("<prompt...>", tCli("Prompt text"))
+      .option("--agent <agent>", tCli("Agent ID, shortname, or name; defaults to profile/identity agent"))
+      .option("--api-key-env <name>", tCli("Read the agent API key from this environment variable"))
+      .option("--issue <issueId>", tCli("Append as a comment to an existing issue"))
+      .option("--title <title>", tCli("Issue title when creating a new issue"))
+      .option("--no-wake", tCli("Do not wake the agent after creating/updating work"))
       .action(async (promptParts: string[], opts: PromptOptions) => {
         try {
           const apiKey = readApiKeyEnvOption(opts);
@@ -86,17 +87,17 @@ export function registerPromptCommands(program: Command): void {
       }),
   );
 
-  const board = program.command("board").description("Board operator operations");
+  const board = program.command("board").description(tCli("Board operator operations"));
   addCommonClientOptions(
     board
       .command("prompt")
-      .description("Create/update Paperclip work for an agent using board auth")
-      .requiredOption("--agent <agent>", "Target agent ID, shortname, or name")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--issue <issueId>", "Append as a comment to an existing issue")
-      .option("--title <title>", "Issue title when creating a new issue")
-      .option("--no-wake", "Do not wake the agent after creating/updating work")
-      .argument("<prompt...>", "Prompt text")
+      .description(tCli("Create/update Paperclip work for an agent using board auth"))
+      .requiredOption("--agent <agent>", tCli("Target agent ID, shortname, or name"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--issue <issueId>", tCli("Append as a comment to an existing issue"))
+      .option("--title <title>", tCli("Issue title when creating a new issue"))
+      .option("--no-wake", tCli("Do not wake the agent after creating/updating work"))
+      .argument("<prompt...>", tCli("Prompt text"))
       .action(async (promptParts: string[], opts: PromptOptions) => {
         try {
           const result = await runBoardPrompt(opts.agent ?? "", promptParts.join(" "), opts);
@@ -116,11 +117,11 @@ export async function runAgentPrompt(
 ): Promise<PromptResult> {
   const ctx = resolveCommandContext(opts);
   if (ctx.profile.persona && ctx.profile.persona !== "agent") {
-    throw new Error(`Profile '${ctx.profileName}' is persona=${ctx.profile.persona}; use an agent profile or board prompt.`);
+    throw new Error(tCli("Profile '{{profileName}}' is persona={{persona}}; use an agent profile or board prompt.", { profileName: ctx.profileName, persona: ctx.profile.persona }));
   }
   const body = normalizePrompt(prompt);
   const me = await ctx.api.get<Agent>("/api/agents/me");
-  if (!me) throw new Error("Agent authentication failed");
+  if (!me) throw new Error(tCli("Agent authentication failed"));
   const expectedRef = agentRef?.trim() || ctx.profile.agentId || me.id;
   assertAgentMatchesReference(me, expectedRef);
 
@@ -144,12 +145,12 @@ export async function runBoardPrompt(
 ): Promise<PromptResult> {
   const ctx = resolveCommandContext(opts, { requireCompany: true });
   if (ctx.profile.persona && ctx.profile.persona !== "board") {
-    throw new Error(`Profile '${ctx.profileName}' is persona=${ctx.profile.persona}; use an agent prompt command or a board profile.`);
+    throw new Error(tCli("Profile '{{profileName}}' is persona={{persona}}; use an agent prompt command or a board profile.", { profileName: ctx.profileName, persona: ctx.profile.persona }));
   }
   const body = normalizePrompt(prompt);
   const query = new URLSearchParams({ companyId: ctx.companyId ?? "" });
   const agent = await ctx.api.get<Agent>(`${apiPath`/api/agents/${agentRef}`}?${query.toString()}`);
-  if (!agent) throw new Error(`Agent not found: ${agentRef}`);
+  if (!agent) throw new Error(tCli("Agent not found: {{agentRef}}", { agentRef: agentRef }));
 
   return createOrCommentForAgent({
     api: ctx.api,
@@ -236,18 +237,18 @@ function wakeAgent(
 
 function normalizePrompt(prompt: string): string {
   const normalized = prompt.trim();
-  if (!normalized) throw new Error("Prompt text is required");
+  if (!normalized) throw new Error(tCli("Prompt text is required"));
   return normalized;
 }
 
 function defaultPromptTitle(prompt: string): string {
-  const firstLine = prompt.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? "Prompt handoff";
+  const firstLine = prompt.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? tCli("Prompt handoff");
   return firstLine.length > 100 ? `${firstLine.slice(0, 97)}...` : firstLine;
 }
 
 function assertAgentMatchesReference(agent: Agent, reference: string): void {
   const normalized = reference.trim().toLowerCase();
-  if (!normalized) throw new Error("Agent reference is required");
+  if (!normalized) throw new Error(tCli("Agent reference is required"));
   const matches = [
     agent.id,
     agent.name,
@@ -255,7 +256,7 @@ function assertAgentMatchesReference(agent: Agent, reference: string): void {
   ].some((value) => value?.toLowerCase() === normalized);
   if (!matches) {
     throw new Error(
-      `Agent key belongs to ${agent.name} (${agent.id}), not '${reference}'. Use the matching agent or a board prompt.`,
+      tCli("Agent key belongs to {{name}} ({{id}}), not '{{reference}}'. Use the matching agent or a board prompt.", { name: agent.name, id: agent.id, reference: reference }),
     );
   }
 }
@@ -271,6 +272,6 @@ function agentSummary(agent: Agent): PromptResult["agent"] {
 function readApiKeyEnvOption(opts: PromptOptions): string | undefined {
   if (!opts.apiKeyEnv?.trim()) return undefined;
   const value = process.env[opts.apiKeyEnv.trim()]?.trim();
-  if (!value) throw new Error(`Environment variable ${opts.apiKeyEnv.trim()} is not set`);
+  if (!value) throw new Error(tCli("Environment variable {{value0}} is not set", { value0: opts.apiKeyEnv.trim() }));
   return value;
 }

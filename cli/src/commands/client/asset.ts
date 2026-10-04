@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { readFile, writeFile } from "node:fs/promises";
 import { Command } from "commander";
 import { ApiRequestError } from "../../client/http.js";
@@ -21,17 +22,17 @@ interface AssetOptions extends BaseClientOptions {
 }
 
 export function registerAssetCommands(program: Command): void {
-  const asset = program.command("asset").description("Asset operations");
+  const asset = program.command("asset").description(tCli("Asset operations"));
 
   addCommonClientOptions(
     asset
       .command("image:upload")
-      .description("Upload a company image asset")
-      .requiredOption("--file <path>", "Image file path")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--namespace <value>", "Asset namespace suffix")
-      .option("--alt <text>", "Alt text metadata")
-      .option("--title <text>", "Title metadata")
+      .description(tCli("Upload a company image asset"))
+      .requiredOption("--file <path>", tCli("Image file path"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--namespace <value>", tCli("Asset namespace suffix"))
+      .option("--alt <text>", tCli("Alt text metadata"))
+      .option("--title <text>", tCli("Title metadata"))
       .action(async (opts: AssetOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -47,9 +48,9 @@ export function registerAssetCommands(program: Command): void {
   addCommonClientOptions(
     asset
       .command("logo:upload")
-      .description("Upload a company logo")
-      .requiredOption("--file <path>", "Logo file path")
-      .option("-C, --company-id <id>", "Company ID")
+      .description(tCli("Upload a company logo"))
+      .requiredOption("--file <path>", tCli("Logo file path"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: AssetOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -65,9 +66,9 @@ export function registerAssetCommands(program: Command): void {
   addCommonClientOptions(
     asset
       .command("content")
-      .description("Download asset content")
-      .argument("<assetId>", "Asset ID")
-      .option("--out <path>", "Write content to a file instead of stdout")
+      .description(tCli("Download asset content"))
+      .argument("<assetId>", tCli("Asset ID"))
+      .option("--out <path>", tCli("Write content to a file instead of stdout"))
       .action(async (assetId: string, opts: AssetOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -92,7 +93,7 @@ async function uploadAsset(
   opts: AssetOptions,
 ): Promise<unknown> {
   if (!opts.file?.trim()) {
-    throw new Error("--file is required");
+    throw new Error(tCli("--file is required"));
   }
   const bytes = await readFile(opts.file);
   const form = new FormData();
@@ -126,7 +127,7 @@ async function parseFetchResponse(response: Response): Promise<unknown> {
     const message =
       typeof parsed === "object" && parsed !== null && "error" in parsed && typeof parsed.error === "string"
         ? parsed.error
-        : `Request failed with status ${response.status}`;
+        : tCli("Request failed with status {{status}}", { status: response.status });
     throw new ApiRequestError(response.status, message, undefined, parsed);
   }
   return parsed;

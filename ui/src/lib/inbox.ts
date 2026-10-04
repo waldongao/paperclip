@@ -14,6 +14,7 @@ import {
   type IssueFilterWorkspaceContext,
 } from "./issue-filters";
 import { formatAssigneeUserLabel } from "./assignees";
+import { t } from "@/i18n";
 
 export const RECENT_ISSUES_LIMIT = 100;
 export const FAILED_RUN_STATUSES = new Set(["failed", "timed_out"]);
@@ -533,7 +534,7 @@ export function getInboxSearchSupplementIssues({
 
 function formatDefaultWorkspaceGroupLabel(name: string | null | undefined): string {
   const normalizedName = name?.trim();
-  return normalizedName ? `${normalizedName} (default)` : "Default workspace";
+  return normalizedName ? t("zhSupport.defaultName", { name: normalizedName }) : t("default_workspace");
 }
 
 function resolveDefaultProjectWorkspaceInfo(
@@ -649,7 +650,7 @@ export function resolveIssueWorkspaceGroup(
 
   return {
     key: "workspace:none",
-    label: "No workspace",
+    label: t("no_workspace"),
   };
 }
 
@@ -868,10 +869,10 @@ const inboxWorkItemKindOrder: InboxWorkItem["kind"][] = [
 ];
 
 const inboxWorkItemKindLabels: Record<InboxWorkItem["kind"], string> = {
-  issue: "Tasks",
-  approval: "Approvals",
-  failed_run: "Failed runs",
-  join_request: "Join requests",
+  issue: t("tasks"),
+  approval: t("approvals"),
+  failed_run: t("failed_runs"),
+  join_request: t("join_requests_ed8709"),
 };
 
 function resolveIssueAssigneeGroup(
@@ -893,18 +894,18 @@ function resolveIssueAssigneeGroup(
   if (issue.assigneeUserId) {
     return {
       key: `assignee:user:${issue.assigneeUserId}`,
-      label: formatAssigneeUserLabel(issue.assigneeUserId, currentUserId, userLabelById) ?? "User",
+      label: formatAssigneeUserLabel(issue.assigneeUserId, currentUserId, userLabelById) ?? t("user"),
     };
   }
 
-  return { key: "assignee:none", label: "Unassigned" };
+  return { key: "assignee:none", label: t("unassigned") };
 }
 
 function resolveIssueProjectGroup(
   issue: Pick<Issue, "projectId">,
   { projectById }: Pick<InboxWorkspaceGroupingOptions, "projectById">,
 ): { key: string; label: string } {
-  if (!issue.projectId) return { key: "project:none", label: "No project" };
+  if (!issue.projectId) return { key: "project:none", label: t("no_project") };
 
   const projectName = projectById?.get(issue.projectId)?.name?.trim();
   return {

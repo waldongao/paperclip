@@ -4,6 +4,7 @@ import { useSmokeLabEnabled } from "@/hooks/useSmokeLabEnabled";
 import { useReviewCount } from "@/pages/apps/useReviewCount";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { contextualSidebarStyles } from "./contextual-sidebar-styles";
+import { useTranslation } from "@/i18n";
 
 /**
  * Secondary sidebar for the Apps area.
@@ -13,6 +14,7 @@ import { contextualSidebarStyles } from "./contextual-sidebar-styles";
  * developer surfaces remain hidden unless one is explicitly enabled.
  */
 export function AppsSidebar() {
+  const { t } = useTranslation();
   const reviewCount = useReviewCount();
   const { enabled: smokeLabEnabled } = useSmokeLabEnabled();
   const developerTabs = DEVELOPER_TABS.filter((tab) => {
@@ -25,19 +27,19 @@ export function AppsSidebar() {
   return (
     <aside className="w-full h-full min-h-0 border-r border-border bg-background flex flex-col">
       <nav
-        aria-label="Apps"
+        aria-label={t("apps")}
         data-slot="contextual-sidebar-nav"
         className={contextualSidebarStyles.nav}
       >
         <div data-slot="contextual-sidebar-group" className={contextualSidebarStyles.group}>
-          <SidebarNavItem to="/apps" label="Connectors" icon={Store} end />
+          <SidebarNavItem to="/apps" label={t("connectors")} icon={Store} end />
           <SidebarNavItem
             to="/apps/review"
-            label="Review"
+            label={t("review")}
             icon={ShieldQuestion}
             badge={reviewCount > 0 ? reviewCount : undefined}
             badgeTone="warning"
-            badgeLabel="waiting for your OK"
+            badgeLabel={t("waiting_for_your_ok")}
           />
         </div>
         {developerTabs.length > 0 ? (
@@ -46,13 +48,13 @@ export function AppsSidebar() {
               data-slot="contextual-sidebar-section-label"
               className={contextualSidebarStyles.sectionLabel}
             >
-              Developer
+              {t("developer")}
             </div>
             <p
               data-slot="contextual-sidebar-section-description"
               className={contextualSidebarStyles.sectionDescription}
             >
-              Advanced setup for developers.
+              {t("advanced_setup_for_developers")}
             </p>
             <div data-slot="contextual-sidebar-group" className={contextualSidebarStyles.group}>
               {developerTabs.map((tab) => (

@@ -1,4 +1,5 @@
-/**
+
+import { t } from "@/i18n";/**
  * Whimsical gerunds for the live status pill when the label carries no real
  * signal ("Running"/"Working"). Two curated pools: Paperclip's analog-office
  * vocabulary (led by the "Clipping" brand nod) and Claude-Code-style whimsy.
@@ -14,41 +15,41 @@
  * Board-curated round 2 (PAP-349): dropped Cataloguing / Carbon-copying /
  * Archiving, added the workshop-and-whiteboard verbs. */
 export const ANALOG_OFFICE_WORDS: readonly string[] = [
-  "Clipping",
-  "Organizing",
-  "Sorting",
-  "Synthesizing",
-  "Analyzing",
-  "Filing",
-  "Collating",
-  "Stapling",
-  "Indexing",
-  "Annotating",
-  "Drafting",
-  "Proofreading",
-  "Alphabetizing",
-  "Photocopying",
-  "Laminating",
-  "Hole-punching",
-  "Bookmarking",
-  "Highlighting",
-  "Typing",
-  "Trimming",
-  "Aligning",
-  "Combining",
-  "Whiteboarding",
-  "Diagramming",
-  "Sketching",
-  "Labeling",
-  "Sticky-noting",
+  t("clipping"),
+  t("organizing"),
+  t("sorting"),
+  t("synthesizing"),
+  t("analyzing"),
+  t("filing"),
+  t("collating"),
+  t("stapling"),
+  t("indexing"),
+  t("annotating"),
+  t("drafting"),
+  t("proofreading"),
+  t("alphabetizing"),
+  t("photocopying"),
+  t("laminating"),
+  t("hole_punching"),
+  t("bookmarking"),
+  t("highlighting"),
+  t("typing"),
+  t("trimming"),
+  t("aligning"),
+  t("combining"),
+  t("whiteboarding"),
+  t("diagramming"),
+  t("sketching"),
+  t("labeling"),
+  t("sticky_noting"),
 ];
 
 /** Claude-Code-style whimsy pool — board-curated round 2 kept only these four. */
 export const CLAUDE_CODE_WORDS: readonly string[] = [
-  "Brewing",
-  "Tinkering",
-  "Distilling",
-  "Deliberating",
+  t("brewing"),
+  t("tinkering"),
+  t("distilling"),
+  t("deliberating"),
 ];
 
 /** Interleaved so consecutive rotations alternate flavors rather than running

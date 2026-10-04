@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SidePanelTab } from "./SidePanelTab";
 import type { SidePanelTabItem } from "./types";
+import { t, useTranslation } from "@/i18n";
 
 interface SortableSidePanelTabProps {
   tab: SidePanelTabItem;
@@ -130,10 +131,11 @@ export function SidePanelTabs({
   onReorderTabs,
   onAddTab,
   addControl,
-  addLabel = "Open a new tab",
+  addLabel = t("open_a_new_tab"),
   appearance = "default",
   className,
 }: SidePanelTabsProps) {
+  const { t } = useTranslation();
   const [announcement, setAnnouncement] = useState("");
   const [showEndFade, setShowEndFade] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -189,7 +191,7 @@ export function SidePanelTabs({
     window.requestAnimationFrame(() => {
       if (!tabId) {
         addButtonRef.current?.focus();
-        addControlRef.current?.querySelector<HTMLElement>("button, [href], input, [tabindex]:not([tabindex='-1'])")?.focus();
+        addControlRef.current?.querySelector<HTMLElement>(t("button_href_input_tabindex_not_tabindex_1"))?.focus();
         return;
       }
       const tab = findTabElement(tabId, "target") as HTMLButtonElement | null;
@@ -201,7 +203,7 @@ export function SidePanelTabs({
     const index = tabIds.indexOf(tabId);
     const nextFocus = tabIds[index + 1] ?? tabIds[index - 1] ?? null;
     onCloseTab(tabId);
-    setAnnouncement(nextFocus ? "Tab closed." : "Last tab closed. Choose something to open.");
+    setAnnouncement(nextFocus ? t("tab_closed") : t("last_tab_closed_choose_something_to_open"));
     focusTab(nextFocus);
   }
 
@@ -217,7 +219,7 @@ export function SidePanelTabs({
       const [moved] = ordered.splice(index, 1);
       ordered.splice(target, 0, moved!);
       onReorderTabs(ordered);
-      setAnnouncement(`Moved ${tabs[index]?.label ?? "tab"} to position ${target + 1} of ${tabs.length}.`);
+      setAnnouncement(t("zhComponents.message_9456cd1423", { value1: tabs[index]?.label ?? t("tab"), value2: target + 1, value3: tabs.length }));
       focusTab(tabId);
       return;
     }
@@ -246,7 +248,7 @@ export function SidePanelTabs({
     const [moved] = ordered.splice(from, 1);
     ordered.splice(to, 0, moved!);
     onReorderTabs(ordered);
-    setAnnouncement(`Moved ${tabs[from]?.label ?? "tab"} to position ${to + 1} of ${tabs.length}.`);
+    setAnnouncement(t("zhComponents.message_8a47c3d115", { value1: tabs[from]?.label ?? t("tab"), value2: to + 1, value3: tabs.length }));
   }
 
   return (

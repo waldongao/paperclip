@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -15,11 +16,11 @@ export async function databaseCheck(config: PaperclipConfig, configPath?: string
   if (config.database.mode === "postgres") {
     if (!config.database.connectionString) {
       return {
-        name: "Database",
+        name: tCli("Database"),
         status: "fail",
-        message: "PostgreSQL mode selected but no connection string configured",
+        message: tCli("PostgreSQL mode selected but no connection string configured"),
         canRepair: false,
-        repairHint: "Run `paperclipai configure --section database`",
+        repairHint: tCli("Run `paperclipai configure --section database`"),
       };
     }
 
@@ -28,17 +29,17 @@ export async function databaseCheck(config: PaperclipConfig, configPath?: string
       const db = createDb(config.database.connectionString);
       await db.execute("SELECT 1");
       return {
-        name: "Database",
+        name: tCli("Database"),
         status: "pass",
-        message: "PostgreSQL connection successful",
+        message: tCli("PostgreSQL connection successful"),
       };
     } catch (err) {
       return {
-        name: "Database",
+        name: tCli("Database"),
         status: "fail",
-        message: `Cannot connect to PostgreSQL: ${err instanceof Error ? err.message : String(err)}`,
+        message: tCli("Cannot connect to PostgreSQL: {{message}}", { message: translateCliDisplayMessage(err instanceof Error ? err.message : String(err)) }),
         canRepair: false,
-        repairHint: "Check your connection string and ensure PostgreSQL is running",
+        repairHint: tCli("Check your connection string and ensure PostgreSQL is running"),
       };
     }
   }
@@ -55,18 +56,18 @@ export async function databaseCheck(config: PaperclipConfig, configPath?: string
     // we're warning about.
     if (isInsideOsTmpDir(dataDir) && process.env.PAPERCLIP_IN_WORKTREE === "true") {
       return {
-        name: "Database",
+        name: tCli("Database"),
         status: "warn",
         message:
-          `Embedded PostgreSQL data dir is inside the OS temp directory (${dataDir}) ` +
-          "while running in worktree mode (PAPERCLIP_IN_WORKTREE=true). Data stored here is " +
-          "ephemeral and will be lost on reboot or a temp cleanup. If this is your primary " +
-          "instance, PAPERCLIP_HOME / PAPERCLIP_IN_WORKTREE likely leaked into its environment, " +
-          "pointing it at a throwaway worktree home instead of your real data.",
+          tCli("Embedded PostgreSQL data dir is inside the OS temp directory ({{dataDir}}) ", { dataDir: String(dataDir) }) +
+          tCli("while running in worktree mode (PAPERCLIP_IN_WORKTREE=true). Data stored here is ") +
+          tCli("ephemeral and will be lost on reboot or a temp cleanup. If this is your primary ") +
+          tCli("instance, PAPERCLIP_HOME / PAPERCLIP_IN_WORKTREE likely leaked into its environment, ") +
+          tCli("pointing it at a throwaway worktree home instead of your real data."),
         canRepair: false,
         repairHint:
-          "If this is the primary instance, unset PAPERCLIP_HOME and PAPERCLIP_IN_WORKTREE " +
-          "(or pass --data-dir <persistent path>) and restart so it uses the persistent instance.",
+          tCli("If this is the primary instance, unset PAPERCLIP_HOME and PAPERCLIP_IN_WORKTREE ") +
+          tCli("(or pass --data-dir <persistent path>) and restart so it uses the persistent instance."),
       };
     }
 
@@ -75,17 +76,17 @@ export async function databaseCheck(config: PaperclipConfig, configPath?: string
     }
 
     return {
-      name: "Database",
+      name: tCli("Database"),
       status: "pass",
-      message: `Embedded PostgreSQL configured at ${dataDir} (port ${config.database.embeddedPostgresPort})`,
+      message: tCli("Embedded PostgreSQL configured at {{dataDir}} (port {{embeddedPostgresPort}})", { dataDir: String(dataDir), embeddedPostgresPort: String(config.database.embeddedPostgresPort) }),
     };
   }
 
   return {
-    name: "Database",
+    name: tCli("Database"),
     status: "fail",
-    message: `Unknown database mode: ${String(config.database.mode)}`,
+    message: tCli("Unknown database mode: {{mode}}", { mode: String(String(config.database.mode)) }),
     canRepair: false,
-    repairHint: "Run `paperclipai configure --section database`",
+    repairHint: tCli("Run `paperclipai configure --section database`"),
   };
 }

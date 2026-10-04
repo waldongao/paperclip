@@ -8,6 +8,7 @@ import {
   CANVAS_CONTENT_EXIT,
   CANVAS_CONTENT_TRAVEL,
 } from "./onboarding-motion";
+import { useTranslation } from "@/i18n";
 
 /**
  * The connect step's input surface: one card that holds whatever the current
@@ -129,6 +130,7 @@ export function ApiKeyField({
   value: string;
   onChange: (next: string) => void;
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus on mount, because the canvas only opens when this is the thing that
@@ -151,7 +153,7 @@ export function ApiKeyField({
           spellCheck={false}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Paste your key"
+          placeholder={t("paste_your_key")}
           // `h-7` is the login button's height, so the two states put their
           // control on the same line and the card does not change depth when the
           // mode is flipped.

@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import type { ActivityEvent } from "@paperclipai/shared";
@@ -8,7 +9,7 @@ export type RoutineActivityEvent = Pick<ActivityEvent, "id" | "action" | "detail
 
 function formatTime(value: string | Date): string {
   try {
-    return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return new Date(value).toLocaleTimeString(i18n.resolvedLanguage ?? i18n.language, { hour: "2-digit", minute: "2-digit" });
   } catch {
     return String(value);
   }

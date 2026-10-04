@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import {
   agents,
   assets,
@@ -330,7 +331,7 @@ export function parseWorktreeMergeScopes(rawValue: string | undefined): Worktree
 
   if (parsed.length === 0) {
     throw new Error(
-      `Invalid scope "${rawValue}". Expected a comma-separated list of: ${WORKTREE_MERGE_SCOPES.join(", ")}.`,
+      tCli("Invalid scope \"{{value1}}\". Expected a comma-separated list of: {{value2}}.", { value1: String(rawValue), value2: String(WORKTREE_MERGE_SCOPES.join(", ")) }),
     );
   }
 

@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { PaperclipConfig } from "../config/schema.js";
@@ -55,7 +56,7 @@ export async function serviceHealthChecks(
   const instanceId = resolvePaperclipInstanceId();
   const detection = await deps.detect(instanceId);
   if (!detection.supported) {
-    return [{ name: "Background service", status: "pass", message: detection.reason }];
+    return [{ name: tCli("Background service"), status: "pass", message: detection.reason }];
   }
 
   const manager = detection.manager;
@@ -63,9 +64,9 @@ export async function serviceHealthChecks(
   if (!status.installed) {
     return [
       {
-        name: "Background service",
+        name: tCli("Background service"),
         status: "pass",
-        message: `Not installed for instance ${instanceId} (optional)`,
+        message: tCli("Not installed for instance {{instanceId}} (optional)", { instanceId: String(instanceId) }),
       },
     ];
   }
@@ -79,12 +80,12 @@ export async function serviceHealthChecks(
   }
   results.push(
     definitionCurrent
-      ? { name: "Service definition", status: "pass", message: manager.definitionPath }
+      ? { name: tCli("Service definition"), status: "pass", message: manager.definitionPath }
       : {
-          name: "Service definition",
+          name: tCli("Service definition"),
           status: "fail",
-          message: `Missing or drifted definition at ${manager.definitionPath}`,
-          repairHint: "Run `paperclipai service install` to regenerate the service definition",
+          message: tCli("Missing or drifted definition at {{definitionPath}}", { definitionPath: String(manager.definitionPath) }),
+          repairHint: tCli("Run `paperclipai service install` to regenerate the service definition"),
         },
   );
 
@@ -95,29 +96,29 @@ export async function serviceHealthChecks(
   const shimPresent = status.active ? true : await deps.shimPresent(serviceExecutable);
   results.push(
     status.active
-      ? { name: "Service runtime", status: "pass", message: `${status.serviceName} is active` }
+      ? { name: tCli("Service runtime"), status: "pass", message: tCli("{{serviceName}} is active", { serviceName: String(status.serviceName) }) }
       : !shimPresent
         ? {
-            name: "Service runtime",
+            name: tCli("Service runtime"),
             status: "fail",
-            message: `${status.serviceName} cannot start: no executable exists at ${serviceExecutable}`,
+            message: tCli("{{serviceName}} cannot start: no executable exists at {{serviceExecutable}}", { serviceName: String(status.serviceName), serviceExecutable: String(serviceExecutable) }),
             repairHint:
               path.resolve(serviceExecutable) === path.resolve(resolveInstallStorePaths().shimPath)
-                ? "Run `paperclipai install` to restore the managed payload and shim, then `paperclipai service start`"
-                : `Restore the executable at ${serviceExecutable}, or unset PAPERCLIP_SHIM_PATH and run \`paperclipai install\` followed by \`paperclipai service install\` to re-point the service at the managed shim`,
+                ? tCli("Run `paperclipai install` to restore the managed payload and shim, then `paperclipai service start`")
+                : tCli("Restore the executable at {{serviceExecutable}}, or unset PAPERCLIP_SHIM_PATH and run `paperclipai install` followed by `paperclipai service install` to re-point the service at the managed shim", { serviceExecutable: String(serviceExecutable) }),
           }
         : health.ok
           ? {
-              name: "Service runtime",
+              name: tCli("Service runtime"),
               status: "fail",
-              message: `${status.serviceName} is inactive but the configured port is serving another Paperclip process`,
-              repairHint: "Run `paperclipai service start`, or stop the conflicting foreground process first",
+              message: tCli("{{serviceName}} is inactive but the configured port is serving another Paperclip process", { serviceName: String(status.serviceName) }),
+              repairHint: tCli("Run `paperclipai service start`, or stop the conflicting foreground process first"),
             }
           : {
-              name: "Service runtime",
+              name: tCli("Service runtime"),
               status: "fail",
-              message: `${status.serviceName} is ${status.detail ?? "inactive"}`,
-              repairHint: "Run `paperclipai service start`; inspect `paperclipai service logs` if it does not stay up",
+              message: tCli("{{serviceName}} is {{detail}}", { serviceName: status.serviceName, detail: translateCliDisplayMessage(status.detail ?? "inactive") }),
+              repairHint: tCli("Run `paperclipai service start`; inspect `paperclipai service logs` if it does not stay up"),
             },
   );
 
@@ -128,37 +129,37 @@ export async function serviceHealthChecks(
   results.push(
     !health.ok
       ? {
-          name: "Service health",
+          name: tCli("Service health"),
           status: "fail",
-          message: health.error ?? "Health endpoint did not report ok",
-          repairHint: "Inspect `paperclipai service status` and `paperclipai service logs`",
+          message: health.error ? translateCliDisplayMessage(health.error) : tCli("Health endpoint did not report ok"),
+          repairHint: tCli("Inspect `paperclipai service status` and `paperclipai service logs`"),
         }
       : expectedVersion && health.version !== expectedVersion
         ? {
-            name: "Service version",
+            name: tCli("Service version"),
             status: "fail",
-            message: `Running ${health.version ?? "unknown"}; managed install is ${expectedVersion}`,
-            repairHint: "Run `paperclipai service restart --expected-version " + expectedVersion + "`",
+            message: tCli("Running {{unknown}}; managed install is {{expectedVersion}}", { unknown: String(health.version ?? tCli("unknown")), expectedVersion: String(expectedVersion) }),
+            repairHint: tCli("Run `paperclipai service restart --expected-version {{version}}`", { version: expectedVersion }),
           }
         : status.active
           ? {
-              name: "Service health",
+              name: tCli("Service health"),
               status: "pass",
-              message: `Healthy${health.version ? ` at version ${health.version}` : ""}`,
+              message: tCli("Healthy{{version}}", { version: String(health.version ? tCli(" at version {{version}}", { version: String(health.version) }) : "") }),
             }
           : {
-              name: "Service health",
+              name: tCli("Service health"),
               status: "warn",
-              message: `The configured port answers healthy${health.version ? ` (version ${health.version})` : ""}, but not from ${status.serviceName} — the service is inactive`,
+              message: tCli("The configured port answers healthy{{version}}, but not from {{serviceName}} — the service is inactive", { version: String(health.version ? tCli(" (version {{version}})", { version: health.version }) : ""), serviceName: String(status.serviceName) }),
             },
   );
 
   if (status.enabled && status.linger === false) {
     results.push({
-      name: "Service linger",
+      name: tCli("Service linger"),
       status: "warn",
-      message: "Start-on-login is enabled but systemd user lingering is off",
-      repairHint: "Re-run `paperclipai service install --enable-linger` if the service must survive logout",
+      message: tCli("Start-on-login is enabled but systemd user lingering is off"),
+      repairHint: tCli("Re-run `paperclipai service install --enable-linger` if the service must survive logout"),
     });
   }
 

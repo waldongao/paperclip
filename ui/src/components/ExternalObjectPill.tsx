@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ReactNode } from "react";
 import type {
   ExternalObjectLivenessState,
@@ -40,7 +41,7 @@ function githubObjectLabel(url: string | null | undefined): string | null {
     const [, owner, repo, kind, number] = parsed.pathname.split("/");
     if (!owner || !repo || !number) return null;
     if (kind === "pull") return `PR ${number}`;
-    if (kind === "issues") return `Issue ${number}`;
+    if (kind === "issues") return t("zhComponents.message_05f4fe3be7", { value1: number });
     return null;
   } catch {
     return null;
@@ -58,7 +59,7 @@ function externalObjectValueLabel(
 }
 
 function isMergedExternalObject(object: ExternalObjectPillData, statusLabel: string): boolean {
-  return object.statusIconKey === "git-merge" || statusLabel.toLowerCase() === "merged";
+  return object.statusIconKey === "git-merge" || object.statusLabel?.toLowerCase() === "merged";
 }
 
 function externalObjectPillTone(object: ExternalObjectPillData, statusLabel: string): string {

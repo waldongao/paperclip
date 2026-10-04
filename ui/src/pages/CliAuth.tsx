@@ -6,8 +6,10 @@ import { Card } from "@/components/ui/card";
 import { accessApi } from "../api/access";
 import { authApi } from "../api/auth";
 import { queryKeys } from "../lib/queryKeys";
+import { useTranslation } from "@/i18n";
 
 export function CliAuthPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const params = useParams();
   const [searchParams] = useSearchParams();
@@ -46,20 +48,20 @@ export function CliAuthPage() {
   });
 
   if (!challengeId || !token) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">Invalid CLI auth URL.</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">{t("invalid_cli_auth_url")}</div>;
   }
 
   if (sessionQuery.isLoading || challengeQuery.isLoading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading CLI auth challenge...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("loading_cli_auth_challenge")}</div>;
   }
 
   if (challengeQuery.error) {
     return (
       <div className="mx-auto max-w-xl py-10">
         <Card className="block p-6">
-          <h1 className="text-lg font-semibold">CLI auth challenge unavailable</h1>
+          <h1 className="text-lg font-semibold">{t("cli_auth_challenge_unavailable")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {challengeQuery.error instanceof Error ? challengeQuery.error.message : "Challenge is invalid or expired."}
+            {challengeQuery.error instanceof Error ? challengeQuery.error.message : t("challenge_is_invalid_or_expired")}
           </p>
         </Card>
       </div>
@@ -68,19 +70,19 @@ export function CliAuthPage() {
 
   const challenge = challengeQuery.data;
   if (!challenge) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">CLI auth challenge unavailable.</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">{t("cli_auth_challenge_unavailable_1cc5a5")}</div>;
   }
 
   if (challenge.status === "approved") {
     return (
       <div className="mx-auto max-w-xl py-10">
         <Card className="block p-6">
-          <h1 className="text-xl font-semibold">CLI access approved</h1>
+          <h1 className="text-xl font-semibold">{t("cli_access_approved")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            The Paperclip CLI can now finish authentication on the requesting machine.
+            {t("the_paperclip_cli_can_now_finish_authentication")}
           </p>
           <p className="mt-4 text-sm text-muted-foreground">
-            Command: <span className="font-mono text-foreground">{challenge.command}</span>
+            {t("command_e7d3c5")} <span className="font-mono text-foreground">{challenge.command}</span>
           </p>
         </Card>
       </div>
@@ -92,10 +94,10 @@ export function CliAuthPage() {
       <div className="mx-auto max-w-xl py-10">
         <Card className="block p-6">
           <h1 className="text-xl font-semibold">
-            {challenge.status === "expired" ? "CLI auth challenge expired" : "CLI auth challenge cancelled"}
+            {challenge.status === "expired" ? t("cli_auth_challenge_expired") : t("cli_auth_challenge_cancelled")}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Start the CLI auth flow again from your terminal to generate a new approval request.
+            {t("start_the_cli_auth_flow_again_from_your_terminal")}
           </p>
         </Card>
       </div>
@@ -106,12 +108,12 @@ export function CliAuthPage() {
     return (
       <div className="mx-auto max-w-xl py-10">
         <Card className="block p-6">
-          <h1 className="text-xl font-semibold">Sign in required</h1>
+          <h1 className="text-xl font-semibold">{t("sign_in_required")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in or create an account, then return to this page to approve the CLI access request.
+            {t("sign_in_or_create_an_account_then_return_to_this_0a1632")}
           </p>
           <Button asChild className="mt-4">
-            <Link to={`/auth?next=${encodeURIComponent(currentPath)}`}>Sign in / Create account</Link>
+            <Link to={`/auth?next=${encodeURIComponent(currentPath)}`}>{t("sign_in_create_account")}</Link>
           </Button>
         </Card>
       </div>
@@ -121,29 +123,29 @@ export function CliAuthPage() {
   return (
     <div className="mx-auto max-w-xl py-10">
       <Card className="block p-6">
-        <h1 className="text-xl font-semibold">Approve Paperclip CLI access</h1>
+        <h1 className="text-xl font-semibold">{t("approve_paperclip_cli_access")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          A local Paperclip CLI process is requesting board access to this instance.
+          {t("a_local_paperclip_cli_process_is_requesting_boar")}
         </p>
 
         <div className="mt-5 space-y-3 text-sm">
           <div>
-            <div className="text-muted-foreground">Command</div>
+            <div className="text-muted-foreground">{t("command")}</div>
             <div className="font-mono text-foreground">{challenge.command}</div>
           </div>
           <div>
-            <div className="text-muted-foreground">Client</div>
-            <div className="text-foreground">{challenge.clientName ?? "paperclipai cli"}</div>
+            <div className="text-muted-foreground">{t("client")}</div>
+            <div className="text-foreground">{challenge.clientName ?? t("paperclipai_cli")}</div>
           </div>
           <div>
-            <div className="text-muted-foreground">Requested access</div>
+            <div className="text-muted-foreground">{t("requested_access")}</div>
             <div className="text-foreground">
-              {challenge.requestedAccess === "instance_admin_required" ? "Instance admin" : "Board"}
+              {challenge.requestedAccess === "instance_admin_required" ? t("instance_admin") : t("board")}
             </div>
           </div>
           {challenge.requestedCompanyName && (
             <div>
-              <div className="text-muted-foreground">Requested organization</div>
+              <div className="text-muted-foreground">{t("requested_organization")}</div>
               <div className="text-foreground">{challenge.requestedCompanyName}</div>
             </div>
           )}
@@ -153,13 +155,13 @@ export function CliAuthPage() {
           <p className="mt-4 text-sm text-destructive">
             {(approveMutation.error ?? cancelMutation.error) instanceof Error
               ? ((approveMutation.error ?? cancelMutation.error) as Error).message
-              : "Failed to update CLI auth challenge"}
+              : t("failed_to_update_cli_auth_challenge")}
           </p>
         )}
 
         {!challenge.canApprove && (
           <p className="mt-4 text-sm text-destructive">
-            This challenge requires instance-admin access. Sign in with an instance admin account to approve it.
+            {t("this_challenge_requires_instance_admin_access_si")}
           </p>
         )}
 
@@ -168,7 +170,7 @@ export function CliAuthPage() {
             onClick={() => approveMutation.mutate()}
             disabled={!challenge.canApprove || approveMutation.isPending || cancelMutation.isPending}
           >
-            {approveMutation.isPending ? "Approving..." : "Approve CLI access"}
+            {approveMutation.isPending ? t("approving") : t("approve_cli_access")}
           </Button>
           <Button
             type="button"
@@ -176,7 +178,7 @@ export function CliAuthPage() {
             onClick={() => cancelMutation.mutate()}
             disabled={approveMutation.isPending || cancelMutation.isPending}
           >
-            {cancelMutation.isPending ? "Cancelling..." : "Cancel"}
+            {cancelMutation.isPending ? t("cancelling") : t("cancel")}
           </Button>
         </div>
       </Card>

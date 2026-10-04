@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ToolConnection } from "@paperclipai/shared";
@@ -36,8 +37,10 @@ import {
   connectionDisplayNameForOwner,
   connectionOwnerProfile,
 } from "./connection-owner";
+import { useTranslation } from "@/i18n";
 
 export function AppNotConnected() {
+  const { t } = useTranslation();
   const { applicationId = "", tab } = useParams<{ applicationId: string; tab?: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -111,11 +114,11 @@ export function AppNotConnected() {
     enabled: !!selectedCompanyId && activeTab === "activity",
   });
 
-  const appName = application?.name ?? "App";
+  const appName = application?.name ?? t("app_");
   useEffect(() => {
     if (!activeTab) return;
     setBreadcrumbs([
-      { label: "Connectors", href: "/apps" },
+      { label: t("connectors"), href: "/apps" },
       { label: appName, href: appApplicationTabHref(applicationId, "setup") },
       { label: appTabLabel(activeTab) },
     ]);
@@ -127,23 +130,23 @@ export function AppNotConnected() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__") });
       pushToast({
-        title: "App removed",
-        body: `${appName} no longer shows in your apps. You can connect it again any time.`,
+        title: t("app_removed"),
+        body: t("zhPages.7b5d54ed1ce0", { appName: appName }),
         tone: "success",
       });
       navigate("/apps");
     },
     onError: (error) => {
       pushToast({
-        title: "Couldn’t remove the app",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("couldn_t_remove_the_app"),
+        body: error instanceof Error ? error.message : t("please_try_again"),
         tone: "error",
       });
     },
   });
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to manage apps.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("select_an_organization_to_manage_apps")}</div>;
   }
   if (!applicationId || !activeTab) {
     return <Navigate to={applicationId ? appApplicationTabHref(applicationId, "setup") : "/apps"} replace />;
@@ -159,8 +162,8 @@ export function AppNotConnected() {
   if (!application) {
     return (
       <div className="max-w-3xl space-y-3 p-6 text-sm text-muted-foreground">
-        <p>This app doesn’t exist anymore.</p>
-        <Button variant="outline" size="sm" onClick={() => navigate("/apps")}>Back to connectors</Button>
+        <p>{t("this_app_doesn_t_exist_anymore")}</p>
+        <Button variant="outline" size="sm" onClick={() => navigate("/apps")}>{t("back_to_connectors")}</Button>
       </div>
     );
   }
@@ -198,13 +201,13 @@ export function AppNotConnected() {
       )
       : grantsQuery.data?.capabilities.canConfigure === true);
   const reconnectUnavailableMessage = grantsQuery.isLoading
-    ? "Checking who can reconnect this identity…"
+    ? t("checking_who_can_reconnect_this_identity")
     : grantsQuery.isError
-      ? "We couldn't verify who can reconnect this identity. Reload the page to try again."
+      ? t("we_couldnt_verify_who_can_reconnect_this_identit")
       : previousConnection?.credentialPolicy === "per_user"
         && retainedPersonalUserId !== grantsQuery.data?.currentUserId
-        ? "The person this connection belongs to must reconnect it."
-        : "You don't have permission to reconnect this identity.";
+        ? t("the_person_this_connection_belongs_to_must_recon")
+        : t("you_dont_have_permission_to_reconnect_this_ident");
   const connectHref = newConnectionHref({
     applicationId,
     appName: application.name,
@@ -248,8 +251,8 @@ export function AppNotConnected() {
           <ReviewPanel connectionId={previousConnection.id} />
         ) : (
           <EmptyTab
-            title="Nothing is waiting for your OK right now."
-            body="Review requests will appear here after this app is connected."
+            title={t("nothing_is_waiting_for_your_ok_right_now")}
+            body={t("review_requests_will_appear_here_after_this_app")}
           />
         )
       )}
@@ -258,8 +261,8 @@ export function AppNotConnected() {
       )}
       {activeTab === "test" && (
         <EmptyTab
-          title="Reconnect to test this app."
-          body="Testing becomes available after this app is connected again."
+          title={t("reconnect_to_test_this_app")}
+          body={t("testing_becomes_available_after_this_app_is_conn")}
         />
       )}
       {activeTab === "activity" && (
@@ -304,6 +307,7 @@ function ApplicationHeader({
   darkLogoUrl: string | undefined;
   connectedCount: number;
 }) {
+  const { t } = useTranslation();
   return (
     <header className="flex flex-wrap items-center gap-4">
       <AppLogo name={applicationName} logoUrl={logoUrl} darkLogoUrl={darkLogoUrl} size={48} />
@@ -311,7 +315,7 @@ function ApplicationHeader({
         <div className="flex items-center gap-2">
           <h1 className="truncate text-2xl font-bold tracking-tight">{applicationName}</h1>
           <span className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
-            {connectedCount > 0 ? `${connectedCount} connected` : "Not connected"}
+            {connectedCount > 0 ? t("zhPages.89bdeb50836f", { connectedCount: connectedCount }) : t("not_connected")}
           </span>
         </div>
         {description && (
@@ -343,26 +347,27 @@ function SetupTab({
   onConnect: () => void;
   onEdit: (connectionId: string) => void;
 }) {
+  const { t } = useTranslation();
   if (activeConnections.length > 0) {
     return (
       <div className="space-y-6">
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-bold text-foreground">Already connected to {applicationName}</h2>
+            <h2 className="text-sm font-bold text-foreground">{t("already_connected_to")} {applicationName}</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Edit an existing connection, or deliberately add another account below.
+              {t("edit_an_existing_connection_or_deliberately_add")}
             </p>
           </div>
           <div className="divide-y divide-border">
             {activeConnections.map((connection) => {
               const owner = connectionOwnerProfile(connection, userProfileById);
               const secondary = connectionDisplaySecondaryHint(connection) ??
-                (connection.lastUsedAt ? `Last used ${timeAgo(connection.lastUsedAt)}` : "Not used yet");
+                (connection.lastUsedAt ? t("zhPages.d1caf454f147", { value: timeAgo(connection.lastUsedAt) }) : t("not_used_yet"));
               const status = connection.enabled === false || connection.status === "disabled"
-                ? "Paused"
+                ? t("paused")
                 : isToolConnectionAttentionHealth(connection.healthStatus)
-                  ? "Needs attention"
-                  : "Connected";
+                  ? t("needs_attention")
+                  : t("connected");
               return (
                 <button
                   key={connection.id}
@@ -378,7 +383,7 @@ function SetupTab({
                   </div>
                   <ConnectionOwnerIdentity owner={owner} />
                   <span className="text-xs text-muted-foreground">{status}</span>
-                  <span className="text-xs font-semibold text-primary">Edit →</span>
+                  <span className="text-xs font-semibold text-primary">{t("edit_aed999")}</span>
                 </button>
               );
             })}
@@ -388,12 +393,12 @@ function SetupTab({
         <section>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-bold text-foreground">Connect another</h2>
+              <h2 className="text-sm font-bold text-foreground">{t("connect_another")}</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Add another {applicationName} account without changing the connections above.
+                {t("add_another")} {applicationName} {t("account_without_changing_the_connections_above")}
               </p>
             </div>
-            <Button onClick={onConnect}>Connect another</Button>
+            <Button onClick={onConnect}>{t("connect_another")}</Button>
           </div>
         </section>
       </div>
@@ -406,14 +411,14 @@ function SetupTab({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-bold text-foreground">
-              {previousConnection ? "Reconnect this app" : "Connect this app"}
+              {previousConnection ? t("reconnect_this_app") : t("connect_this_app")}
             </h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {previousConnection
                 ? previousConnection.authKind === "oauth"
-                  ? "We kept the previous setup. Sign in again to bring it back online."
-                  : "We kept the previous setup. Add a working key to bring it back online."
-                : "Agents can't use it until it's connected."}
+                  ? t("we_kept_the_previous_setup_sign_in_again_to_brin")
+                  : t("we_kept_the_previous_setup_add_a_working_key_to")
+                : t("agents_cant_use_it_until_its_connected")}
             </p>
             {previousConnection && !canReconnect ? (
               <p className="mt-1 text-sm text-muted-foreground">{reconnectUnavailableMessage}</p>
@@ -421,7 +426,7 @@ function SetupTab({
           </div>
           {!previousConnection || canReconnect ? (
             <Button onClick={onConnect}>
-              {previousConnection ? "Reconnect" : "Connect"}
+              {previousConnection ? t("reconnect") : t("connect")}
             </Button>
           ) : null}
         </div>
@@ -447,28 +452,29 @@ function PreviousSetup({
   previousAddress: string | null;
   owner: CompanyUserProfile | null;
 }) {
+  const { t } = useTranslation();
   return (
     <section>
-      <h2 className="text-sm font-bold text-foreground">Previous setup</h2>
+      <h2 className="text-sm font-bold text-foreground">{t("previous_setup")}</h2>
       {owner && (
         <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span>Connected by</span>
+          <span>{t("connected_by")}</span>
           <ConnectionOwnerIdentity owner={owner} />
         </div>
       )}
       {connection.healthMessage && (
         <p className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-          Last error: {connection.healthMessage}
+          {t("last_error_867b92")} {connection.healthMessage}
         </p>
       )}
       <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-(--gtc-59)">
-        <dt className="text-muted-foreground">Address</dt>
+        <dt className="text-muted-foreground">{t("address")}</dt>
         <dd className="break-all font-mono text-foreground">{previousAddress}</dd>
-        <dt className="text-muted-foreground">Connection type</dt>
+        <dt className="text-muted-foreground">{t("connection_type")}</dt>
         <dd className="text-foreground">{connectionTransportLabel(connection.transport)}</dd>
-        <dt className="text-muted-foreground">Last used</dt>
+        <dt className="text-muted-foreground">{t("last_used")}</dt>
         <dd className="text-foreground">
-          {connection.lastUsedAt ? timeAgo(connection.lastUsedAt) : "Never"}
+          {connection.lastUsedAt ? timeAgo(connection.lastUsedAt) : t("never")}
         </dd>
       </dl>
     </section>
@@ -476,15 +482,16 @@ function PreviousSetup({
 }
 
 function PermissionsTab({ previousConnection }: { previousConnection: ToolConnection | null }) {
+  const { t } = useTranslation();
   return (
     <section>
-      <h2 className="text-sm font-bold text-foreground">Permissions paused</h2>
+      <h2 className="text-sm font-bold text-foreground">{t("permissions_paused")}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Reconnect this app to edit who can use it and which actions need a human first.
+        {t("reconnect_this_app_to_edit_who_can_use_it_and_wh")}
       </p>
       {previousConnection && (
         <p className="mt-3 text-xs text-muted-foreground">
-          Previous setup is retained for reconnect, but access controls stay read-only until the app is online.
+          {t("previous_setup_is_retained_for_reconnect_but_acc")}
         </p>
       )}
     </section>

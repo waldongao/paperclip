@@ -1,3 +1,4 @@
+import { getCountNoun } from "@/components/localized-count";
 import type { CSSProperties } from "react";
 import type { IssueWorkProduct } from "@paperclipai/shared";
 import {
@@ -14,6 +15,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { cn } from "@/lib/utils";
+import { t, useTranslation } from "@/i18n";
 
 type StateChip = {
   label: string;
@@ -28,34 +30,34 @@ export function stateChipFor(
   reviewState: IssueWorkProduct["reviewState"] | string | null | undefined,
 ): StateChip | null {
   if (reviewState === "changes_requested" || status === "changes_requested") {
-    return { label: "Changes requested", tone: "failure" };
+    return { label: t("changes_requested_9be166"), tone: "failure" };
   }
   if (reviewState === "needs_board_review" || status === "ready_for_review") {
-    return { label: "Review", tone: "review" };
+    return { label: t("review"), tone: "review" };
   }
   if (["failed", "unhealthy", "down"].includes(status ?? "")) {
-    return { label: "Failed", tone: "failure" };
+    return { label: t("failed"), tone: "failure" };
   }
   if (["pending", "opening"].includes(status ?? "")) {
-    return { label: status === "opening" ? "Opening" : "Pending", tone: "progress", dashed: true };
+    return { label: status === "opening" ? t("opening") : t("pending"), tone: "progress", dashed: true };
   }
   if (kind === "pull_request" && (status === "active" || status === "open")) {
-    return { label: "Open", tone: "progress" };
+    return { label: t("open"), tone: "progress" };
   }
   if (kind === "pull_request" && status === "draft") {
-    return { label: "Draft", tone: "review" };
+    return { label: t("draft"), tone: "review" };
   }
   if (kind === "pull_request" && status === "merged") {
-    return { label: "Merged", tone: "success" };
+    return { label: t("merged"), tone: "success" };
   }
   if (kind === "pull_request" && status === "closed") {
-    return { label: "Closed", tone: "neutral" };
+    return { label: t("closed"), tone: "neutral" };
   }
   if (kind === "runtime_service" && status === "active") {
-    return { label: "Running", tone: "progress" };
+    return { label: t("running"), tone: "progress" };
   }
   if (kind === "runtime_service" && status === "closed") {
-    return { label: "Stopped", tone: "failure" };
+    return { label: t("stopped"), tone: "failure" };
   }
   return null;
 }
@@ -123,13 +125,14 @@ export interface RichWorkProductCardProps {
 }
 
 export function RichWorkProductCard({ workProduct, href, variant = "card" }: RichWorkProductCardProps) {
+  const { t } = useTranslation();
   const metadata = workProduct.metadata;
   const contentType = stringMeta(metadata, "contentType") ?? "";
   const isImage = contentType.startsWith("image/");
   const isVideo = contentType.startsWith("video/");
   let Icon: LucideIcon = File;
   let meta: Array<string | null> = [];
-  let action = "Open preview";
+  let action = t("open_preview");
 
   switch (workProduct.type) {
     case "pull_request": {
@@ -139,40 +142,40 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
       const base = stringMeta(metadata, "baseRef", "base", "baseBranch");
       const head = stringMeta(metadata, "headRef", "head", "headBranch", "branch");
       meta = [repository, number ? `#${number.replace(/^#/, "")}` : null, base && head ? `${base} ← ${head}` : null, urlLabel(workProduct.url)];
-      action = "Open on GitHub";
+      action = t("open_on_github");
       break;
     }
     case "commit":
       Icon = GitCommit;
       meta = [stringMeta(metadata, "shortSha", "sha")?.slice(0, 8) ?? workProduct.externalId?.slice(0, 8) ?? null, stringMeta(metadata, "branch", "branchName"), urlLabel(workProduct.url)];
-      action = "Open on GitHub";
+      action = t("open_on_github");
       break;
     case "branch":
       Icon = GitBranch;
       meta = [stringMeta(metadata, "repository", "repo", "repositoryName"), stringMeta(metadata, "branch", "branchName") ?? workProduct.externalId, urlLabel(workProduct.url)];
-      action = "Open on GitHub";
+      action = t("open_on_github");
       break;
     case "artifact": {
       Icon = isImage ? Image : isVideo ? Film : File;
       const size = numberMeta(metadata, "byteSize", "size");
-      meta = [isImage ? "Image" : isVideo ? "Video" : stringMeta(metadata, "kind", "fileType") ?? "File", size === null ? null : formatBytes(size)];
-      action = isImage || isVideo ? "Open gallery" : "Open preview";
+      meta = [isImage ? t("image") : isVideo ? t("video") : stringMeta(metadata, "kind", "fileType") ?? t("file"), size === null ? null : formatBytes(size)];
+      action = isImage || isVideo ? t("open_gallery") : t("open_preview");
       break;
     }
     case "document":
       Icon = FileText;
-      meta = ["Document", stringMeta(metadata, "revision", "revisionNumber") ? `rev ${stringMeta(metadata, "revision", "revisionNumber")}` : null];
-      action = "Open document";
+      meta = [t("document"), stringMeta(metadata, "revision", "revisionNumber") ? t("zhComponents.message_f3addb6e64", { value1: stringMeta(metadata, "revision", "revisionNumber") }) : null];
+      action = t("open_document");
       break;
     case "preview_url":
       Icon = Globe;
       meta = [urlLabel(workProduct.url)];
-      action = "Open preview";
+      action = t("open_preview");
       break;
     case "runtime_service":
       Icon = Server;
-      meta = [stringMeta(metadata, "service", "serviceName") ?? workProduct.provider, stringMeta(metadata, "port") ? `port ${stringMeta(metadata, "port")}` : null];
-      action = "Open service";
+      meta = [stringMeta(metadata, "service", "serviceName") ?? workProduct.provider, stringMeta(metadata, "port") ? t("zhComponents.message_ede9d9438d", { value1: stringMeta(metadata, "port") }) : null];
+      action = t("open_service");
       break;
   }
 
@@ -182,9 +185,9 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
   const unhealthyChip =
     workProduct.healthStatus === "unhealthy"
       ? workProduct.type === "preview_url"
-        ? { label: "Down", tone: "failure" as const }
+        ? { label: t("down"), tone: "failure" as const }
         : workProduct.type === "runtime_service" && workProduct.status !== "closed"
-          ? { label: "Unhealthy", tone: "failure" as const }
+          ? { label: t("unhealthy"), tone: "failure" as const }
           : null
       : null;
   const chip =
@@ -204,7 +207,7 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
   const changeCounts = [additions === null ? null : `+${additions}`, deletions === null ? null : `−${deletions}`]
     .filter(Boolean)
     .join(" ");
-  const fileCount = files === null ? null : `${files} ${files === 1 ? "file" : "files"}`;
+  const fileCount = files === null ? null : `${files} ${getCountNoun(files, "file")}`;
   const statsLabel = [changeCounts || null, fileCount].filter(Boolean).join(" · ");
   const compact = variant === "compact";
   const imagePath = isImage

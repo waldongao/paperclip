@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -22,6 +23,7 @@ import {
   builtInAgentsApi,
   type BuiltInAgentState,
 } from "@/api/builtInAgents";
+import { useTranslation } from "@/i18n";
 
 /** Adapters whose config completeness is keyed on a non-empty `model`. */
 function isModelBasedAdapter(adapterType: string): boolean {
@@ -60,6 +62,7 @@ export function ConfigureBuiltInAgentModal({
   onOpenChange,
   onConfigured,
 }: ConfigureBuiltInAgentModalProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { definition } = state;
 
@@ -111,7 +114,7 @@ export function ConfigureBuiltInAgentModal({
     models.some((candidate) => candidate.id === normalizedModel);
   const modelError = modelKnown
     ? null
-    : `Model “${normalizedModel}” is not available for ${adapterType}. Choose a known model.`;
+    : t("zhComponents.message_692812a685", { value1: normalizedModel, value2: adapterType });
   const budgetMonthlyCents = parseBudgetMonthlyCents(budgetDollars);
   const budgetValid = !budgetDollars.trim() || budgetMonthlyCents !== undefined;
   const canSubmit =
@@ -119,8 +122,8 @@ export function ConfigureBuiltInAgentModal({
     modelKnown &&
     (setupSupportedInModal ? !modelRequired || normalizedModel.length > 0 : true);
   const submitLabel = setupSupportedInModal
-    ? `Configure & enable ${definition.displayName}`
-    : `Provision ${definition.displayName}`;
+    ? t("zhComponents.message_2ec430738d", { value1: definition.displayName })
+    : t("zhComponents.message_dbdd4faf60", { value1: definition.displayName });
 
   const provision = useMutation({
     mutationFn: async () => {
@@ -143,7 +146,7 @@ export function ConfigureBuiltInAgentModal({
       onOpenChange(false);
     },
     onError: (err) => {
-      setError(err instanceof ApiError ? err.message : "Failed to configure the built-in agent.");
+      setError(err instanceof ApiError ? err.message : t("failed_to_configure_the_built_in_agent"));
     },
   });
 
@@ -151,18 +154,17 @@ export function ConfigureBuiltInAgentModal({
     <Dialog open={open} onOpenChange={(next) => (provision.isPending ? undefined : onOpenChange(next))}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Set up the {definition.displayName}</DialogTitle>
+          <DialogTitle>{t("set_up_the")} {definition.displayName}</DialogTitle>
           <DialogDescription>{definition.shortPurpose}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <InlineBanner tone="info" compact>
-            Creates <strong>{definition.displayName}</strong> in your roster, badged{" "}
-            <strong>Built-in</strong>. Organizations that require hire approval will queue this for the
-            board.
+            {t("creates")} <strong>{definition.displayName}</strong> {t("in_your_roster_badged")}{" "}
+            <strong>{t("built_in")}</strong>{t("zhComponents.text_05b1e4f960")}
           </InlineBanner>
 
-          <Field label="Adapter type">
+          <Field label={t("adapter_type")}>
             <AdapterTypeDropdown
               value={adapterType}
               onChange={(next) => {
@@ -196,12 +198,11 @@ export function ConfigureBuiltInAgentModal({
 
           {!setupSupportedInModal && (
             <InlineBanner tone="warning" compact>
-              This adapter needs command or endpoint fields before it can run. Provision the
-              built-in row now, then finish those fields from the full agent configuration.
+              {t("this_adapter_needs_command_or_endpoint_fields_be")}
             </InlineBanner>
           )}
 
-          <Field label="Monthly budget (optional)" hint="Leave blank for no cap.">
+          <Field label={t("monthly_budget_optional")} hint={t("leave_blank_for_no_cap")}>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">$</span>
               <Input
@@ -214,7 +215,7 @@ export function ConfigureBuiltInAgentModal({
                 onChange={(event) => setBudgetDollars(event.target.value)}
                 className="w-32"
               />
-              <span className="text-sm text-muted-foreground">/ month</span>
+              <span className="text-sm text-muted-foreground">{t("zhComponents.text_f7fa5df80f")}</span>
             </div>
           </Field>
 
@@ -231,7 +232,7 @@ export function ConfigureBuiltInAgentModal({
             onClick={() => onOpenChange(false)}
             disabled={provision.isPending}
           >
-            Not now
+            {t("not_now")}
           </Button>
           <Button
             onClick={() => {
@@ -240,7 +241,7 @@ export function ConfigureBuiltInAgentModal({
             }}
             disabled={!canSubmit || provision.isPending}
           >
-            {provision.isPending ? "Configuring…" : submitLabel}
+            {provision.isPending ? t("configuring") : submitLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

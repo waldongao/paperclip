@@ -1,3 +1,6 @@
+
+import { t } from "@/i18n";
+
 export type AppBrandManifestProvider = {
   slug: string;
   provider: string;
@@ -36,9 +39,9 @@ async function loadManifest(): Promise<AppBrandManifest> {
   if (!manifestPromise) {
     manifestPromise = fetch("/brands/apps/manifest.json", { credentials: "same-origin" })
       .then(async (response) => {
-        if (!response.ok) throw new Error(`App brand manifest request failed (${response.status})`);
+        if (!response.ok) throw new Error(t("zhSupport.brandManifestFailed", { status: response.status }));
         const value: unknown = await response.json();
-        if (!isManifest(value)) throw new Error("App brand manifest is invalid");
+        if (!isManifest(value)) throw new Error(t("app_brand_manifest_is_invalid"));
         return value;
       })
       .catch((error) => {

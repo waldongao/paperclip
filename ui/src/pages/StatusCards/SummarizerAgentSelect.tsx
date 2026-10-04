@@ -6,6 +6,7 @@ import { AgentIcon } from "@/components/AgentIconPicker";
 import { InlineEntitySelector, type InlineEntityOption } from "@/components/InlineEntitySelector";
 import { isAgentTaskTarget } from "@/lib/company-members";
 import { queryKeys } from "@/lib/queryKeys";
+import { useTranslation } from "@/i18n";
 
 /**
  * Picker for the agent that runs a card's updates. `value` is the override
@@ -22,6 +23,7 @@ export function SummarizerAgentSelect({
   onChange: (agentId: string) => void;
   enabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const agentsQuery = useQuery({
     queryKey: companyId ? queryKeys.agents.list(companyId) : ["agents", "none"],
     queryFn: () => agentsApi.list(companyId!),
@@ -44,7 +46,7 @@ export function SummarizerAgentSelect({
   );
 
   const renderAgent = (option: InlineEntityOption | null) => {
-    if (!option || !option.id) return <span>Summarizer (default)</span>;
+    if (!option || !option.id) return <span>{t("summarizer_default")}</span>;
     const agent = option.id.startsWith("agent:") ? agentById.get(option.id.slice("agent:".length)) : null;
     return (
       <>
@@ -58,10 +60,10 @@ export function SummarizerAgentSelect({
     <InlineEntitySelector
       value={value ? `agent:${value}` : ""}
       options={agentOptions}
-      placeholder="Summarizer (default)"
-      noneLabel="Summarizer (default)"
-      searchPlaceholder="Search agents..."
-      emptyMessage="No agents found."
+      placeholder={t("summarizer_default")}
+      noneLabel={t("summarizer_default")}
+      searchPlaceholder={t("search_agents")}
+      emptyMessage={t("no_agents_found")}
       onChange={(next) => onChange(next.startsWith("agent:") ? next.slice("agent:".length) : "")}
       className="h-8 text-sm"
       renderTriggerValue={renderAgent}

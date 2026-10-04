@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { useStreamlinedTaskChatPresentation } from "./presentation-mode";
 import { ArrowDown } from "lucide-react";
 import { parseCssTimeMs } from "./motion-tokens";
+import { useTranslation } from "@/i18n";
 
 const PIN_THRESHOLD_PX = 48;
 
@@ -43,6 +44,7 @@ interface TaskMessageScrollerProps {
  * while pinned stays instant, so no reflow/jump happens during streaming.
  */
 export function TaskMessageScroller({ children, contentKey, className }: TaskMessageScrollerProps) {
+  const { t } = useTranslation();
   const streamlined = useStreamlinedTaskChatPresentation();
   const ref = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
@@ -230,7 +232,7 @@ export function TaskMessageScroller({ children, contentKey, className }: TaskMes
       {pillPhase !== "hidden" ? (
         <button
           type="button"
-          aria-label="Scroll to latest"
+          aria-label={t("scroll_to_latest")}
           onClick={handleJumpToLatest}
           onAnimationEnd={() => {
             if (pillPhase === "out") setPillPhase("hidden");

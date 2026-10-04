@@ -1,4 +1,5 @@
 import type { ToolProfileStatus, ToolProfileSummary, ToolProfileWithDetails } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 /**
  * Prosumer copy for the access-profile index (PAP-10997, AP1). Reads the
@@ -8,15 +9,15 @@ import type { ToolProfileStatus, ToolProfileSummary, ToolProfileWithDetails } fr
  */
 
 function plural(n: number, one: string, many = `${one}s`): string {
-  return `${n} ${n === 1 ? one : many}`;
+  return ["tool", "app", "agent", "assignment"].includes(one) ? t(`zhPages.nounCount.${one}`, { count: n }) : `${n} ${n === 1 ? one : many}`;
 }
 
 /** "9 tools · 3 apps" / "All tools" / "All except 2 tools". */
 export function allowsLabel(summary: ToolProfileSummary): string {
   if (summary.accessMode === "all_except") {
     return summary.excludedToolCount === 0
-      ? "All tools"
-      : `All except ${plural(summary.excludedToolCount, "tool")}`;
+      ? t("all_tools")
+      : t("zhPages.1164b0ce9757", { value: plural(summary.excludedToolCount, "tool") });
   }
   const parts = [plural(summary.allowedToolCount, "tool")];
   if (summary.allowedApplicationCount > 0) {
@@ -33,21 +34,21 @@ export interface AssignedLabel {
 
 /** "Organization default" / "2 agents" / "Not assigned yet". */
 export function assignedLabel(summary: ToolProfileSummary): AssignedLabel {
-  if (summary.isCompanyDefault) return { text: "Organization default", unassigned: false };
+  if (summary.isCompanyDefault) return { text: t("organization_default"), unassigned: false };
   if (summary.appliesToAgentCount > 0) {
     return { text: plural(summary.appliesToAgentCount, "agent"), unassigned: false };
   }
   if (summary.assignmentCount > 0) {
     return { text: plural(summary.assignmentCount, "assignment"), unassigned: false };
   }
-  return { text: "Not assigned yet", unassigned: true };
+  return { text: t("not_assigned_yet"), unassigned: true };
 }
 
 export const STATUS_LABEL: Record<ToolProfileStatus, string> = {
-  draft: "Draft",
-  active: "Active",
-  disabled: "Off",
-  archived: "Archived",
+  draft: t("draft"),
+  active: t("active"),
+  disabled: t("off"),
+  archived: t("archived"),
 };
 
 export function isDraft(profile: Pick<ToolProfileWithDetails, "status">): boolean {

@@ -6,8 +6,10 @@ import { authApi } from "../api/auth";
 import { queryKeys } from "../lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "@/i18n";
 
 export function BoardClaimPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const params = useParams();
   const [searchParams] = useSearchParams();
@@ -42,20 +44,20 @@ export function BoardClaimPage() {
   });
 
   if (!token || !code) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">Invalid board claim URL.</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">{t("invalid_board_claim_url")}</div>;
   }
 
   if (statusQuery.isLoading || sessionQuery.isLoading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading claim challenge...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("loading_claim_challenge")}</div>;
   }
 
   if (statusQuery.error) {
     return (
       <div className="mx-auto max-w-xl py-10">
         <Card className="block p-6">
-          <h1 className="text-lg font-semibold">Claim challenge unavailable</h1>
+          <h1 className="text-lg font-semibold">{t("claim_challenge_unavailable")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {statusQuery.error instanceof Error ? statusQuery.error.message : "Challenge is invalid or expired."}
+            {statusQuery.error instanceof Error ? statusQuery.error.message : t("challenge_is_invalid_or_expired")}
           </p>
         </Card>
       </div>
@@ -64,19 +66,19 @@ export function BoardClaimPage() {
 
   const status = statusQuery.data;
   if (!status) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">Claim challenge unavailable.</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">{t("claim_challenge_unavailable_d6cb14")}</div>;
   }
 
   if (status.status === "claimed") {
     return (
       <div className="mx-auto max-w-xl py-10">
         <Card className="block p-6">
-          <h1 className="text-lg font-semibold">Board ownership claimed</h1>
+          <h1 className="text-lg font-semibold">{t("board_ownership_claimed")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This instance is now linked to your authenticated user.
+            {t("this_instance_is_now_linked_to_your_authenticate")}
           </p>
           <Button asChild className="mt-4">
-            <Link to="/">Open board</Link>
+            <Link to="/">{t("open_board")}</Link>
           </Button>
         </Card>
       </div>
@@ -87,12 +89,12 @@ export function BoardClaimPage() {
     return (
       <div className="mx-auto max-w-xl py-10">
         <Card className="block p-6">
-          <h1 className="text-lg font-semibold">Sign in required</h1>
+          <h1 className="text-lg font-semibold">{t("sign_in_required")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in or create an account, then return to this page to claim Board ownership.
+            {t("sign_in_or_create_an_account_then_return_to_this")}
           </p>
           <Button asChild className="mt-4">
-            <Link to={`/auth?next=${encodeURIComponent(currentPath)}`}>Sign in / Create account</Link>
+            <Link to={`/auth?next=${encodeURIComponent(currentPath)}`}>{t("sign_in_create_account")}</Link>
           </Button>
         </Card>
       </div>
@@ -102,14 +104,14 @@ export function BoardClaimPage() {
   return (
     <div className="mx-auto max-w-xl py-10">
       <Card className="block p-6">
-        <h1 className="text-xl font-semibold">Claim Board ownership</h1>
+        <h1 className="text-xl font-semibold">{t("claim_board_ownership")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This will promote your user to instance admin and migrate organization ownership access from local trusted mode.
+          {t("this_will_promote_your_user_to_instance_admin_an")}
         </p>
 
         {claimMutation.error && (
           <p className="mt-3 text-sm text-destructive">
-            {claimMutation.error instanceof Error ? claimMutation.error.message : "Failed to claim board ownership"}
+            {claimMutation.error instanceof Error ? claimMutation.error.message : t("failed_to_claim_board_ownership")}
           </p>
         )}
 
@@ -118,7 +120,7 @@ export function BoardClaimPage() {
           onClick={() => claimMutation.mutate()}
           disabled={claimMutation.isPending}
         >
-          {claimMutation.isPending ? "Claiming…" : "Claim ownership"}
+          {claimMutation.isPending ? t("claiming_25b55e") : t("claim_ownership")}
         </Button>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+import { getPluralSuffix } from "@/components/localized-count";
 import { memo, useMemo } from "react";
 import { Link } from "@/lib/router";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -17,6 +18,8 @@ import { RunChatSurface } from "./RunChatSurface";
 import { useLiveRunTranscripts } from "./transcript/useLiveRunTranscripts";
 import { usePublishSharedQueryData, useSharedPollingQuery } from "../hooks/useSharedPolling";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 function RunCardRecoveryChip({ action }: { action: IssueRecoveryAction }) {
   const state = deriveActiveRecoveryDisplayState(action);
@@ -29,7 +32,7 @@ function RunCardRecoveryChip({ action }: { action: IssueRecoveryAction }) {
       data-recovery-state={state}
       role="status"
       aria-label={tone.label}
-      title={`${tone.label} — open the source task to act.`}
+      title={t("zhComponents.message_6d2fb64759", { value1: tone.label })}
       className={cn(
         "gap-0.5 px-1.5 text-(length:--text-nano)",
         tone.className,
@@ -67,16 +70,17 @@ interface ActiveAgentsPanelProps {
 
 export function ActiveAgentsPanel({
   companyId,
-  title = "Agents",
+  title = t("agents"),
   minRunCount = MIN_DASHBOARD_RUNS,
   fetchLimit,
   cardLimit = DASHBOARD_RUN_CARD_LIMIT,
   gridClassName,
   cardClassName,
-  emptyMessage = "No recent agent runs.",
+  emptyMessage = t("no_recent_agent_runs"),
   queryScope = "dashboard",
   showMoreLink = true,
 }: ActiveAgentsPanelProps) {
+  const { t } = useTranslation();
   const liveRunsQueryKey = [...queryKeys.liveRuns(companyId), queryScope, { minRunCount, fetchLimit }] as const;
   const sharedLiveRuns = useSharedPollingQuery({
     companyId,
@@ -155,7 +159,7 @@ export function ActiveAgentsPanel({
       {showMoreLink && hiddenRunCount > 0 && (
         <div className="mt-3 flex justify-end text-xs text-muted-foreground">
           <Link to="/dashboard/live" className="hover:text-foreground hover:underline">
-            {hiddenRunCount} more active/recent run{hiddenRunCount === 1 ? "" : "s"}
+            {hiddenRunCount} {t("more_active_recent_run")}{getPluralSuffix(hiddenRunCount)}
           </Link>
         </div>
       )}
@@ -180,6 +184,7 @@ const AgentRunCard = memo(function AgentRunCard({
   isActive: boolean;
   className?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div className={cn(
       "flex h-(--sz-320px) flex-col overflow-hidden rounded-xl border shadow-sm",
@@ -203,7 +208,7 @@ const AgentRunCard = memo(function AgentRunCard({
               <Identity name={run.agentName} size="sm" className="[&>span:last-child]:!text-(length:--text-micro)" />
             </div>
             <div className="mt-2 flex items-center gap-2 text-(length:--text-micro) text-muted-foreground">
-              <span>{isActive ? "Live now" : run.finishedAt ? `Finished ${relativeTime(run.finishedAt)}` : `Started ${relativeTime(run.createdAt)}`}</span>
+              <span>{isActive ? t("live_now") : run.finishedAt ? t("zhComponents.message_d41511ce19", { value1: relativeTime(run.finishedAt) }) : t("zhComponents.message_aaeaecb4a4", { value1: relativeTime(run.createdAt) })}</span>
             </div>
           </div>
 

@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 export interface MemberMultiSelectOption {
   userId: string;
@@ -44,9 +46,9 @@ export function MemberMultiSelect({
   triggerFullWidth = true,
   triggerClassName,
   contentAlign = "start",
-  emptyMessage = "No members yet.",
+  emptyMessage = t("no_members_yet"),
   showSelectionPreview = true,
-  filterPlaceholder = "Filter people",
+  filterPlaceholder = t("filter_people"),
   onOpenChange,
 }: {
   members: MemberMultiSelectOption[];
@@ -68,6 +70,7 @@ export function MemberMultiSelect({
   filterPlaceholder?: string;
   onOpenChange?: (open: boolean) => void;
 }): ReactNode {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const [draftUserIds, setDraftUserIds] = useState<Set<string>>(new Set(selectedUserIds));
@@ -123,8 +126,8 @@ export function MemberMultiSelect({
             <span className="flex min-w-0 items-center">
               <span className="truncate">
                 {triggerLabel ?? (selectedCount === 0
-                  ? "Select people"
-                  : `${selectedCount} ${selectedCount === 1 ? "person" : "people"} selected`)}
+                  ? t("select_people")
+                  : t("zhComponents.message_893537bb6f", { count: selectedCount, value1: selectedCount }))}
               </span>
             </span>
             <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -160,7 +163,7 @@ export function MemberMultiSelect({
                   >
                     <Checkbox
                       checked={workingUserIds.has(member.userId)}
-                      aria-label={`Allow ${label}`}
+                      aria-label={t("zhComponents.message_224e783683", { value1: label })}
                       onCheckedChange={(checked) => {
                         const next = new Set(workingUserIds);
                         if (checked) next.add(member.userId);
@@ -178,18 +181,18 @@ export function MemberMultiSelect({
                 );
               })}
               {filteredMembers.length === 0 ? (
-                <div className="px-3 py-4 text-sm text-muted-foreground">No matches.</div>
+                <div className="px-3 py-4 text-sm text-muted-foreground">{t("no_matches")}</div>
               ) : null}
             </div>
           )}
           <div className="flex items-center justify-between border-t border-border px-3 py-2">
             <span className="text-xs text-muted-foreground" aria-live="polite">
-              {workingUserIds.size === 0 ? "No people selected" : `${workingUserIds.size} selected`}
+              {workingUserIds.size === 0 ? t("no_people_selected") : t("zhComponents.message_0a29ed91a3", { value1: workingUserIds.size })}
             </span>
             <div className="flex items-center gap-2">
               {staged ? (
                 <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={pending}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               ) : null}
               <Button
@@ -201,7 +204,7 @@ export function MemberMultiSelect({
                 }}
                 disabled={pending}
               >
-                {staged ? (pending ? "Saving…" : "Save") : "Done"}
+                {staged ? (pending ? t("saving_56a228") : t("save")) : t("done_action")}
               </Button>
             </div>
           </div>
@@ -216,7 +219,7 @@ export function MemberMultiSelect({
           ))}
           {selectedMembers.length > 3 ? (
             <p className="px-1.5 pt-0.5 text-xs text-muted-foreground">
-              and {selectedMembers.length - 3} more
+              {t("zhComponents.text_cffa50a32c")} {selectedMembers.length - 3} {t("zhComponents.text_e7c95b4c28")}
             </p>
           ) : null}
         </div>

@@ -59,6 +59,8 @@ import { unescapeBlockquoteMarkers } from "../lib/blockquote-markdown";
 import { pasteNormalizationPlugin } from "../lib/paste-normalization";
 import { cn } from "../lib/utils";
 import { useEditorAutocomplete, type SlashCommandOption } from "../context/EditorAutocompleteContext";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 /* ---- Mention types ---- */
 
@@ -244,7 +246,7 @@ function isSafeMarkdownLinkUrl(url: string): boolean {
 function richEditorErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
-  return "Rich editor failed to render";
+  return t("rich_editor_failed_to_render");
 }
 
 /**
@@ -317,18 +319,18 @@ const MAX_AUTOCOMPLETE_OPTIONS = 50;
 const MENTION_MENU_CARET_GAP = 10;
 
 const CODE_BLOCK_LANGUAGES: Record<string, string> = {
-  txt: "Text",
-  md: "Markdown",
-  js: "JavaScript",
-  jsx: "JavaScript (JSX)",
-  ts: "TypeScript",
-  tsx: "TypeScript (TSX)",
+  txt: t("text"),
+  md: t("markdown"),
+  js: t("javascript"),
+  jsx: t("javascript_jsx"),
+  ts: t("typescript"),
+  tsx: t("typescript_tsx"),
   json: "JSON",
-  bash: "Bash",
-  sh: "Shell",
-  python: "Python",
-  go: "Go",
-  rust: "Rust",
+  bash: t("bash"),
+  sh: t("shell"),
+  python: t("python"),
+  go: t("go"),
+  rust: t("rust"),
   sql: "SQL",
   html: "HTML",
   css: "CSS",
@@ -507,7 +509,7 @@ function nodeInsideCodeLike(container: HTMLElement, node: Node | null): boolean 
   const el = node.nodeType === Node.ELEMENT_NODE
     ? (node as HTMLElement)
     : node.parentElement;
-  return Boolean(el?.closest("pre, code"));
+  return Boolean(el?.closest(t("pre_code")));
 }
 
 function isSelectionInsideCodeLikeElement(container: HTMLElement | null) {
@@ -695,6 +697,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
   onSubmit,
   readOnly = false,
 }: MarkdownEditorProps, forwardedRef) {
+  const { t } = useTranslation();
   const editorValue = useMemo(() => prepareMarkdownForEditor(value), [value]);
   const { slashCommands } = useEditorAutocomplete();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -862,7 +865,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
           if (!looksEmpty()) return;
           setRichEditorError({
             code: "MDE-EMPTY",
-            message: "Rich editor failed to load content",
+            message: t("rich_editor_failed_to_load_content"),
           });
         }, RICH_EDITOR_EMPTY_CONFIRM_MS);
       }, RICH_EDITOR_EMPTY_CHECK_MS);
@@ -894,7 +897,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
     const imageHandler = hasImageUpload
       ? async (file: File) => {
           const handler = imageUploadHandlerRef.current;
-          if (!handler) throw new Error("No image upload handler");
+          if (!handler) throw new Error(t("no_image_upload_handler"));
           try {
             const src = await handler(file);
             setUploadError(null);
@@ -921,7 +924,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
             }, 100);
             return src;
           } catch (err) {
-            const message = err instanceof Error ? err.message : "Image upload failed";
+            const message = err instanceof Error ? err.message : t("image_upload_failed");
             setUploadError(message);
             throw err;
           }
@@ -1235,7 +1238,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
     const clipboard = event.clipboardData;
     if (!clipboard || !ref.current) return;
     const types = new Set(Array.from(clipboard.types));
-    if (types.has("Files") || types.has("text/html")) return;
+    if (types.has(t("files")) || types.has("text/html")) return;
     if (isSelectionInsideCodeLikeElement(containerRef.current)) return;
 
     const rawText = clipboard.getData("text/plain");
@@ -1273,7 +1276,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
       >
         <div className="flex items-start justify-between gap-3 px-3 pt-2 text-xs text-muted-foreground">
           <p>
-            Rich editor unavailable for this markdown. Showing raw source instead.{" "}
+            {t("rich_editor_unavailable_for_this_markdown_showin")}{" "}
             <span data-testid="markdown-editor-fallback-code" className="font-mono">
               {richEditorError.code}
             </span>
@@ -1289,7 +1292,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
               setRichEditorError(null);
             }}
           >
-            Retry rich editor
+            {t("retry_rich_editor")}
           </button>
         </div>
         <textarea
@@ -1433,6 +1436,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
           ref={setEditorRef}
           markdown={editorValue}
           iconComponentFor={editorIconFor}
+          translation={(key, defaultValue, interpolations) => t(`zhComponents.editor.${key}`, { defaultValue, ...interpolations })}
           suppressHtmlProcessing
           placeholder={placeholder}
           readOnly={readOnly}
@@ -1573,27 +1577,27 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
                 )}
                 {option.kind === "issue" && (
                   <span className="ml-auto text-(length:--text-nano) uppercase tracking-wide text-muted-foreground">
-                    Task
+                    {t("task")}
                   </span>
                 )}
                 {option.kind === "project" && option.projectId && (
                   <span className="ml-auto text-(length:--text-nano) uppercase tracking-wide text-muted-foreground">
-                    Project
+                    {t("project")}
                   </span>
                 )}
                 {option.kind === "user" && (
                   <span className="ml-auto text-(length:--text-nano) uppercase tracking-wide text-muted-foreground">
-                    User
+                    {t("user")}
                   </span>
                 )}
                 {option.kind === "skill" && (
                   <span className="ml-auto text-(length:--text-nano) uppercase tracking-wide text-muted-foreground">
-                    Skill
+                    {t("skill")}
                   </span>
                 )}
                 {option.kind === "routine" && (
                   <span className="ml-auto text-(length:--text-nano) uppercase tracking-wide text-muted-foreground">
-                    Routine
+                    {t("routine")}
                   </span>
                 )}
               </button>
@@ -1609,7 +1613,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
             !bordered && "inset-0 rounded-sm",
           )}
         >
-          Drop {onDropFile ? "file" : "image"} to upload
+          {onDropFile ? t("zhComponents.dropFileToUpload") : t("zhComponents.dropImageToUpload")}
         </div>
       )}
       {uploadError && (

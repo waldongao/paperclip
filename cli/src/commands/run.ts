@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -54,27 +55,27 @@ export async function runCommand(opts: RunOptions): Promise<void> {
   await printUpdateNotice(configPath);
 
   p.intro(pc.bgCyan(pc.black(" paperclipai run ")));
-  p.log.message(pc.dim(`Home: ${paths.homeDir}`));
-  p.log.message(pc.dim(`Instance: ${paths.instanceId}`));
-  p.log.message(pc.dim(`Config: ${configPath}`));
+  p.log.message(pc.dim(tCli("Home: {{value1}}", { value1: String(paths.homeDir) })));
+  p.log.message(pc.dim(tCli("Instance: {{value1}}", { value1: String(paths.instanceId) })));
+  p.log.message(pc.dim(tCli("Config: {{value1}}", { value1: String(configPath) })));
 
   if (!configExists(configPath)) {
     if (!process.stdin.isTTY || !process.stdout.isTTY) {
-      p.log.error("No config found and terminal is non-interactive.");
-      p.log.message(`Run ${pc.cyan("paperclipai onboard")} once, then retry ${pc.cyan("paperclipai run")}.`);
+      p.log.error(tCli("No config found and terminal is non-interactive."));
+      p.log.message(tCli("Run {{value1}} once, then retry {{value2}}.", { value1: String(pc.cyan("paperclipai onboard")), value2: String(pc.cyan("paperclipai run")) }));
       process.exit(1);
     }
 
-    p.log.step("No config found. Starting onboarding...");
+    p.log.step(tCli("No config found. Starting onboarding..."));
     await onboard({ config: configPath, invokedByRun: true, bind: opts.bind });
   }
 
   const seedResult = await ensureWorktreeSeeded({ config: configPath });
   if (seedResult.seeded) {
-    p.log.success("Completed deferred worktree database seed.");
+    p.log.success(tCli("Completed deferred worktree database seed."));
   }
 
-  p.log.step("Running doctor checks...");
+  p.log.step(tCli("Running doctor checks..."));
   const summary = await doctor({
     config: configPath,
     repair: opts.repair ?? true,
@@ -82,17 +83,17 @@ export async function runCommand(opts: RunOptions): Promise<void> {
   });
 
   if (summary.failed > 0) {
-    p.log.error("Doctor found blocking issues. Not starting server.");
+    p.log.error(tCli("Doctor found blocking issues. Not starting server."));
     process.exit(1);
   }
 
   const config = readConfig(configPath);
   if (!config) {
-    p.log.error(`No config found at ${configPath}.`);
+    p.log.error(tCli("No config found at {{value1}}.", { value1: String(configPath) }));
     process.exit(1);
   }
 
-  p.log.step("Starting Paperclip server...");
+  p.log.step(tCli("Starting Paperclip server..."));
   const startedServer = await importServerEntry();
   writeRuntimeInfo({
     schemaVersion: 1,
@@ -106,7 +107,7 @@ export async function runCommand(opts: RunOptions): Promise<void> {
   process.once("exit", () => removeRuntimeInfoForPid(process.pid, instanceId));
 
   if (shouldGenerateBootstrapInviteAfterStart(config)) {
-    p.log.step("Generating bootstrap CEO invite");
+    p.log.step(tCli("Generating bootstrap CEO invite"));
     await bootstrapCeoInvite({
       config: configPath,
       dbUrl: startedServer.databaseUrl,
@@ -182,13 +183,13 @@ function ensureDevWorkspaceBuildDeps(projectRoot: string): void {
 
   if (result.error) {
     throw new Error(
-      `Failed to prepare workspace build artifacts before starting the Paperclip dev server.\n${formatError(result.error)}`,
+      tCli("Failed to prepare workspace build artifacts before starting the Paperclip dev server.\n{{value1}}", { value1: String(formatError(result.error)) }),
     );
   }
 
   if ((result.status ?? 1) !== 0) {
     throw new Error(
-      "Failed to prepare workspace build artifacts before starting the Paperclip dev server.",
+      tCli("Failed to prepare workspace build artifacts before starting the Paperclip dev server."),
     );
   }
 }
@@ -213,13 +214,13 @@ async function importServerEntry(): Promise<StartedServer> {
     const missingServerEntrypoint = !missingSpecifier || missingSpecifier === "@paperclipai/server";
     if (isModuleNotFoundError(err) && missingServerEntrypoint) {
       throw new Error(
-        `Could not locate a Paperclip server entrypoint.\n` +
-          `Tried: ${devEntry}, @paperclipai/server\n` +
+        tCli("Could not locate a Paperclip server entrypoint.\n", {  }) +
+          tCli("Tried: {{value1}}, @paperclipai/server\n", { value1: String(devEntry) }) +
           `${formatError(err)}`,
       );
     }
     throw new Error(
-      `Paperclip server failed to start.\n` +
+      tCli("Paperclip server failed to start.\n", {  }) +
         `${formatError(err)}`,
     );
   }
@@ -232,7 +233,7 @@ function shouldGenerateBootstrapInviteAfterStart(config: PaperclipConfig): boole
 async function startServerFromModule(mod: unknown, label: string): Promise<StartedServer> {
   const startServer = (mod as { startServer?: () => Promise<StartedServer> }).startServer;
   if (typeof startServer !== "function") {
-    throw new Error(`Paperclip server entrypoint did not export startServer(): ${label}`);
+    throw new Error(tCli("Paperclip server entrypoint did not export startServer(): {{value1}}", { value1: String(label) }));
   }
   return await startServer();
 }

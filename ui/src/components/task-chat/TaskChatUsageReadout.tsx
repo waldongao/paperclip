@@ -1,6 +1,8 @@
+import { i18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Gauge } from "lucide-react";
 import type { TaskChatUsageItem } from "./task-chat-model";
+import { useTranslation } from "@/i18n";
 
 /**
  * Second-tier live token/cost readout (ACP UsageUpdate). Concrete progress —
@@ -8,6 +10,7 @@ import type { TaskChatUsageItem } from "./task-chat-model";
  * Recedes to metadata weight so it never competes with message content.
  */
 export function TaskChatUsageReadout({ item }: { item: TaskChatUsageItem }) {
+  const { t } = useTranslation();
   const { used, size, inputTokens, outputTokens, costUsd } = item.usage;
   const contextWindowSize = typeof size === "number" && size > 0 ? size : null;
   const pct = contextWindowSize ? Math.min(100, Math.round((used / contextWindowSize) * 100)) : 0;
@@ -18,12 +21,12 @@ export function TaskChatUsageReadout({ item }: { item: TaskChatUsageItem }) {
         {item.label ? <span className="font-medium">{item.label}</span> : null}
         {contextWindowSize ? (
           <span>
-            {used.toLocaleString()}/{contextWindowSize.toLocaleString()} ctx ({pct}%)
+            {used.toLocaleString(i18n.resolvedLanguage ?? i18n.language)}/{contextWindowSize.toLocaleString(i18n.resolvedLanguage ?? i18n.language)} {t("ctx")}{pct}%)
           </span>
         ) : null}
         {inputTokens != null || outputTokens != null ? (
           <span>
-            · ↑{(inputTokens ?? 0).toLocaleString()} ↓{(outputTokens ?? 0).toLocaleString()}
+            · ↑{(inputTokens ?? 0).toLocaleString(i18n.resolvedLanguage ?? i18n.language)} ↓{(outputTokens ?? 0).toLocaleString(i18n.resolvedLanguage ?? i18n.language)}
           </span>
         ) : null}
         {costUsd != null ? <span>· ${costUsd.toFixed(4)}</span> : null}

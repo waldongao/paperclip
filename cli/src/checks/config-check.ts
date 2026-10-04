@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import { readConfig, configExists, resolveConfigPath } from "../config/store.js";
 import type { CheckResult } from "./index.js";
 
@@ -6,28 +7,28 @@ export function configCheck(configPath?: string): CheckResult {
 
   if (!configExists(configPath)) {
     return {
-      name: "Config file",
+      name: tCli("Config file"),
       status: "fail",
-      message: `Config file not found at ${filePath}`,
+      message: tCli("Config file not found at {{filePath}}", { filePath: String(filePath) }),
       canRepair: false,
-      repairHint: "Run `paperclipai onboard` to create one",
+      repairHint: tCli("Run `paperclipai onboard` to create one"),
     };
   }
 
   try {
     readConfig(configPath);
     return {
-      name: "Config file",
+      name: tCli("Config file"),
       status: "pass",
-      message: `Valid config at ${filePath}`,
+      message: tCli("Valid config at {{filePath}}", { filePath: String(filePath) }),
     };
   } catch (err) {
     return {
-      name: "Config file",
+      name: tCli("Config file"),
       status: "fail",
-      message: `Invalid config: ${err instanceof Error ? err.message : String(err)}`,
+      message: tCli("Invalid config: {{message}}", { message: translateCliDisplayMessage(err instanceof Error ? err.message : String(err)) }),
       canRepair: false,
-      repairHint: "Run `paperclipai configure --section database` (or `paperclipai onboard` to recreate)",
+      repairHint: tCli("Run `paperclipai configure --section database` (or `paperclipai onboard` to recreate)"),
     };
   }
 }

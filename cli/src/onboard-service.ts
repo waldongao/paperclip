@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "./i18n.js";
 import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
@@ -96,12 +97,12 @@ export async function handoffToOnboardedService(
   const deps = { ...defaultDashboardDependencies, ...dependencies };
   const runtime = await deps.waitUntilReady();
   const dashboardUrl = resolveOnboardServiceDashboardUrl(config, runtime);
-  deps.info(`Paperclip dashboard: ${pc.cyan(dashboardUrl)}`);
+  deps.info(tCli("Paperclip dashboard: {{dashboardUrl}}", { dashboardUrl: String(pc.cyan(dashboardUrl)) }));
 
   if (!runtime) {
     deps.warn(
-      `The background service started, but the dashboard is not ready yet. ` +
-        `Open ${dashboardUrl} after checking \`paperclipai service logs\`.`,
+      tCli("The background service started, but the dashboard is not ready yet. ") +
+        tCli("Open {{dashboardUrl}} after checking `paperclipai service logs`.", { dashboardUrl: String(dashboardUrl) }),
     );
     return;
   }
@@ -109,9 +110,9 @@ export async function handoffToOnboardedService(
   if (!deps.isInteractive() || envDisablesBrowser()) return;
 
   if (await deps.openDashboard(dashboardUrl)) {
-    deps.success("Sent the Paperclip dashboard to your browser.");
+    deps.success(tCli("Sent the Paperclip dashboard to your browser."));
   } else {
-    deps.warn(`Could not open a browser automatically. Open ${dashboardUrl} manually.`);
+    deps.warn(tCli("Could not open a browser automatically. Open {{dashboardUrl}} manually.", { dashboardUrl: String(dashboardUrl) }));
   }
 }
 
@@ -148,7 +149,7 @@ const defaultDependencies: OnboardServiceDependencies = {
       return {
         ok: false,
         installedNow: false,
-        reason: `no executable exists at ${shimPath} (PAPERCLIP_SHIM_PATH), and it is outside the managed install store`,
+        reason: tCli("no executable exists at {{shimPath}} (PAPERCLIP_SHIM_PATH), and it is outside the managed install store", { shimPath: String(shimPath) }),
       };
     }
     let manifest: InstallManifest | null = null;
@@ -169,15 +170,15 @@ const defaultDependencies: OnboardServiceDependencies = {
           ok: false,
           installedNow: false,
           reason:
-            `this build reports version ${packageVersion}, which is not an installable release; ` +
-            "run `paperclipai install` (or `paperclipai install --repo <repo> --ref <ref>` for source builds) first",
+            tCli("this build reports version {{packageVersion}}, which is not an installable release; ", { packageVersion: String(packageVersion) }) +
+            tCli("run `paperclipai install` (or `paperclipai install --repo <repo> --ref <ref>` for source builds) first"),
         };
       }
     } catch (error) {
       return {
         ok: false,
         installedNow: false,
-        reason: error instanceof Error ? error.message : String(error),
+        reason: translateCliDisplayMessage(error instanceof Error ? error.message : String(error)),
       };
     }
     if (await isExecutableFile(shimPath)) {
@@ -186,19 +187,19 @@ const defaultDependencies: OnboardServiceDependencies = {
     return {
       ok: false,
       installedNow: false,
-      reason: `the managed install completed but no executable shim appeared at ${shimPath}`,
+      reason: tCli("the managed install completed but no executable shim appeared at {{shimPath}}", { shimPath: String(shimPath) }),
     };
   },
   confirm: async () => {
     const answer = await p.confirm({
-      message: "Install Paperclip as a background service?",
+      message: tCli("Install Paperclip as a background service?"),
       initialValue: true,
     });
     return !p.isCancel(answer) && answer === true;
   },
   confirmLinger: async () => {
     const answer = await p.confirm({
-      message: "Allow Paperclip to keep running after logout? This may request system authorization.",
+      message: tCli("Allow Paperclip to keep running after logout? This may request system authorization."),
       initialValue: false,
     });
     return !p.isCancel(answer) && answer === true;
@@ -220,7 +221,7 @@ export async function handleOnboardService(
   const canPrompt = options.yes !== true && deps.isInteractive();
   if (!explicitlyRequested && !canPrompt) {
     deps.info(
-      "Background service not installed. Use `paperclipai onboard --install-service` or `paperclipai service install` to opt in.",
+      tCli("Background service not installed. Use `paperclipai onboard --install-service` or `paperclipai service install` to opt in."),
     );
     return false;
   }
@@ -228,7 +229,7 @@ export async function handleOnboardService(
   const instanceId = resolvePaperclipInstanceId();
   const detection = await deps.detect(instanceId);
   if (!detection.supported) {
-    if (explicitlyRequested) deps.warn(detection.reason);
+    if (explicitlyRequested) deps.warn(translateCliDisplayMessage(detection.reason));
     return false;
   }
 
@@ -241,20 +242,20 @@ export async function handleOnboardService(
   const shim = await deps.ensureServiceShim();
   if (!shim.ok) {
     deps.warn(
-      `Background service not installed: ${shim.reason ?? "the managed install could not be completed"}. ` +
-        "Run `paperclipai install`, then `paperclipai service install`.",
+      tCli("Background service not installed: {{reason}}. ", { reason: String(shim.reason ?? tCli("the managed install could not be completed")) }) +
+        tCli("Run `paperclipai install`, then `paperclipai service install`."),
     );
     return false;
   }
   if (shim.installedNow) {
-    deps.success("Installed the managed paperclipai payload and command shim for the service.");
+    deps.success(tCli("Installed the managed paperclipai payload and command shim for the service."));
   }
 
   await detection.manager.install({ startNow: true, startOnLogin: true });
   if (!explicitlyRequested && detection.manager.enableLinger && await deps.confirmLinger()) {
     await detection.manager.enableLinger();
   }
-  deps.success(`Installed and started ${detection.manager.serviceName}.`);
+  deps.success(tCli("Installed and started {{serviceName}}.", { serviceName: String(detection.manager.serviceName) }));
   return true;
 }
 

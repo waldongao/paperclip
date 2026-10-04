@@ -23,6 +23,7 @@ import type {
   ExternalObjectSummary,
   ExternalObjectSummaryItem,
 } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 /**
  * Lucide icon for each status category. The mapping is host-owned per the
@@ -75,17 +76,17 @@ export function externalObjectIconForLiveness(liveness: string): LucideIcon | nu
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  unknown: "Not yet resolved",
-  open: "Open",
-  waiting: "Waiting",
-  running: "Running",
-  succeeded: "Succeeded",
-  failed: "Failed",
-  blocked: "Blocked",
-  closed: "Closed",
-  archived: "Archived",
-  auth_required: "Authorization required",
-  unreachable: "Unreachable",
+  unknown: t("not_yet_resolved"),
+  open: t("open"),
+  waiting: t("waiting"),
+  running: t("running"),
+  succeeded: t("succeeded"),
+  failed: t("failed"),
+  blocked: t("blocked"),
+  closed: t("closed"),
+  archived: t("archived"),
+  auth_required: t("authorization_required"),
+  unreachable: t("unreachable"),
 };
 
 export function externalObjectCategoryLabel(category: string): string {
@@ -93,11 +94,11 @@ export function externalObjectCategoryLabel(category: string): string {
 }
 
 const LIVENESS_LABELS: Record<string, string> = {
-  unknown: "Not yet refreshed",
-  fresh: "Fresh",
-  stale: "Stale",
-  auth_required: "Requires auth",
-  unreachable: "Unreachable",
+  unknown: t("not_yet_refreshed"),
+  fresh: t("fresh"),
+  stale: t("stale"),
+  auth_required: t("requires_auth"),
+  unreachable: t("unreachable"),
 };
 
 export function externalObjectLivenessLabel(liveness: string): string {
@@ -116,7 +117,7 @@ export function externalObjectDisplayStatusLabel(input: {
   const isGenericUrl = input.providerKey === "url" && input.objectType === "link";
   const hasKnownObjectType = Boolean(input.providerKey && input.objectType);
   if (input.statusCategory === "unknown" && hasKnownObjectType && !isGenericUrl) {
-    if (input.liveness === "fresh") return "Status unavailable";
+    if (input.liveness === "fresh") return t("status_unavailable");
     return externalObjectLivenessLabel(input.liveness);
   }
   return externalObjectCategoryLabel(input.statusCategory);
@@ -161,18 +162,18 @@ export function externalObjectFallbackTone(
 }
 
 const PROVIDER_LABELS: Record<string, string> = {
-  github: "GitHub",
-  github_pull_request: "GitHub",
-  github_issue: "GitHub",
-  hubspot: "HubSpot",
-  linear: "Linear",
-  jira: "Jira",
-  notion: "Notion",
-  asana: "Asana",
+  github: t("github"),
+  github_pull_request: t("github"),
+  github_issue: t("github"),
+  hubspot: t("hubspot"),
+  linear: t("linear"),
+  jira: t("jira"),
+  notion: t("notion"),
+  asana: t("asana"),
 };
 
 export function externalObjectProviderLabel(providerKey: string | null | undefined): string {
-  if (!providerKey) return "External";
+  if (!providerKey) return t("external");
   const lookup = PROVIDER_LABELS[providerKey];
   if (lookup) return lookup;
   return providerKey
@@ -182,17 +183,17 @@ export function externalObjectProviderLabel(providerKey: string | null | undefin
 }
 
 const OBJECT_TYPE_LABELS: Record<string, string> = {
-  pull_request: "pull request",
-  issue: "issue",
-  deployment: "deployment",
-  workflow_run: "workflow run",
-  ticket: "ticket",
-  lead: "lead",
+  pull_request: t("pull_request"),
+  issue: t("zhSupport.externalType.issue"),
+  deployment: t("zhSupport.externalType.deployment"),
+  workflow_run: t("workflow_run"),
+  ticket: t("zhSupport.externalType.ticket"),
+  lead: t("zhSupport.externalType.lead"),
   url_link: "URL",
 };
 
 export function externalObjectTypeLabel(objectType: string | null | undefined): string {
-  if (!objectType) return "object";
+  if (!objectType) return t("zhSupport.externalType.object");
   return OBJECT_TYPE_LABELS[objectType] ?? objectType.replace(/_/g, " ");
 }
 

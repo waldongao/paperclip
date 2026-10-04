@@ -4,6 +4,7 @@ import { ExternalObjectPill } from "./ExternalObjectPill";
 import type { IssueExternalObjectGroup } from "../hooks/useIssueExternalObjects";
 import { externalObjectToneSeverity } from "../lib/external-objects";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n";
 
 type GroupedSource = {
   label: string;
@@ -98,6 +99,7 @@ function ExternalObjectsSection({
   isError: boolean;
   onRetry?: () => void;
 }) {
+  const { t } = useTranslation();
   // Severity-first sort with most-recently-changed as the secondary sort.
   const sorted = [...groups].sort((a, b) => {
     const aTone = externalObjectToneSeverity(a.pill.statusCategory ? a.group.object?.statusTone ?? null : null);
@@ -111,30 +113,30 @@ function ExternalObjectsSection({
   return (
     <section className="space-y-3 rounded-lg border border-border p-3">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold">External objects</h3>
+        <h3 className="text-sm font-semibold">{t("external_objects")}</h3>
         <p className="text-xs text-muted-foreground">
-          Remote work referenced from this issue — pull requests, deployments, tickets in other systems, and more.
+          {t("remote_work_referenced_from_this_issue_pull_requ")}
         </p>
       </div>
 
       {isError ? (
         <p className="text-xs text-muted-foreground">
-          Couldn't load external objects.{" "}
+          {t("couldnt_load_external_objects")}{" "}
           {onRetry ? (
             <button
               type="button"
               onClick={onRetry}
               className="text-primary underline-offset-2 hover:underline"
             >
-              Retry
+              {t("retry")}
             </button>
           ) : null}
         </p>
       ) : isLoading ? (
-        <p className="text-xs text-muted-foreground">Loading external objects…</p>
+        <p className="text-xs text-muted-foreground">{t("loading_external_objects")}</p>
       ) : sorted.length === 0 ? (
         <p className="text-xs text-muted-foreground">
-          This issue does not reference any external objects yet.
+          {t("this_issue_does_not_reference_any_external_objec")}
         </p>
       ) : (
         <ul className="-mx-1 flex flex-col">
@@ -185,16 +187,17 @@ export function IssueRelatedWorkPanel({
   externalObjectsError?: boolean;
   onRetryExternalObjects?: () => void;
 }) {
+  const { t } = useTranslation();
   const outbound = relatedWork?.outbound ?? [];
   const inbound = relatedWork?.inbound ?? [];
 
   return (
     <div className="space-y-3">
       <Section
-        title="References"
-        description="Other tasks this task currently points at in its title, description, comments, or documents."
+        title={t("references")}
+        description={t("other_tasks_this_task_currently_points_at_in_its")}
         items={outbound}
-        emptyLabel="This task does not reference any other tasks yet."
+        emptyLabel={t("this_task_does_not_reference_any_other_tasks_yet")}
       />
       {externalObjectsEnabled ? (
         <ExternalObjectsSection
@@ -205,10 +208,10 @@ export function IssueRelatedWorkPanel({
         />
       ) : null}
       <Section
-        title="Referenced by"
-        description="Other tasks that currently point at this task."
+        title={t("referenced_by")}
+        description={t("other_tasks_that_currently_point_at_this_task")}
         items={inbound}
-        emptyLabel="No other tasks reference this task yet."
+        emptyLabel={t("no_other_tasks_reference_this_task_yet")}
       />
     </div>
   );

@@ -32,6 +32,7 @@ import type {
 } from "@paperclipai/shared";
 import { api, type RequestOptions } from "./client";
 
+
 export type IssueUpdateResponse = Issue & {
   comment?: IssueComment | null;
   changes: IssueChanges;

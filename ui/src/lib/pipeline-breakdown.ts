@@ -1,4 +1,5 @@
 import type { PipelineStage } from "../api/pipelines";
+import { t, i18n } from "@/i18n";
 
 /**
  * UI-side reader + copy helpers for the "Break into pieces" stage primitive.
@@ -116,8 +117,8 @@ export function hasStageBreakdown(stage: PipelineStage | null | undefined): bool
 
 /** Plural form of the piece noun, derived the same way the server does. */
 export function pieceNounPlural(noun: string): string {
-  const trimmed = noun.trim() || "piece";
-  return `${trimmed}s`;
+  const trimmed = noun.trim() || t("zhSupport.piece");
+  return i18n.language.startsWith("zh") ? trimmed : `${trimmed}s`;
 }
 
 /** "a and b" / "a, b and c" — for inherited-field lists. */
@@ -125,8 +126,8 @@ export function joinWithAnd(items: string[]): string {
   const list = items.filter((item) => item.trim().length > 0);
   if (list.length === 0) return "";
   if (list.length === 1) return list[0]!;
-  if (list.length === 2) return `${list[0]} and ${list[1]}`;
-  return `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
+  if (list.length === 2) return t("zhSupport.listAnd", { first: list[0], last: list[1] });
+  return t("zhSupport.listAnd", { first: list.slice(0, -1).join(t("zhSupport.listSeparator")), last: list[list.length - 1] });
 }
 
 export interface BreakdownCopyNames {
@@ -149,21 +150,21 @@ export function breakdownSummarySentence(
   if (!config.targetPipelineId || !config.targetStageKey || !names.targetPipelineName) {
     return null;
   }
-  const noun = config.pieceNoun;
+  const noun = config.pieceNoun === "piece" ? t("zhSupport.piece") : config.pieceNoun;
   const parts: string[] = [
-    `Paperclip will create one ${noun} per item in ${names.targetPipelineName} → ${names.entryStageName}`,
+    t("zhSupport.breakdown.create", { noun, pipeline: names.targetPipelineName, stage: names.entryStageName }),
   ];
   if (names.inheritedFieldLabels.length > 0) {
-    parts.push(`carry over ${joinWithAnd(names.inheritedFieldLabels)}`);
+    parts.push(t("zhSupport.breakdown.carry", { fields: joinWithAnd(names.inheritedFieldLabels) }));
   }
   if (names.advanceToName) {
-    parts.push(`move this case to ${names.advanceToName}`);
+    parts.push(t("zhSupport.breakdown.move", { stage: names.advanceToName }));
   }
-  let sentence = parts.join(", ");
+  let sentence = parts.join(t("zhSupport.listSeparator"));
   if (config.waitForPieces && names.whenFinishedName) {
-    sentence += `, then wait until every ${noun} is finished before moving it to ${names.whenFinishedName}`;
+    sentence += t("zhSupport.breakdown.wait", { noun, stage: names.whenFinishedName });
   }
-  return `${sentence}.`;
+  return `${sentence}${t("zhSupport.sentenceEnd")}`;
 }
 
 /**
@@ -174,20 +175,20 @@ export function breakdownMechanicsBullets(
   config: StageBreakdownConfig,
   names: BreakdownCopyNames,
 ): string[] {
-  const noun = config.pieceNoun;
+  const noun = config.pieceNoun === "piece" ? t("zhSupport.piece") : config.pieceNoun;
   const bullets: string[] = [
-    `Creates one ${noun} per item the agent returns, in ${names.targetPipelineName || "the destination pipeline"} → ${names.entryStageName || "its entry step"}.`,
-    `Links every ${noun} to this case so progress rolls up here.`,
+    t("zhSupport.breakdown.mechanicsCreate", { noun, pipeline: names.targetPipelineName || t("the_destination_pipeline"), stage: names.entryStageName || t("its_entry_step") }),
+    t("zhSupport.breakdown.link", { noun }),
   ];
   if (names.inheritedFieldLabels.length > 0) {
-    bullets.push(`Carries over ${joinWithAnd(names.inheritedFieldLabels)} from this case onto each ${noun}.`);
+    bullets.push(t("zhSupport.breakdown.mechanicsCarry", { fields: joinWithAnd(names.inheritedFieldLabels), noun }));
   }
   if (names.advanceToName) {
-    bullets.push(`Moves this case to ${names.advanceToName} as soon as the pieces are created.`);
+    bullets.push(t("zhSupport.breakdown.mechanicsMove", { stage: names.advanceToName }));
   }
   if (config.waitForPieces && names.whenFinishedName) {
-    bullets.push(`Waits until every ${noun} is finished, then moves this case to ${names.whenFinishedName}.`);
-    bullets.push(`If the agent returns an empty list, this case skips ahead to ${names.whenFinishedName}.`);
+    bullets.push(t("zhSupport.breakdown.mechanicsWait", { noun, stage: names.whenFinishedName }));
+    bullets.push(t("zhSupport.breakdown.emptyList", { stage: names.whenFinishedName }));
   }
   return bullets;
 }

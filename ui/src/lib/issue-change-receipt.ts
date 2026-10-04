@@ -1,5 +1,7 @@
 import type { IssueChangeReceiptEntry } from "@paperclipai/shared";
 import { formatReviewPolicyValue } from "./review-policy";
+import { t, i18n } from "@/i18n";
+import { getDisplayLabel } from "./display-labels";
 
 /**
  * Read + format the field-level change receipts carried on an `issue.updated`
@@ -17,28 +19,32 @@ import { formatReviewPolicyValue } from "./review-policy";
 
 /** Field names whose raw ids carry no meaning in a scannable summary. */
 const FIELD_LABELS: Record<string, string> = {
-  assigneeAgentId: "Assignee",
-  assigneeUserId: "Assignee (user)",
-  responsibleUserId: "Responsible user",
-  blockedByIssueIds: "Blockers",
-  labelIds: "Labels",
-  parentId: "Parent",
-  projectId: "Project",
-  goalId: "Goal",
-  workMode: "Work mode",
-  reviewPolicy: "Who can approve",
-  billingCode: "Billing code",
-  checkoutRunId: "Checkout run",
-  executionRunId: "Execution run",
-  hiddenAt: "Hidden",
-  startedAt: "Started",
-  completedAt: "Completed",
-  cancelledAt: "Cancelled",
-  requestDepth: "Request depth",
-  sourceTrust: "Source trust",
-  executionPolicy: "Execution policy",
-  executionWorkspaceId: "Execution workspace",
-  projectWorkspaceId: "Project workspace",
+  status: t("status"),
+  priority: t("priority"),
+  title: t("title"),
+  description: t("description"),
+  assigneeAgentId: t("assignee"),
+  assigneeUserId: t("assignee_user"),
+  responsibleUserId: t("responsible_user_59fcd1"),
+  blockedByIssueIds: t("blockers"),
+  labelIds: t("labels"),
+  parentId: t("parent"),
+  projectId: t("project"),
+  goalId: t("goal_9fe00a"),
+  workMode: t("work_mode"),
+  reviewPolicy: t("who_can_approve"),
+  billingCode: t("billing_code"),
+  checkoutRunId: t("checkout_run"),
+  executionRunId: t("execution_run"),
+  hiddenAt: t("hidden"),
+  startedAt: t("started"),
+  completedAt: t("completed"),
+  cancelledAt: t("cancelled"),
+  requestDepth: t("request_depth"),
+  sourceTrust: t("source_trust"),
+  executionPolicy: t("execution_policy"),
+  executionWorkspaceId: t("execution_workspace"),
+  projectWorkspaceId: t("project_workspace"),
 };
 
 /** Human label for a changed field, e.g. `assigneeAgentId` → "Assignee". */
@@ -69,24 +75,24 @@ export function formatIssueChangeValue(
   // `reviewPolicy` is nullable-by-default: a cleared column means "anyone can
   // approve", not "no value" (PAP-16506), so it resolves before the null branch.
   if (options.field === "reviewPolicy") return formatReviewPolicyValue(value);
-  if (value === null || value === undefined || value === "") return "none";
-  if (typeof value === "boolean") return value ? "yes" : "no";
+  if (value === null || value === undefined || value === "") return t("zhSupport.receipt.none");
+  if (typeof value === "boolean") return value ? t("zhSupport.receipt.yes") : t("zhSupport.receipt.no");
   if (typeof value === "number") return String(value);
 
   if (Array.isArray(value)) {
-    if (value.length === 0) return "none";
+    if (value.length === 0) return t("zhSupport.receipt.none");
     const strings = value.filter((entry): entry is string => typeof entry === "string");
-    if (strings.length !== value.length) return `${value.length} items`;
+    if (strings.length !== value.length) return t("zhSupport.itemCount", { count: value.length });
     return strings.length <= 3
       ? strings.map((id) => shortenId(id)).join(", ")
-      : `${strings.length} items`;
+      : t("zhSupport.itemCount", { count: strings.length });
   }
 
-  if (value instanceof Date) return value.toLocaleString();
+  if (value instanceof Date) return value.toLocaleString(i18n.resolvedLanguage ?? i18n.language);
 
   if (typeof value === "string") {
     const trimmed = value.trim();
-    if (!trimmed) return "none";
+    if (!trimmed) return t("zhSupport.receipt.none");
     // Ids resolve to names when the directory is loaded; otherwise they shorten.
     const resolved = options.field?.toLowerCase().includes("agent")
       ? options.resolveAgentLabel?.(trimmed)
@@ -94,15 +100,17 @@ export function formatIssueChangeValue(
         ? options.resolveUserLabel?.(trimmed)
         : null;
     if (resolved) return resolved;
-    if (isIsoTimestamp(trimmed)) return new Date(trimmed).toLocaleString();
+    if (isIsoTimestamp(trimmed)) return new Date(trimmed).toLocaleString(i18n.resolvedLanguage ?? i18n.language);
     if (looksLikeId(trimmed)) return shortenId(trimmed);
     const humanized = trimmed.includes(" ") ? trimmed : trimmed.replace(/_/g, " ");
-    return truncate(humanized);
+    const isLocalizedEnum = options.field && ["status", "priority", "workMode", "executionPolicy", "sourceTrust"].includes(options.field);
+    const activeLocale = i18n.resolvedLanguage ?? i18n.language;
+    return truncate(isLocalizedEnum && !activeLocale.startsWith("en") ? getDisplayLabel(trimmed) : humanized);
   }
 
   // Objects (execution policy, workspace settings) are structural — the receipt
   // records that they moved, and the audit log holds the full value.
-  return "updated";
+  return t("zhSupport.receipt.updated");
 }
 
 function truncate(value: string): string {
@@ -165,17 +173,17 @@ export function readIssueChangeReceipt(
 
 /** Authorization reasons, as recorded by the server's write-policy decision. */
 const AUTHORIZATION_REASON_LABELS: Record<string, string> = {
-  allow_visible_issue_write: "default-open write on a visible task",
-  allow_scoped_agent_write: "scoped agent write",
-  allow_board_actor: "board actor",
-  allow_self: "own task",
-  allow_issue_mention_grant: "mention grant",
-  allow_direct_parent_report: "direct parent report",
-  allow_low_trust_boundary: "low-trust boundary allowance",
-  allow_explicit_grant: "explicit permission grant",
-  allow_instance_admin: "instance admin",
-  allow_local_board: "local board",
-  internal_agent_write: "internal agent write",
+  allow_visible_issue_write: t("zhSupport.authorization.defaultOpen"),
+  allow_scoped_agent_write: t("scoped_agent_write"),
+  allow_board_actor: t("board_actor"),
+  allow_self: t("own_task"),
+  allow_issue_mention_grant: t("mention_grant"),
+  allow_direct_parent_report: t("direct_parent_report"),
+  allow_low_trust_boundary: t("zhSupport.authorization.lowTrust"),
+  allow_explicit_grant: t("explicit_permission_grant"),
+  allow_instance_admin: t("instance_admin_f65d66"),
+  allow_local_board: t("local_board"),
+  internal_agent_write: t("internal_agent_write"),
 };
 
 /**

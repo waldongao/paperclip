@@ -1,0 +1,147 @@
+{
+  "Unsupported query parameter{{value1}}: {{value2}}": {
+    "value1": {
+      "s": ""
+    }
+  },
+  "Archive {{value1}} aging decision{{value2}}?": {
+    "value2": {
+      "s": "",
+      "": ""
+    }
+  },
+  "{{value1}} budget {{value2}}": {
+    "value2": {
+      "hard stop": "硬性停止",
+      "warning": "警告"
+    }
+  },
+  "Skipped {{value1}} terminated agent{{value2}} from export.": {
+    "value2": {
+      "s": ""
+    }
+  },
+  "Skipped {{value1}} built-in managed agent{{value2}} from export.": {
+    "value2": {
+      "s": ""
+    }
+  },
+  "Skipped {{value1}} built-in managed skill{{value2}} from export.": {
+    "value2": {
+      "s": "",
+      "": ""
+    }
+  },
+  "Skipped {{value1}} built-in managed routine{{value2}} from export.": {
+    "value2": {
+      "s": "",
+      "": ""
+    }
+  },
+  "Skipped {{value1}} task label reference{{value2}} whose label definitions no longer exist.": {
+    "value2": {
+      "s": ""
+    }
+  },
+  "Skipped {{value1}} attachment{{value2}} on task {{value3}} because storage is unavailable.": {
+    "value2": {
+      "s": ""
+    }
+  },
+  "{{value1}} blocker relation{{value2}} outside this export and {{value3}} not included.": {
+    "value2": {
+      " references a task": "",
+      "s reference tasks": ""
+    },
+    "value3": {
+      "was": "",
+      "were": ""
+    }
+  },
+  "{{value1}} parent relation{{value2}} outside this export and {{value3}} not included.": {
+    "value2": {
+      " references a task": "",
+      "s reference tasks": ""
+    },
+    "value3": {
+      "was": "",
+      "were": ""
+    }
+  },
+  "Skipped {{value1}} embedded image asset{{value2}} because storage is unavailable.": {
+    "value2": {
+      "s": "",
+      "": ""
+    }
+  },
+  "Existing skill \"{{value1}}\" matched during safe import and will {{value2}} instead of overwritten.": {
+    "value2": {
+      "be skipped": "被跳过",
+      "be renamed": "被重命名"
+    }
+  },
+  "Skipped {{value1}} embedded image asset{{value2}} because storage is unavailable; their references were left unchanged.": {
+    "value2": {
+      "s": "",
+      "": ""
+    }
+  },
+  "Existing label color{{value1}} kept for {{value2}}; the imported bundle used different colors.": {
+    "value1": {
+      " was": "",
+      "s were": ""
+    }
+  },
+  "Task {{value1}} dropped {{value2}} label reference{{value3}} because the bundle carries raw label ids that do not exist in the target company.": {
+    "value3": {
+      "s": "",
+      "": ""
+    }
+  },
+  "{{value1}} monitor{{value2}} imported un-armed; re-arm {{value3}} from the task page to resume checks.": {
+    "value2": {
+      " was": "",
+      "s were": ""
+    },
+    "value3": {
+      "it": "",
+      "them": ""
+    }
+  },
+  "Skipped {{value1}} attachment{{value2}} because storage is unavailable.": {
+    "value2": {
+      "s": ""
+    }
+  },
+  "Unknown template placeholder{{value1}}: {{value2}}": {
+    "value1": {
+      "s": ""
+    }
+  },
+  "{{value1}} work product{{value2}} execution workspaces or runs that are not portable; those references were omitted from the export.": {
+    "value2": {
+      " references": "引用了",
+      "s reference": "引用了"
+    }
+  },
+  "Run status: {{value1}}": {
+    "value1": {
+      "succeeded": "成功",
+      "failed": "失败",
+      "running": "运行中",
+      "queued": "排队中",
+      "cancelled": "已取消",
+      "timed_out": "已超时"
+    }
+  },
+  "{{value1}} run {{value2}}": {
+    "value2": {
+      "succeeded": "成功",
+      "failed": "失败",
+      "running": "运行中",
+      "queued": "排队中",
+      "cancelled": "已取消",
+      "timed_out": "已超时"
+    }
+  }
+}

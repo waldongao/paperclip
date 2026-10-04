@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../../i18n.js";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { Command, Option } from "commander";
@@ -98,7 +99,7 @@ interface PluginCompanyOptions extends PluginJsonOptions {
 function requireCompanyId(ctx: { companyId?: string }): string {
   if (!ctx.companyId) {
     throw new Error(
-      "Company ID is required. Pass --company-id, set PAPERCLIP_COMPANY_ID, or set context profile companyId via `paperclipai context set`.",
+      tCli("Company ID is required. Pass --company-id, set PAPERCLIP_COMPANY_ID, or set context profile companyId via `paperclipai context set`."),
     );
   }
   return ctx.companyId;
@@ -164,7 +165,7 @@ export function buildPluginInstallRequest(
     (opts.version ? false : isExistingRelativePath(packageArg, cwd, pathExists));
 
   if (isLocal && opts.version) {
-    throw new Error("--version is only supported for npm package installs, not local plugin paths.");
+    throw new Error(tCli("--version is only supported for npm package installs, not local plugin paths."));
   }
 
   return {
@@ -176,8 +177,8 @@ export function buildPluginInstallRequest(
 
 export function renderLocalPluginInstallHint(packagePath: string): string {
   return [
-    pc.dim("Local plugin installs run trusted local code from your machine."),
-    pc.dim(`Keep ${pc.cyan("pnpm dev")} running in ${packagePath}; Paperclip watches rebuilt dist output and reloads the plugin worker.`),
+    pc.dim(tCli("Local plugin installs run trusted local code from your machine.")),
+    pc.dim(tCli("Keep {{value0}} running in {{packagePath}}; Paperclip watches rebuilt dist output and reloads the plugin worker.", { value0: pc.cyan("pnpm dev"), packagePath: packagePath })),
   ].join("\n");
 }
 
@@ -213,13 +214,13 @@ export async function probeTargetDiagnostics(
  * unit-tested without a live server.
  */
 export function formatTargetDiagnostics(diag: TargetDiagnostics): string {
-  const lines = [pc.dim(`Target Paperclip: ${pc.cyan(diag.apiBase)}`)];
+  const lines = [pc.dim(tCli("Target Paperclip: {{value0}}", { value0: pc.cyan(diag.apiBase) }))];
 
   if (!diag.reachable) {
-    lines.push(pc.yellow(`  health: unreachable${diag.error ? ` (${diag.error.split("\n")[0]})` : ""}`));
+    lines.push(pc.yellow(tCli("  health: unreachable{{value0}}", { value0: diag.error ? ` (${diag.error.split("\n")[0]})` : "" })));
     lines.push(
       pc.dim(
-        `  Verify the right instance is running, then pass ${pc.cyan("--api-base <url>")} or set ${pc.cyan("PAPERCLIP_API_URL")} if it lives elsewhere.`,
+        tCli("  Verify the right instance is running, then pass {{value0}} or set {{value1}} if it lives elsewhere.", { value0: pc.cyan("--api-base <url>"), value1: pc.cyan("PAPERCLIP_API_URL") }),
       ),
     );
     return lines.join("\n");
@@ -233,7 +234,7 @@ export function formatTargetDiagnostics(diag: TargetDiagnostics): string {
   if (health.deploymentExposure) detailParts.push(`exposure=${health.deploymentExposure}`);
 
   lines.push(
-    pc.dim(`  health: ${detailParts.length > 0 ? detailParts.join("  ") : "ok (no details exposed)"}`),
+    pc.dim(tCli("  health: {{value0}}", { value0: detailParts.length > 0 ? detailParts.join("  ") : tCli("ok (no details exposed)") })),
   );
   return lines.join("\n");
 }
@@ -241,12 +242,12 @@ export function formatTargetDiagnostics(diag: TargetDiagnostics): string {
 function formatPlugin(p: PluginRecord): string {
   const statusColor =
     p.status === "ready"
-      ? pc.green(p.status)
+      ? pc.green(tCli(p.status))
       : p.status === "error"
-        ? pc.red(p.status)
+        ? pc.red(tCli(p.status))
         : p.status === "disabled"
-          ? pc.dim(p.status)
-          : pc.yellow(p.status);
+          ? pc.dim(tCli(p.status))
+          : pc.yellow(tCli(p.status));
 
   const parts = [
     `key=${pc.bold(p.pluginKey)}`,
@@ -256,7 +257,7 @@ function formatPlugin(p: PluginRecord): string {
   ];
 
   if (p.lastError) {
-    parts.push(`error=${pc.red(p.lastError.slice(0, 80))}`);
+    parts.push(`error=${pc.red(translateCliDisplayMessage(p.lastError).slice(0, 80))}`);
   }
 
   return parts.join("  ");
@@ -298,9 +299,9 @@ export function buildPluginInitNextCommands(outputDir: string): string[] {
 
 export function renderPluginInitSuccess(result: PluginInitResult): string {
   return [
-    pc.green(`✓ Created plugin scaffold at ${result.outputDir}`),
+    pc.green(tCli("✓ Created plugin scaffold at {{outputDir}}", { outputDir: result.outputDir })),
     "",
-    "Next commands:",
+    tCli("Next commands:"),
     ...result.nextCommands.map((command) => `  ${pc.cyan(command)}`),
   ].join("\n");
 }
@@ -319,7 +320,7 @@ export function runPluginInitCommand(packageName: string, opts: PluginInitOption
 // ---------------------------------------------------------------------------
 
 export function registerPluginCommands(program: Command): void {
-  const plugin = program.command("plugin").description("Plugin lifecycle management");
+  const plugin = program.command("plugin").description(tCli("Plugin lifecycle management"));
 
   // -------------------------------------------------------------------------
   // plugin init <package-name>
@@ -327,21 +328,21 @@ export function registerPluginCommands(program: Command): void {
   addCommonClientOptions(
     plugin
       .command("init <packageName>")
-      .description("Scaffold a local Paperclip plugin project")
-      .option("--output <dir>", "Directory to create the plugin folder in")
+      .description(tCli("Scaffold a local Paperclip plugin project"))
+      .option("--output <dir>", tCli("Directory to create the plugin folder in"))
       .addOption(
-        new Option("--template <template>", "Starter template")
+        new Option("--template <template>", tCli("Starter template"))
           .choices(["default", "connector", "workspace", "environment"])
           .default("default"),
       )
       .addOption(
-        new Option("--category <category>", "Manifest category")
+        new Option("--category <category>", tCli("Manifest category"))
           .choices(["connector", "workspace", "automation", "ui", "environment"]),
       )
-      .option("--display-name <name>", "Manifest display name")
-      .option("--description <description>", "Manifest description")
-      .option("--author <author>", "Manifest author")
-      .option("--sdk-path <path>", "Local @paperclipai/plugin-sdk package path")
+      .option("--display-name <name>", tCli("Manifest display name"))
+      .option("--description <description>", tCli("Manifest description"))
+      .option("--author <author>", tCli("Manifest author"))
+      .option("--sdk-path <path>", tCli("Local @paperclipai/plugin-sdk package path"))
       .action((packageName: string, opts: PluginInitOptions) => {
         try {
           const result = runPluginInitCommand(packageName, opts);
@@ -364,8 +365,8 @@ export function registerPluginCommands(program: Command): void {
   addCommonClientOptions(
     plugin
       .command("list")
-      .description("List installed plugins")
-      .option("--status <status>", "Filter by status (ready, error, disabled, installed, upgrade_pending)")
+      .description(tCli("List installed plugins"))
+      .option("--status <status>", tCli("Filter by status (ready, error, disabled, installed, upgrade_pending)"))
       .action(async (opts: PluginListOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -379,7 +380,7 @@ export function registerPluginCommands(program: Command): void {
 
           const rows = plugins ?? [];
           if (rows.length === 0) {
-            console.log(pc.dim("No plugins installed."));
+            console.log(pc.dim(tCli("No plugins installed.")));
             return;
           }
 
@@ -399,17 +400,17 @@ export function registerPluginCommands(program: Command): void {
     plugin
       .command("install <package>")
       .description(
-        "Install a plugin from a local path or npm package.\n" +
-          "  Examples:\n" +
-          "    paperclipai plugin install ./my-plugin              # local path\n" +
-          "    paperclipai plugin install @acme/plugin-linear      # npm package\n" +
-          "    paperclipai plugin install @acme/plugin-linear@1.2  # pinned version",
+        tCli("Install a plugin from a local path or npm package.\n") +
+          tCli("  Examples:\n") +
+          tCli("    paperclipai plugin install ./my-plugin              # local path\n") +
+          tCli("    paperclipai plugin install @acme/plugin-linear      # npm package\n") +
+          tCli("    paperclipai plugin install @acme/plugin-linear@1.2  # pinned version"),
       )
-      .option("-l, --local", "Treat <package> as a local filesystem path", false)
-      .option("--version <version>", "Specific npm version to install (npm packages only)")
+      .option("-l, --local", tCli("Treat <package> as a local filesystem path"), false)
+      .option("--version <version>", tCli("Specific npm version to install (npm packages only)"))
       .option(
         "--no-verify-target",
-        "Skip the pre-install probe that reports which Paperclip instance the plugin installs into",
+        tCli("Skip the pre-install probe that reports which Paperclip instance the plugin installs into"),
       )
       .action(async (packageArg: string, opts: PluginInstallOptions) => {
         try {
@@ -433,8 +434,8 @@ export function registerPluginCommands(program: Command): void {
             console.log(
               pc.dim(
                 installRequest.isLocalPath
-                  ? `Installing plugin from local path: ${installRequest.packageName}`
-                  : `Installing plugin: ${installRequest.packageName}${opts.version ? `@${opts.version}` : ""}`,
+                  ? tCli("Installing plugin from local path: {{packageName}}", { packageName: installRequest.packageName })
+                  : tCli("Installing plugin: {{packageName}}{{value1}}", { packageName: installRequest.packageName, value1: opts.version ? `@${opts.version}` : "" }),
               ),
             );
           }
@@ -450,18 +451,18 @@ export function registerPluginCommands(program: Command): void {
           }
 
           if (!installedPlugin) {
-            console.log(pc.dim("Install returned no plugin record."));
+            console.log(pc.dim(tCli("Install returned no plugin record.")));
             return;
           }
 
           console.log(
             pc.green(
-              `✓ Installed ${pc.bold(installedPlugin.pluginKey)} v${installedPlugin.version} (${installedPlugin.status})`,
+              tCli("✓ Installed {{value0}} v{{version}} ({{status}})", { value0: pc.bold(installedPlugin.pluginKey), version: installedPlugin.version, status: tCli(installedPlugin.status) }),
             ),
           );
 
           if (installedPlugin.lastError) {
-            console.log(pc.red(`  Warning: ${installedPlugin.lastError}`));
+            console.log(pc.red(tCli("  Warning: {{lastError}}", { lastError: translateCliDisplayMessage(installedPlugin.lastError ?? "") })));
           }
 
           if (installRequest.isLocalPath) {
@@ -480,10 +481,10 @@ export function registerPluginCommands(program: Command): void {
     plugin
       .command("target")
       .description(
-        "Show which Paperclip instance plugin commands will talk to.\n" +
-          "  Reports the resolved API URL plus the server status/version/mode from\n" +
-          "  GET /api/health so you can confirm you are installing into the branch\n" +
-          "  runtime and not a stale control-plane host.",
+        tCli("Show which Paperclip instance plugin commands will talk to.\n") +
+          tCli("  Reports the resolved API URL plus the server status/version/mode from\n") +
+          tCli("  GET /api/health so you can confirm you are installing into the branch\n") +
+          tCli("  runtime and not a stale control-plane host."),
       )
       .action(async (opts: BaseClientOptions) => {
         try {
@@ -509,10 +510,10 @@ export function registerPluginCommands(program: Command): void {
     plugin
       .command("uninstall <pluginKey>")
       .description(
-        "Uninstall a plugin by its plugin key or database ID.\n" +
-          "  Use --force to hard-purge all state and config.",
+        tCli("Uninstall a plugin by its plugin key or database ID.\n") +
+          tCli("  Use --force to hard-purge all state and config."),
       )
-      .option("--force", "Purge all plugin state and config (hard delete)", false)
+      .option("--force", tCli("Purge all plugin state and config (hard delete)"), false)
       .action(async (pluginKey: string, opts: PluginUninstallOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -523,8 +524,8 @@ export function registerPluginCommands(program: Command): void {
             console.log(
               pc.dim(
                 purge
-                  ? `Uninstalling and purging plugin: ${pluginKey}`
-                  : `Uninstalling plugin: ${pluginKey}`,
+                  ? tCli("Uninstalling and purging plugin: {{pluginKey}}", { pluginKey: pluginKey })
+                  : tCli("Uninstalling plugin: {{pluginKey}}", { pluginKey: pluginKey }),
               ),
             );
           }
@@ -538,7 +539,7 @@ export function registerPluginCommands(program: Command): void {
             return;
           }
 
-          console.log(pc.green(`✓ Uninstalled ${pc.bold(pluginKey)}${purge ? " (purged)" : ""}`));
+          console.log(pc.green(tCli("✓ Uninstalled {{value0}}{{value1}}", { value0: pc.bold(pluginKey), value1: purge ? tCli(" (purged)") : "" })));
         } catch (err) {
           handleCommandError(err);
         }
@@ -551,7 +552,7 @@ export function registerPluginCommands(program: Command): void {
   addCommonClientOptions(
     plugin
       .command("enable <pluginKey>")
-      .description("Enable a disabled or errored plugin")
+      .description(tCli("Enable a disabled or errored plugin"))
       .action(async (pluginKey: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -564,7 +565,7 @@ export function registerPluginCommands(program: Command): void {
             return;
           }
 
-          console.log(pc.green(`✓ Enabled ${pc.bold(pluginKey)} — status: ${result?.status ?? "unknown"}`));
+          console.log(pc.green(tCli("✓ Enabled {{value0}} — status: {{value1}}", { value0: pc.bold(pluginKey), value1: tCli(result?.status ?? "unknown") })));
         } catch (err) {
           handleCommandError(err);
         }
@@ -577,7 +578,7 @@ export function registerPluginCommands(program: Command): void {
   addCommonClientOptions(
     plugin
       .command("disable <pluginKey>")
-      .description("Disable a running plugin without uninstalling it")
+      .description(tCli("Disable a running plugin without uninstalling it"))
       .action(async (pluginKey: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -590,7 +591,7 @@ export function registerPluginCommands(program: Command): void {
             return;
           }
 
-          console.log(pc.dim(`Disabled ${pc.bold(pluginKey)} — status: ${result?.status ?? "unknown"}`));
+          console.log(pc.dim(tCli("Disabled {{value0}} — status: {{value1}}", { value0: pc.bold(pluginKey), value1: tCli(result?.status ?? "unknown") })));
         } catch (err) {
           handleCommandError(err);
         }
@@ -603,7 +604,7 @@ export function registerPluginCommands(program: Command): void {
   addCommonClientOptions(
     plugin
       .command("inspect <pluginKey>")
-      .description("Show full details for an installed plugin")
+      .description(tCli("Show full details for an installed plugin"))
       .action(async (pluginKey: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -617,13 +618,13 @@ export function registerPluginCommands(program: Command): void {
           }
 
           if (!result) {
-            console.log(pc.red(`Plugin not found: ${pluginKey}`));
+            console.log(pc.red(tCli("Plugin not found: {{pluginKey}}", { pluginKey: pluginKey })));
             process.exit(1);
           }
 
           console.log(formatPlugin(result));
           if (result.lastError) {
-            console.log(`\n${pc.red("Last error:")}\n${result.lastError}`);
+            console.log(`\n${pc.red(tCli("Last error:"))}\n${translateCliDisplayMessage(result.lastError ?? "")}`);
           }
         } catch (err) {
           handleCommandError(err);
@@ -637,7 +638,7 @@ export function registerPluginCommands(program: Command): void {
   addCommonClientOptions(
     plugin
       .command("examples")
-      .description("List bundled example plugins available for local install")
+      .description(tCli("List bundled example plugins available for local install"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -659,7 +660,7 @@ export function registerPluginCommands(program: Command): void {
 
           const rows = examples ?? [];
           if (rows.length === 0) {
-            console.log(pc.dim("No bundled examples available."));
+            console.log(pc.dim(tCli("No bundled examples available.")));
             return;
           }
 
@@ -676,29 +677,29 @@ export function registerPluginCommands(program: Command): void {
       }),
   );
 
-  addPluginGet(plugin, "ui-contributions", "List plugin UI contributions", "/api/plugins/ui-contributions");
-  addPluginGet(plugin, "tools", "List plugin tools", "/api/plugins/tools");
-  addPluginPost(plugin, "tool:execute", "Execute a plugin tool", "/api/plugins/tools/execute");
-  addPluginSubGet(plugin, "health", "Get plugin health", "health");
-  addPluginSubGet(plugin, "logs", "Get plugin logs", "logs");
-  addPluginSubPost(plugin, "upgrade", "Upgrade a plugin", "upgrade");
-  addPluginConfigGet(plugin, "config", "Get company-scoped plugin config");
-  addPluginConfigPost(plugin, "config:set", "Set company-scoped plugin config", "config");
-  addPluginConfigPost(plugin, "config:test", "Test company-scoped plugin config", "config/test");
-  addPluginSubGet(plugin, "jobs", "List plugin jobs", "jobs");
-  addPluginJobGet(plugin, "job:runs", "List plugin job runs", "runs");
-  addPluginJobPost(plugin, "job:trigger", "Trigger a plugin job", "trigger");
-  addPluginKeyPost(plugin, "webhook", "Deliver a plugin webhook", "webhooks");
-  addPluginSubGet(plugin, "dashboard", "Get plugin dashboard data", "dashboard");
-  addPluginSubPost(plugin, "bridge:data", "Send plugin bridge data", "bridge/data");
-  addPluginSubPost(plugin, "bridge:action", "Send plugin bridge action", "bridge/action");
+  addPluginGet(plugin, "ui-contributions", tCli("List plugin UI contributions"), "/api/plugins/ui-contributions");
+  addPluginGet(plugin, "tools", tCli("List plugin tools"), "/api/plugins/tools");
+  addPluginPost(plugin, "tool:execute", tCli("Execute a plugin tool"), "/api/plugins/tools/execute");
+  addPluginSubGet(plugin, "health", tCli("Get plugin health"), "health");
+  addPluginSubGet(plugin, "logs", tCli("Get plugin logs"), "logs");
+  addPluginSubPost(plugin, "upgrade", tCli("Upgrade a plugin"), "upgrade");
+  addPluginConfigGet(plugin, "config", tCli("Get company-scoped plugin config"));
+  addPluginConfigPost(plugin, "config:set", tCli("Set company-scoped plugin config"), "config");
+  addPluginConfigPost(plugin, "config:test", tCli("Test company-scoped plugin config"), "config/test");
+  addPluginSubGet(plugin, "jobs", tCli("List plugin jobs"), "jobs");
+  addPluginJobGet(plugin, "job:runs", tCli("List plugin job runs"), "runs");
+  addPluginJobPost(plugin, "job:trigger", tCli("Trigger a plugin job"), "trigger");
+  addPluginKeyPost(plugin, "webhook", tCli("Deliver a plugin webhook"), "webhooks");
+  addPluginSubGet(plugin, "dashboard", tCli("Get plugin dashboard data"), "dashboard");
+  addPluginSubPost(plugin, "bridge:data", tCli("Send plugin bridge data"), "bridge/data");
+  addPluginSubPost(plugin, "bridge:action", tCli("Send plugin bridge action"), "bridge/action");
   addCommonClientOptions(
     plugin
       .command("bridge:stream")
-      .description("Stream a plugin bridge channel")
-      .argument("<pluginId>", "Plugin ID or key")
-      .argument("<channel>", "Stream channel")
-      .option("--duration-ms <ms>", "Stop streaming after this many milliseconds")
+      .description(tCli("Stream a plugin bridge channel"))
+      .argument("<pluginId>", tCli("Plugin ID or key"))
+      .argument("<channel>", tCli("Stream channel"))
+      .option("--duration-ms <ms>", tCli("Stop streaming after this many milliseconds"))
       .action(async (pluginId: string, channel: string, opts: PluginStreamOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -708,12 +709,12 @@ export function registerPluginCommands(program: Command): void {
         }
       }),
   );
-  addPluginKeyPost(plugin, "data", "Get plugin URL-keyed data", "data");
-  addPluginKeyPost(plugin, "action", "Invoke plugin URL-keyed action", "actions");
-  addPluginLocalFolderGet(plugin, "local-folders", "List plugin local folder bindings");
-  addPluginLocalFolderKeyGet(plugin, "local-folder:status", "Get plugin local folder status", "status");
-  addPluginLocalFolderKeyPost(plugin, "local-folder:validate", "Validate plugin local folder binding", "validate");
-  addPluginLocalFolderKeyPut(plugin, "local-folder:set", "Set plugin local folder binding");
+  addPluginKeyPost(plugin, "data", tCli("Get plugin URL-keyed data"), "data");
+  addPluginKeyPost(plugin, "action", tCli("Invoke plugin URL-keyed action"), "actions");
+  addPluginLocalFolderGet(plugin, "local-folders", tCli("List plugin local folder bindings"));
+  addPluginLocalFolderKeyGet(plugin, "local-folder:status", tCli("Get plugin local folder status"), "status");
+  addPluginLocalFolderKeyPost(plugin, "local-folder:validate", tCli("Validate plugin local folder binding"), "validate");
+  addPluginLocalFolderKeyPut(plugin, "local-folder:set", tCli("Set plugin local folder binding"));
 }
 
 function addPluginGet(parent: Command, name: string, description: string, path: string): void {
@@ -728,7 +729,7 @@ function addPluginGet(parent: Command, name: string, description: string, path: 
 }
 
 function addPluginPost(parent: Command, name: string, description: string, path: string): void {
-  addCommonClientOptions(parent.command(name).description(description).option("--payload-json <json>", "JSON payload", "{}").action(async (opts: PluginJsonOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).option("--payload-json <json>", tCli("JSON payload"), "{}").action(async (opts: PluginJsonOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.post(path, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -739,7 +740,7 @@ function addPluginPost(parent: Command, name: string, description: string, path:
 }
 
 function addPluginSubGet(parent: Command, name: string, description: string, suffix: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", "Plugin ID or key").action(async (pluginId: string, opts: BaseClientOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", tCli("Plugin ID or key")).action(async (pluginId: string, opts: BaseClientOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.get(`/api/plugins/${encodeURIComponent(pluginId)}/${suffix}`), { json: ctx.json });
@@ -750,7 +751,7 @@ function addPluginSubGet(parent: Command, name: string, description: string, suf
 }
 
 function addPluginSubPost(parent: Command, name: string, description: string, suffix: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", "Plugin ID or key").option("--payload-json <json>", "JSON payload", "{}").action(async (pluginId: string, opts: PluginJsonOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", tCli("Plugin ID or key")).option("--payload-json <json>", tCli("JSON payload"), "{}").action(async (pluginId: string, opts: PluginJsonOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.post(`/api/plugins/${encodeURIComponent(pluginId)}/${suffix}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -765,8 +766,8 @@ function addPluginConfigGet(parent: Command, name: string, description: string):
     parent
       .command(name)
       .description(description)
-      .argument("<pluginId>", "Plugin ID or key")
-      .option("-C, --company-id <id>", "Company ID")
+      .argument("<pluginId>", tCli("Plugin ID or key"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (pluginId: string, opts: PluginCompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -788,9 +789,9 @@ function addPluginConfigPost(parent: Command, name: string, description: string,
     parent
       .command(name)
       .description(description)
-      .argument("<pluginId>", "Plugin ID or key")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--payload-json <json>", "JSON payload", "{}")
+      .argument("<pluginId>", tCli("Plugin ID or key"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--payload-json <json>", tCli("JSON payload"), "{}")
       .action(async (pluginId: string, opts: PluginCompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -811,7 +812,7 @@ function addPluginConfigPost(parent: Command, name: string, description: string,
 }
 
 function addPluginJobGet(parent: Command, name: string, description: string, suffix: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", "Plugin ID or key").argument("<jobId>", "Job ID").action(async (pluginId: string, jobId: string, opts: BaseClientOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", tCli("Plugin ID or key")).argument("<jobId>", tCli("Job ID")).action(async (pluginId: string, jobId: string, opts: BaseClientOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.get(`/api/plugins/${encodeURIComponent(pluginId)}/jobs/${encodeURIComponent(jobId)}/${suffix}`), { json: ctx.json });
@@ -822,7 +823,7 @@ function addPluginJobGet(parent: Command, name: string, description: string, suf
 }
 
 function addPluginJobPost(parent: Command, name: string, description: string, suffix: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", "Plugin ID or key").argument("<jobId>", "Job ID").option("--payload-json <json>", "JSON payload", "{}").action(async (pluginId: string, jobId: string, opts: PluginJsonOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", tCli("Plugin ID or key")).argument("<jobId>", tCli("Job ID")).option("--payload-json <json>", tCli("JSON payload"), "{}").action(async (pluginId: string, jobId: string, opts: PluginJsonOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.post(`/api/plugins/${encodeURIComponent(pluginId)}/jobs/${encodeURIComponent(jobId)}/${suffix}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -833,7 +834,7 @@ function addPluginJobPost(parent: Command, name: string, description: string, su
 }
 
 function addPluginKeyPost(parent: Command, name: string, description: string, suffix: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", "Plugin ID or key").argument("<key>", "Endpoint or data/action key").option("--payload-json <json>", "JSON payload", "{}").action(async (pluginId: string, key: string, opts: PluginJsonOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<pluginId>", tCli("Plugin ID or key")).argument("<key>", tCli("Endpoint or data/action key")).option("--payload-json <json>", tCli("JSON payload"), "{}").action(async (pluginId: string, key: string, opts: PluginJsonOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.post(`/api/plugins/${encodeURIComponent(pluginId)}/${suffix}/${encodeURIComponent(key)}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -848,8 +849,8 @@ function addPluginLocalFolderGet(parent: Command, name: string, description: str
     parent
       .command(name)
       .description(description)
-      .argument("<pluginId>", "Plugin ID or key")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .argument("<pluginId>", tCli("Plugin ID or key"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (pluginId: string, opts: PluginCompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -867,9 +868,9 @@ function addPluginLocalFolderKeyGet(parent: Command, name: string, description: 
     parent
       .command(name)
       .description(description)
-      .argument("<pluginId>", "Plugin ID or key")
-      .argument("<folderKey>", "Local folder key")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .argument("<pluginId>", tCli("Plugin ID or key"))
+      .argument("<folderKey>", tCli("Local folder key"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (pluginId: string, folderKey: string, opts: PluginCompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -890,10 +891,10 @@ function addPluginLocalFolderKeyPost(parent: Command, name: string, description:
     parent
       .command(name)
       .description(description)
-      .argument("<pluginId>", "Plugin ID or key")
-      .argument("<folderKey>", "Local folder key")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--payload-json <json>", "JSON payload", "{}")
+      .argument("<pluginId>", tCli("Plugin ID or key"))
+      .argument("<folderKey>", tCli("Local folder key"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--payload-json <json>", tCli("JSON payload"), "{}")
       .action(async (pluginId: string, folderKey: string, opts: PluginCompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -917,10 +918,10 @@ function addPluginLocalFolderKeyPut(parent: Command, name: string, description: 
     parent
       .command(name)
       .description(description)
-      .argument("<pluginId>", "Plugin ID or key")
-      .argument("<folderKey>", "Local folder key")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--payload-json <json>", "JSON payload")
+      .argument("<pluginId>", tCli("Plugin ID or key"))
+      .argument("<folderKey>", tCli("Local folder key"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("JSON payload"))
       .action(async (pluginId: string, folderKey: string, opts: PluginCompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -947,7 +948,7 @@ function parseOptionalInt(value: string | undefined): number | undefined {
   if (value === undefined) return undefined;
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 0) {
-    throw new Error(`Invalid integer value: ${value}`);
+    throw new Error(tCli("Invalid integer value: {{value}}", { value: value }));
   }
   return parsed;
 }
@@ -971,7 +972,7 @@ async function streamPluginBridge(
     });
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(text.trim() || `Request failed with status ${response.status}`);
+      throw new Error(text.trim() || tCli("Request failed with status {{status}}", { status: response.status }));
     }
     if (!response.body) return;
     const reader = response.body.getReader();

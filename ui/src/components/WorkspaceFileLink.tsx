@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { MouseEvent, ReactNode } from "react";
 import { FileCode2, FolderOpen } from "lucide-react";
 import { useLocation } from "@/lib/router";
@@ -9,6 +10,7 @@ import {
   writeFolderViewerStateToSearch,
   writeFileViewerStateToSearch,
 } from "@/context/FileViewerContext";
+import { useTranslation } from "@/i18n";
 
 export interface WorkspaceFileLinkProps {
   workspaceFileRef: ParsedWorkspaceFileRef;
@@ -29,20 +31,21 @@ export function WorkspaceFileLink({
   showIcon = true,
   title,
 }: WorkspaceFileLinkProps) {
+  const { t } = useTranslation();
   const viewer = useFileViewer();
   const location = useLocation();
   const display = typeof label !== "undefined" ? label : formatWorkspaceFileRefDisplay(workspaceFileRef);
   const canOpen = !!(onOpen || viewer);
   const isDirectory = workspaceFileRef.resourceKind === "directory" || workspaceFileRef.path.endsWith("/");
   const lineSuffix = workspaceFileRef.line
-    ? ` line ${workspaceFileRef.line}${workspaceFileRef.column ? ` column ${workspaceFileRef.column}` : ""}`
+    ? t("zhComponents.message_febecef523", { value1: workspaceFileRef.line, value2: workspaceFileRef.column ? t("zhComponents.message_e52d2581c4", { value1: workspaceFileRef.column }) : "" })
     : "";
   const ariaLabel = canOpen
-    ? `Open ${workspaceFileRef.path}${lineSuffix} in the ${isDirectory ? "workspace browser" : "file viewer"}`
-    : `Workspace ${isDirectory ? "folder" : "file"} ${workspaceFileRef.path}${lineSuffix}`;
+    ? t("zhComponents.message_4714e0f56d", { value1: workspaceFileRef.path, value2: lineSuffix, value3: isDirectory ? t("workspace_browser") : t("file_viewer") })
+    : t("zhComponents.message_c08416bc84", { value1: isDirectory ? t("folder") : t("file"), value2: workspaceFileRef.path, value3: lineSuffix });
   const tooltip = title ?? (canOpen
-    ? `Open ${workspaceFileRef.path}${lineSuffix} in the ${isDirectory ? "workspace browser" : "file viewer"}`
-    : `Workspace ${isDirectory ? "folder" : "file"} ${workspaceFileRef.path}${lineSuffix}`);
+    ? t("zhComponents.message_4714e0f56d", { value1: workspaceFileRef.path, value2: lineSuffix, value3: isDirectory ? t("workspace_browser") : t("file_viewer") })
+    : t("zhComponents.message_c08416bc84", { value1: isDirectory ? t("folder") : t("file"), value2: workspaceFileRef.path, value3: lineSuffix }));
 
   const deepLinkSearch = isDirectory
     ? writeFolderViewerStateToSearch(location.search, {

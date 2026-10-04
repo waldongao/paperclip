@@ -1,3 +1,4 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { Link } from "@/lib/router";
 import { AgentIcon } from "./AgentIconPicker";
 import { timeAgo } from "../lib/timeAgo";
@@ -23,6 +24,9 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
+import { activityActionVerb } from "../lib/activity-format";
 
 /* ------------------------------------------------------------------ */
 /*  Canonical verb table — one verb per action, used on every card.    */
@@ -31,7 +35,7 @@ import { Card } from "@/components/ui/card";
 type VerbContext = "pinned" | "chronological";
 
 function humanize(value: unknown): string {
-  return typeof value === "string" ? value.replace(/_/g, " ") : String(value ?? "");
+  return typeof value === "string" ? getDisplayLabel(value.replace(/_/g, " "), "raw") : String(value ?? "");
 }
 
 /** One verb per action. Pinned context (Tier 0) swaps a couple of verbs to
@@ -43,88 +47,88 @@ function formatVerb(
 ): string {
   switch (action) {
     case "issue.created":
-      return "opened";
+      return t("activityLog.feedCard.opened");
     case "issue.updated": {
       const status = details?.status;
-      if (typeof status === "string") return `moved to ${humanize(status)}`;
+      if (typeof status === "string") return t("activityLog.feedCard.movedTo", { status: t(`activityLog.status.${status}`, { defaultValue: humanize(status) }) });
       const priority = details?.priority;
-      if (typeof priority === "string") return `set priority to ${humanize(priority)} on`;
-      return "updated";
+      if (typeof priority === "string") return t("activityLog.feedCard.setPriorityTo", { priority: t(`activityLog.priority.${priority}`, { defaultValue: humanize(priority) }) });
+      return t("activityLog.feedCard.issueUpdated");
     }
     case "issue.document_created":
-      return "wrote doc on";
+      return t("wrote_doc_on");
     case "issue.document_updated":
-      return "edited doc on";
+      return t("edited_doc_on");
     case "issue.document_deleted":
-      return "deleted doc from";
+      return t("deleted_doc_from");
     case "issue.work_product_created":
-      return "delivered work on";
+      return t("delivered_work_on");
     case "issue.work_product_updated":
-      return "updated work on";
+      return t("updated_work_on");
     case "issue.work_product_deleted":
-      return "removed work from";
+      return t("removed_work_from");
     case "issue.checked_out":
-      return "picked up";
+      return t("picked_up");
     case "issue.released":
-      return "released";
+      return t("activityLog.feedCard.issueReleased");
     case "issue.commented":
     case "issue.comment_added":
-      return "commented on";
+      return t("commented_on");
     case "issue.attachment_added":
-      return "attached a file to";
+      return t("attached_a_file_to");
     case "issue.attachment_removed":
-      return "removed attachment from";
+      return t("removed_attachment_from");
     case "issue.deleted":
-      return "deleted";
+      return t("activityLog.feedCard.issueDeleted");
 
     case "approval.created":
-      return context === "pinned" ? "needs approval on" : "requested approval on";
+      return context === "pinned" ? t("needs_approval_on") : t("requested_approval_on");
     case "approval.approved":
-      return "approved";
+      return t("activityLog.feedCard.approvalApproved");
     case "approval.rejected":
-      return "rejected";
+      return t("activityLog.feedCard.approvalRejected");
     case "approval.revision_requested":
-      return "requested changes on";
+      return t("requested_changes_on");
 
     case "agent.created":
-      return context === "pinned" ? "wants to hire" : "hired";
+      return context === "pinned" ? t("wants_to_hire") : t("activityLog.feedCard.agentHired");
     case "agent.paused":
-      return "paused";
+      return t("activityLog.feedCard.agentPaused");
     case "agent.resumed":
-      return "resumed";
+      return t("activityLog.feedCard.agentResumed");
     case "agent.updated":
-      return "updated";
+      return t("activityLog.feedCard.agentUpdated");
     case "agent.terminated":
-      return "terminated";
+      return t("activityLog.feedCard.agentTerminated");
 
     case "heartbeat.invoked":
-      return "started a run on";
+      return t("started_a_run_on");
     case "heartbeat.cancelled":
-      return "cancelled a run on";
+      return t("cancelled_a_run_on");
 
     case "project.created":
-      return "created project";
+      return t("created_project");
     case "project.updated":
-      return "updated project";
+      return t("updated_project");
     case "project.deleted":
-      return "deleted project";
+      return t("deleted_project");
     case "goal.created":
-      return "created goal";
+      return t("created_goal");
     case "goal.updated":
-      return "updated goal";
+      return t("updated_goal");
     case "goal.deleted":
-      return "deleted goal";
+      return t("deleted_goal");
     case "company.created":
-      return "created organization";
+      return t("created_organization");
     case "company.updated":
-      return "updated organization";
+      return t("updated_organization");
     case "company.archived":
-      return "archived organization";
+      return t("archived_organization");
     case "company.budget_updated":
-      return "updated organization budget";
+      return t("updated_organization_budget");
 
     default:
-      return action.replace(/[._]/g, " ");
+      return activityActionVerb(action);
   }
 }
 
@@ -293,10 +297,10 @@ function resolveContent(
   const actorName =
     actor?.name ??
     (event.actorType === "system"
-      ? "System"
+      ? t("system")
       : event.actorType === "user"
-        ? "Board"
-        : event.actorId || "Unknown");
+        ? t("board")
+        : event.actorId || t("unknown"));
 
   const entityTitle = entityTitleMap?.get(`${event.entityType}:${event.entityId}`) ?? null;
 
@@ -425,6 +429,7 @@ export function FeedCard({
   isPinned = false,
   className,
 }: FeedCardProps) {
+  const { t } = useTranslation();
   const details = event.details as Record<string, unknown> | null;
   const content = resolveContent(event, agentMap, entityNameMap, entityTitleMap);
   const verb = formatVerb(event.action, details, isPinned ? "pinned" : "chronological");
@@ -468,7 +473,7 @@ export function FeedCard({
         )}
       </span>
       {isPinned && (
-        <span className="shrink-0 text-xs text-muted-foreground">Review →</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{t("review_2d28dc")}</span>
       )}
       <span data-fc="time" className="shrink-0 text-muted-foreground">
         {timeAgo(event.createdAt)}

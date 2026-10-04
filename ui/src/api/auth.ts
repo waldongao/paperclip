@@ -6,6 +6,8 @@ import {
   type UpdateCurrentUserProfile,
 } from "@paperclipai/shared";
 import { redactUrlSecrets } from "@/lib/redact-url-secrets";
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 type AuthErrorBody =
   | {
@@ -24,9 +26,12 @@ export class AuthApiError extends Error {
   status: number;
   code: string | null;
   body: unknown;
+  /** Original server message for machine-readable error checks. */
+  rawMessage: string;
 
   constructor(message: string, status: number, body: unknown, code: string | null = null) {
-    super(message);
+    super(translateDisplayMessage(message));
+    this.rawMessage = message;
     this.name = "AuthApiError";
     this.status = status;
     this.code = code;
@@ -154,7 +159,7 @@ export const authApi = {
     if (res.status === 401) return null;
     const payload = await res.json().catch(() => null);
     if (!res.ok) {
-      throw new Error(`Failed to load session (${res.status})`);
+      throw new Error(t("zhSupport.sessionFailed", { status: res.status }));
     }
     const direct = toSession(payload);
     if (direct) return direct;
@@ -177,7 +182,7 @@ export const authApi = {
     });
     const payload = await res.json().catch(() => null);
     if (!res.ok) {
-      throw new Error((payload as { error?: string } | null)?.error ?? `Failed to load profile (${res.status})`);
+      throw new Error(translateDisplayMessage((payload as { error?: string } | null)?.error ?? t("zhSupport.profileFailed", { status: res.status })));
     }
     return currentUserProfileSchema.parse(payload);
   },

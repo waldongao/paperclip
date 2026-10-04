@@ -1,3 +1,6 @@
+
+import { t } from "@/i18n";
+
 export const KEYBOARD_SHORTCUT_TEXT_INPUT_SELECTOR = [
   "input",
   "textarea",
@@ -9,7 +12,7 @@ export const KEYBOARD_SHORTCUT_TEXT_INPUT_SELECTOR = [
 ].join(", ");
 
 const PAGE_SEARCH_SHORTCUT_SELECTOR = "[data-page-search-target='true']";
-const MODIFIER_ONLY_KEYS = new Set(["Shift", "Meta", "Control", "Alt"]);
+const MODIFIER_ONLY_KEYS = new Set([t("shift"), t("meta"), t("control"), t("alt")]);
 
 export type InboxQuickArchiveKeyAction = "ignore" | "archive" | "disarm";
 export type InboxUndoArchiveKeyAction = "ignore" | "undo_archive";

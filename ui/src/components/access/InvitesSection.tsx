@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, ExternalLink } from "lucide-react";
@@ -10,31 +12,32 @@ import { Link } from "@/lib/router";
 import { queryKeys } from "@/lib/queryKeys";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import { Badge } from "@/components/ui/badge";
+import { t, useTranslation } from "@/i18n";
 
 const inviteRoleOptions = [
   {
     value: "viewer",
-    label: "Viewer",
-    description: "Can view organization work and follow along.",
-    gets: "View-only organization membership.",
+    label: t("viewer"),
+    description: t("can_view_organization_work_and_follow_along"),
+    gets: t("view_only_organization_membership"),
   },
   {
     value: "operator",
-    label: "Operator",
-    description: "Recommended for people who need to help run work without managing access.",
-    gets: "Can assign tasks.",
+    label: t("operator"),
+    description: t("recommended_for_people_who_need_to_help_run_work"),
+    gets: t("can_assign_tasks_969179"),
   },
   {
     value: "admin",
-    label: "Admin",
-    description: "Recommended for operators who need to invite people, create agents, and approve joins.",
-    gets: "Can create agents, invite users, assign tasks, and approve join requests.",
+    label: t("admin"),
+    description: t("recommended_for_operators_who_need_to_invite_peo"),
+    gets: t("can_create_agents_invite_users_assign_tasks_and"),
   },
   {
     value: "owner",
-    label: "Owner",
-    description: "Full organization access, including membership management.",
-    gets: "Everything in Admin, plus managing members.",
+    label: t("owner"),
+    description: t("full_organization_access_including_membership_ma"),
+    gets: t("everything_in_admin_plus_managing_members"),
   },
 ] as const;
 
@@ -47,6 +50,7 @@ function isInviteHistoryRow(value: unknown): value is Awaited<ReturnType<typeof 
 
 /** The Invites tab of the Members page (extracted from the former standalone Invites page). */
 export function InvitesSection() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { pushToast } = useToast();
   const queryClient = useQueryClient();
@@ -76,7 +80,7 @@ export function InvitesSection() {
       afterFallback?.();
     }
     pushToast({
-      title: "Clipboard unavailable",
+      title: t("clipboard_unavailable"),
       body: unavailableBody,
       tone: "warn",
     });
@@ -84,7 +88,7 @@ export function InvitesSection() {
   }
 
   async function copyInviteUrl(url: string) {
-    return copyText(url, "The invite URL is selected. Copy it manually from the field.", selectLatestInviteUrl);
+    return copyText(url, t("the_invite_url_is_selected_copy_it_manually_from"), selectLatestInviteUrl);
   }
 
   const inviteHistoryQueryKey = queryKeys.access.invites(selectedCompanyId ?? "", "all", INVITE_HISTORY_PAGE_SIZE);
@@ -117,19 +121,19 @@ export function InvitesSection() {
     onSuccess: async (invite) => {
       setLatestInviteUrl(invite.inviteUrl);
       setLatestInviteCopied(false);
-      const copied = await copyText(invite.inviteUrl, "Copy the invite URL manually from the field below.");
+      const copied = await copyText(invite.inviteUrl, t("copy_the_invite_url_manually_from_the_field_belo"));
 
       await queryClient.invalidateQueries({ queryKey: inviteHistoryQueryKey });
       pushToast({
-        title: "Invite created",
-        body: copied ? "Invite ready below and copied to clipboard." : "Invite ready below.",
+        title: t("invite_created"),
+        body: copied ? t("invite_ready_below_and_copied_to_clipboard") : t("invite_ready_below"),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to create invite",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: t("failed_to_create_invite"),
+        body: error instanceof Error ? error.message : t("unknown_error"),
         tone: "error",
       });
     },
@@ -139,52 +143,51 @@ export function InvitesSection() {
     mutationFn: (inviteId: string) => accessApi.revokeInvite(inviteId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: inviteHistoryQueryKey });
-      pushToast({ title: "Invite revoked", tone: "success" });
+      pushToast({ title: t("invite_revoked"), tone: "success" });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to revoke invite",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: t("failed_to_revoke_invite"),
+        body: error instanceof Error ? error.message : t("unknown_error"),
         tone: "error",
       });
     },
   });
 
   if (!selectedCompanyId) {
-    return <div className="text-sm text-muted-foreground">Select an organization to manage invites.</div>;
+    return <div className="text-sm text-muted-foreground">{t("select_an_organization_to_manage_invites")}</div>;
   }
 
   if (invitesQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading invites…</div>;
+    return <div className="text-sm text-muted-foreground">{t("loading_invites")}</div>;
   }
 
   if (invitesQuery.error) {
     const message =
       invitesQuery.error instanceof ApiError && invitesQuery.error.status === 403
-        ? "You do not have permission to manage organization invites."
+        ? t("you_do_not_have_permission_to_manage_organizatio")
         : invitesQuery.error instanceof Error
           ? invitesQuery.error.message
-          : "Failed to load invites.";
+          : t("failed_to_load_invites");
     return <div className="text-sm text-destructive">{message}</div>;
   }
 
   return (
     <div className="max-w-6xl space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Invite people to request access to this organization. New invite links are copied to your clipboard when they are
-        generated.
+        {t("invite_people_to_request_access_to_this_organiza")}
       </p>
 
       <section className="space-y-4 rounded-xl border border-border p-5">
         <div className="space-y-1">
-          <h2 className="text-sm font-semibold">Invite a person</h2>
+          <h2 className="text-sm font-semibold">{t("invite_a_person")}</h2>
           <p className="text-sm text-muted-foreground">
-            Generate a human invite link and choose the default access it should request.
+            {t("generate_a_human_invite_link_and_choose_the_defa")}
           </p>
         </div>
 
         <fieldset className="space-y-3">
-          <legend className="text-sm font-medium">Choose a role</legend>
+          <legend className="text-sm font-medium">{t("choose_a_role")}</legend>
           <div className="rounded-xl border border-border">
             {inviteRoleOptions.map((option, index) => {
               const checked = humanRole === option.value;
@@ -206,7 +209,7 @@ export function InvitesSection() {
                       <span className="text-sm font-medium">{option.label}</span>
                       {option.value === "operator" ? (
                         <Badge variant="outline" className="border-border text-muted-foreground">
-                          Default
+                          {t("default_808d7d")}
                         </Badge>
                       ) : null}
                     </span>
@@ -220,34 +223,34 @@ export function InvitesSection() {
         </fieldset>
 
         <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
-          Each invite link is single-use. Human invitees get the selected role immediately after sign-in; agent invites still create a join request for approval.
+          {t("each_invite_link_is_single_use_human_invitees_ge")}
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => createInviteMutation.mutate()} disabled={createInviteMutation.isPending}>
-            {createInviteMutation.isPending ? "Creating…" : "Create invite"}
+            {createInviteMutation.isPending ? t("creating") : t("create_invite")}
           </Button>
-          <span className="text-sm text-muted-foreground">Invite history below keeps the audit trail.</span>
+          <span className="text-sm text-muted-foreground">{t("invite_history_below_keeps_the_audit_trail")}</span>
         </div>
 
         {latestInviteUrl ? (
           <div className="space-y-3 rounded-lg border border-border px-4 py-4">
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-3">
-                <div className="text-sm font-medium">Latest invite link</div>
+                <div className="text-sm font-medium">{t("latest_invite_link")}</div>
                 {latestInviteCopied ? (
                   <div className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
                     <Check className="h-3.5 w-3.5" />
-                    Copied
+                    {t("copied")}
                   </div>
                 ) : null}
               </div>
               <div className="text-sm text-muted-foreground">
-                This URL includes the current Paperclip domain returned by the server.
+                {t("this_url_includes_the_current_paperclip_domain_r")}
               </div>
             </div>
             <label className="block space-y-1">
-              <span className="sr-only">Latest invite URL</span>
+              <span className="sr-only">{t("latest_invite_url")}</span>
               <input
                 ref={latestInviteInputRef}
                 readOnly
@@ -255,7 +258,7 @@ export function InvitesSection() {
                 onFocus={(event) => event.currentTarget.select()}
                 onClick={(event) => event.currentTarget.select()}
                 className="w-full rounded-md border border-border bg-muted/60 px-3 py-2 text-sm text-foreground outline-none transition-colors selection:bg-primary selection:text-primary-foreground focus:border-ring"
-                aria-label="Latest invite URL"
+                aria-label={t("latest_invite_url")}
               />
             </label>
             <div className="flex flex-wrap gap-2">
@@ -269,12 +272,12 @@ export function InvitesSection() {
                 }}
               >
                 <Copy className="h-4 w-4" />
-                Copy link
+                {t("copy_link")}
               </Button>
               <Button size="sm" variant="outline" asChild>
                 <a href={latestInviteUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="h-4 w-4" />
-                  Open invite
+                  {t("open_invite")}
                 </a>
               </Button>
             </div>
@@ -285,19 +288,19 @@ export function InvitesSection() {
       <section className="rounded-xl border border-border">
         <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
           <div className="space-y-1">
-            <h2 className="text-sm font-semibold">Invite history</h2>
+            <h2 className="text-sm font-semibold">{t("invite_history")}</h2>
             <p className="text-sm text-muted-foreground">
-              Review invite status, audience, inviter, and any linked join request.
+              {t("review_invite_status_audience_inviter_and_any_li")}
             </p>
           </div>
           <Link to="/inbox/requests" className="text-sm underline underline-offset-4">
-            Open join request queue
+            {t("open_join_request_queue")}
           </Link>
         </div>
 
         {inviteHistory.length === 0 ? (
           <div className="border-t border-border px-5 py-8 text-sm text-muted-foreground">
-            No invites have been created for this organization yet.
+            {t("no_invites_have_been_created_for_this_organizati")}
           </div>
         ) : (
           <div className="border-t border-border">
@@ -305,12 +308,12 @@ export function InvitesSection() {
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-5 py-3 font-medium text-muted-foreground">State</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">For</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">Invited by</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">Created</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">Join request</th>
-                    <th className="px-5 py-3 text-right font-medium text-muted-foreground">Action</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{t("state")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{t("for")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{t("invited_by")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{t("created")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{t("join_request")}</th>
+                    <th className="px-5 py-3 text-right font-medium text-muted-foreground">{t("action")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,18 +326,18 @@ export function InvitesSection() {
                       </td>
                       <td className="px-5 py-3 align-top">{formatInviteAudience(invite)}</td>
                       <td className="px-5 py-3 align-top">
-                        <div>{invite.invitedByUser?.name || invite.invitedByUser?.email || "Unknown inviter"}</div>
+                        <div>{invite.invitedByUser?.name || invite.invitedByUser?.email || t("unknown_inviter")}</div>
                         {invite.invitedByUser?.email && invite.invitedByUser.name ? (
                           <div className="text-xs text-muted-foreground">{invite.invitedByUser.email}</div>
                         ) : null}
                       </td>
                       <td className="px-5 py-3 align-top text-muted-foreground">
-                        {new Date(invite.createdAt).toLocaleString()}
+                        {new Date(invite.createdAt).toLocaleString(i18n.resolvedLanguage ?? i18n.language)}
                       </td>
                       <td className="px-5 py-3 align-top">
                         {invite.relatedJoinRequestId ? (
                           <Link to="/inbox/requests" className="underline underline-offset-4">
-                            Review request
+                            {t("review_request")}
                           </Link>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -348,10 +351,10 @@ export function InvitesSection() {
                             onClick={() => revokeMutation.mutate(invite.id)}
                             disabled={revokeMutation.isPending}
                           >
-                            Revoke
+                            {t("revoke")}
                           </Button>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Inactive</span>
+                          <span className="text-xs text-muted-foreground">{t("inactive")}</span>
                         )}
                       </td>
                     </tr>
@@ -367,7 +370,7 @@ export function InvitesSection() {
                   onClick={() => invitesQuery.fetchNextPage()}
                   disabled={invitesQuery.isFetchingNextPage}
                 >
-                  {invitesQuery.isFetchingNextPage ? "Loading more…" : "View more"}
+                  {invitesQuery.isFetchingNextPage ? t("loading_more") : t("view_more")}
                 </Button>
               </div>
             ) : null}
@@ -383,7 +386,7 @@ function formatInviteState(state: "active" | "accepted" | "expired" | "revoked")
 }
 
 function formatInviteAudience(invite: Awaited<ReturnType<typeof accessApi.listInvites>>["invites"][number]) {
-  if (invite.allowedJoinTypes === "agent") return "Agent";
-  if (invite.allowedJoinTypes === "both") return invite.humanRole ? `Human or agent · ${invite.humanRole}` : "Human or agent";
-  return invite.humanRole ?? "Human";
+  if (invite.allowedJoinTypes === "agent") return t("agent_5ce2e6");
+  if (invite.allowedJoinTypes === "both") return invite.humanRole ? t("zhComponents.message_fa0abe556b", { value1: getDisplayLabel(invite.humanRole) }) : t("human_or_agent");
+  return invite.humanRole ?? t("human");
 }

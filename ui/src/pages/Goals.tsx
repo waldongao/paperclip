@@ -10,14 +10,16 @@ import { EmptyState } from "../components/EmptyState";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Target, Plus } from "lucide-react";
+import { useTranslation } from "@/i18n";
 
 export function Goals() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { openNewGoal } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Goals" }]);
+    setBreadcrumbs([{ label: t("goals") }]);
   }, [setBreadcrumbs]);
 
   const { data: goals, isLoading, error } = useQuery({
@@ -27,7 +29,7 @@ export function Goals() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Target} message="Select an organization to view goals." />;
+    return <EmptyState icon={Target} message={t("select_an_organization_to_view_goals")} />;
   }
 
   if (isLoading) {
@@ -41,8 +43,8 @@ export function Goals() {
       {goals && goals.length === 0 && (
         <EmptyState
           icon={Target}
-          message="No goals yet."
-          action="Add Goal"
+          message={t("no_goals_yet")}
+          action={t("add_goal")}
           onAction={() => openNewGoal()}
         />
       )}
@@ -52,7 +54,7 @@ export function Goals() {
           <div className="flex items-center justify-start">
             <Button size="sm" variant="outline" onClick={() => openNewGoal()}>
               <Plus className="h-3.5 w-3.5 mr-1.5" />
-              New Goal
+              {t("new_goal_5e8164")}
             </Button>
           </div>
           <GoalTree goals={goals} goalLink={(goal) => `/goals/${goal.id}`} />

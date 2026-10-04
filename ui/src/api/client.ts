@@ -1,13 +1,18 @@
 import { getPageVisibility, getVisibilityHeaderValue } from "@/lib/page-visibility";
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 const BASE = "/api";
 
 export class ApiError extends Error {
   status: number;
   body: unknown;
+  /** Original server message for callers that inspect machine-readable failures. */
+  rawMessage: string;
 
   constructor(message: string, status: number, body: unknown) {
-    super(message);
+    super(translateDisplayMessage(message));
+    this.rawMessage = message;
     this.name = "ApiError";
     this.status = status;
     this.body = body;
@@ -22,7 +27,7 @@ export interface RequestOptions {
 }
 
 function abortError(): DOMException {
-  return new DOMException("The operation was aborted.", "AbortError");
+  return new DOMException(t("the_operation_was_aborted"), "AbortError");
 }
 
 /**

@@ -12,6 +12,8 @@ import {
 } from "../components/agent-config-primitives";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 // ── Select field (extracted to keep hooks at component top level) ──────
 function SelectField({
@@ -23,6 +25,7 @@ function SelectField({
   options: Array<{ value: string; label: string }>;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const selectedOpt = options.find((o) => o.value === value);
   return (
@@ -30,7 +33,7 @@ function SelectField({
       <PopoverTrigger asChild>
         <button className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-sm hover:bg-accent/50 transition-colors w-full justify-between">
           <span className={!value ? "text-muted-foreground" : ""}>
-            {selectedOpt?.label ?? value ?? "Select..."}
+            {selectedOpt ? translateDisplayMessage(selectedOpt.label) : value || t("select")}
           </span>
           <ChevronDown className="h-3 w-3 text-muted-foreground" />
         </button>
@@ -46,7 +49,7 @@ function SelectField({
               setOpen(false);
             }}
           >
-            <span>{opt.label}</span>
+            <span>{translateDisplayMessage(opt.label)}</span>
           </button>
         ))}
       </PopoverContent>
@@ -72,6 +75,7 @@ function ComboboxField({
   onChange: (val: string) => void;
   placeholder?: string;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +142,7 @@ function ComboboxField({
           type="text"
           className="flex-1 rounded-l-md border border-r-0 border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40 focus:z-10"
           value={displayValue}
-          placeholder={placeholder ?? "Type or select..."}
+          placeholder={placeholder ?? t("type_or_select")}
           onChange={(e) => {
             setFilter(e.target.value);
             if (!open) setOpen(true);
@@ -168,7 +172,7 @@ function ComboboxField({
               <div key={group || "_ungrouped"}>
                 {group && (
                   <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {group}
+                    {translateDisplayMessage(group)}
                   </div>
                 )}
                 {opts.map((opt) => (
@@ -182,14 +186,14 @@ function ComboboxField({
                       select(opt.value);
                     }}
                   >
-                    <span className="truncate">{opt.label}</span>
+                    <span className="truncate">{translateDisplayMessage(opt.label)}</span>
                   </button>
                 ))}
               </div>
             ))}
             {filter && filtered.length === 0 && (
               <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                Use &quot;{filter}&quot; as custom value (press Enter)
+                {t("use")}{filter}{t("as_custom_value_press_enter")}
               </div>
             )}
           </PopoverContent>
@@ -408,7 +412,7 @@ export function SchemaConfigFields({
             case "select": {
               const currentVal = String(readValue(field) ?? "");
               return (
-                <Field key={field.key} label={field.label} hint={field.hint}>
+                <Field key={field.key} label={field.label ? translateDisplayMessage(field.label) : field.label} hint={field.hint ? translateDisplayMessage(field.hint) : field.hint}>
                   <SelectField
                     value={currentVal}
                     options={field.options ?? []}
@@ -422,8 +426,8 @@ export function SchemaConfigFields({
               return (
                 <ToggleField
                   key={field.key}
-                  label={field.label}
-                  hint={field.hint}
+                  label={field.label ? translateDisplayMessage(field.label) : field.label}
+                  hint={field.hint ? translateDisplayMessage(field.hint) : field.hint}
                   checked={readValue(field) === true}
                   onChange={(v) => writeValue(field, v)}
                 />
@@ -431,7 +435,7 @@ export function SchemaConfigFields({
 
             case "number":
               return (
-                <Field key={field.key} label={field.label} hint={field.hint}>
+                <Field key={field.key} label={field.label ? translateDisplayMessage(field.label) : field.label} hint={field.hint ? translateDisplayMessage(field.hint) : field.hint}>
                   <DraftNumberInput
                     value={Number(readValue(field) ?? 0)}
                     onCommit={(v) => writeValue(field, v)}
@@ -443,7 +447,7 @@ export function SchemaConfigFields({
 
             case "textarea":
               return (
-                <Field key={field.key} label={field.label} hint={field.hint}>
+                <Field key={field.key} label={field.label ? translateDisplayMessage(field.label) : field.label} hint={field.hint ? translateDisplayMessage(field.hint) : field.hint}>
                   <DraftTextarea
                     value={String(readValue(field) ?? "")}
                     onCommit={(v) => writeValue(field, v || undefined)}
@@ -483,12 +487,12 @@ export function SchemaConfigFields({
                 }
               }
               return (
-                <Field key={field.key} label={field.label} hint={field.hint}>
+                <Field key={field.key} label={field.label ? translateDisplayMessage(field.label) : field.label} hint={field.hint ? translateDisplayMessage(field.hint) : field.hint}>
                   <ComboboxField
                     value={currentVal}
                     options={comboboxOptions}
                     onChange={(v) => writeValue(field, v || undefined)}
-                    placeholder={field.hint}
+                    placeholder={field.hint ? translateDisplayMessage(field.hint) : field.hint}
                   />
                 </Field>
               );
@@ -497,7 +501,7 @@ export function SchemaConfigFields({
             case "text":
             default:
               return (
-                <Field key={field.key} label={field.label} hint={field.hint}>
+                <Field key={field.key} label={field.label ? translateDisplayMessage(field.label) : field.label} hint={field.hint ? translateDisplayMessage(field.hint) : field.hint}>
                   <DraftInput
                     value={String(readValue(field) ?? "")}
                     onCommit={(v) => writeValue(field, v || undefined)}

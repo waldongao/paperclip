@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import type { PaperclipConfig } from "../config/schema.js";
@@ -54,11 +55,11 @@ export async function doctor(opts: {
     config = readConfig(opts.config)!;
   } catch (err) {
     const readResult: CheckResult = {
-      name: "Config file",
+      name: tCli("Config file"),
       status: "fail",
-      message: `Could not read config: ${err instanceof Error ? err.message : String(err)}`,
+      message: tCli("Could not read config: {{value1}}", { value1: String(err instanceof Error ? err.message : String(err)) }),
       canRepair: false,
-      repairHint: "Run `paperclipai configure --section database` or `paperclipai onboard`",
+      repairHint: tCli("Run `paperclipai configure --section database` or `paperclipai onboard`"),
     };
     results.push(readResult);
     printResult(readResult);
@@ -146,9 +147,9 @@ export async function doctor(opts: {
 
 function printResult(result: CheckResult): void {
   const icon = STATUS_ICON[result.status];
-  p.log.message(`${icon} ${pc.bold(result.name)}: ${result.message}`);
+  p.log.message(`${icon} ${pc.bold(translateCliDisplayMessage(result.name))}: ${translateCliDisplayMessage(result.message)}`);
   if (result.status !== "pass" && result.repairHint) {
-    p.log.message(`  ${pc.dim(result.repairHint)}`);
+    p.log.message(`  ${pc.dim(translateCliDisplayMessage(result.repairHint))}`);
   }
 }
 
@@ -162,7 +163,7 @@ async function maybeRepair(
   let shouldRepair = opts.yes;
   if (!shouldRepair) {
     const answer = await p.confirm({
-      message: `Repair "${result.name}"?`,
+      message: tCli("Repair \"{{value1}}\"?", { value1: String(result.name) }),
       initialValue: true,
     });
     if (p.isCancel(answer)) return false;
@@ -172,10 +173,10 @@ async function maybeRepair(
   if (shouldRepair) {
     try {
       await result.repair();
-      p.log.success(`Repaired: ${result.name}`);
+      p.log.success(tCli("Repaired: {{value1}}", { value1: String(result.name) }));
       return true;
     } catch (err) {
-      p.log.error(`Repair failed: ${err instanceof Error ? err.message : String(err)}`);
+      p.log.error(tCli("Repair failed: {{value1}}", { value1: String(err instanceof Error ? err.message : String(err)) }));
     }
   }
   return false;
@@ -205,18 +206,18 @@ function printSummary(results: CheckResult[]): { passed: number; warned: number;
   const failed = results.filter((r) => r.status === "fail").length;
 
   const parts: string[] = [];
-  parts.push(pc.green(`${passed} passed`));
-  if (warned) parts.push(pc.yellow(`${warned} warnings`));
-  if (failed) parts.push(pc.red(`${failed} failed`));
+  parts.push(pc.green(tCli("{{value1}} passed", { value1: String(passed) })));
+  if (warned) parts.push(pc.yellow(tCli("{{value1}} warnings", { value1: String(warned) })));
+  if (failed) parts.push(pc.red(tCli("{{value1}} failed", { value1: String(failed) })));
 
-  p.note(parts.join(", "), "Summary");
+  p.note(parts.join(", "), tCli("Summary"));
 
   if (failed > 0) {
-    p.outro(pc.red("Some checks failed. Fix the issues above and re-run doctor."));
+    p.outro(pc.red(tCli("Some checks failed. Fix the issues above and re-run doctor.")));
   } else if (warned > 0) {
-    p.outro(pc.yellow("All critical checks passed with some warnings."));
+    p.outro(pc.yellow(tCli("All critical checks passed with some warnings.")));
   } else {
-    p.outro(pc.green("All checks passed!"));
+    p.outro(pc.green(tCli("All checks passed!")));
   }
 
   return { passed, warned, failed };

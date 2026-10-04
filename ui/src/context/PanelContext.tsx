@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import type { SidePanelContentMode } from "@/components/side-panel";
+import { useTranslation } from "@/i18n";
 
 const STORAGE_KEY = "paperclip:panel-visible";
 
@@ -70,9 +71,10 @@ export function PanelProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePanel() {
+  const { t } = useTranslation();
   const ctx = useContext(PanelContext);
   if (!ctx) {
-    throw new Error("usePanel must be used within PanelProvider");
+    throw new Error(t("usepanel_must_be_used_within_panelprovider"));
   }
   return ctx;
 }

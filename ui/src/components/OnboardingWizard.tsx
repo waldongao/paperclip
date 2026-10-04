@@ -1,3 +1,4 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useEffect, useState, useMemo, useRef } from "react";
 import type { ComponentType, CSSProperties } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -113,6 +114,8 @@ import {
   Loader2,
   ChevronDown,
 } from "lucide-react";
+import { useTranslation } from "@/i18n";
+import { i18n, t } from "@/i18n";
 
 type Step = 0 | 1 | 2 | 3 | 4 | 5;
 // Plugin/external adapters use arbitrary type ids, so this mirrors the master
@@ -120,9 +123,9 @@ type Step = 0 | 1 | 2 | 3 | 4 | 5;
 type AdapterType = string;
 
 const MISSION_PROMPT_CHIPS = [
-  "Build a SaaS product",
-  "Scale a content business",
-  "Launch a marketplace"
+  t("build_a_saas_product"),
+  t("scale_a_content_business"),
+  t("launch_a_marketplace")
 ];
 
 // First-run onboarding stays on the proven direct adapters even when an
@@ -143,9 +146,9 @@ function restoreOnboardingAdapterType(savedAdapterType: unknown): AdapterType {
 function buildMissionFromQuestionnaire(q1: string, q2: string, q3: string, q4: string): string {
   const parts: string[] = [];
   if (q1.trim()) parts.push(q1.trim());
-  if (q2.trim()) parts.push(`We serve ${q2.trim().toLowerCase()}.`);
-  if (q3.trim()) parts.push(`Our biggest challenge is ${q3.trim().toLowerCase()}.`);
-  if (q4.trim()) parts.push(`Success looks like ${q4.trim().toLowerCase()}.`);
+  if (q2.trim()) parts.push(t("zhComponents.message_942061c58b", { value1: q2.trim().toLowerCase() }));
+  if (q3.trim()) parts.push(t("zhComponents.message_6874aebbd4", { value1: q3.trim().toLowerCase() }));
+  if (q4.trim()) parts.push(t("zhComponents.message_e537fd8cc0", { value1: q4.trim().toLowerCase() }));
   return parts.join(" ");
 }
 
@@ -236,7 +239,7 @@ function ModelSourceMark({
 // Exported so tests write/read the exact key the component uses, instead of
 // duplicating the literal and silently drifting from it if it's ever renamed.
 export const ONBOARDING_STORAGE_KEY = "paperclip-onboarding-state";
-const DEFAULT_TASK_TITLE = "Paperclip onboarding";
+const DEFAULT_TASK_TITLE = t("paperclip_onboarding");
 const DEFAULT_TASK_DESCRIPTION = `You are the Paperclip agent. This is your first task. Your job here is to
 understand what the user wants and turn it into a concrete plan — not to
 start building yet.
@@ -306,7 +309,7 @@ const onboardingDraftStorage = {
 };
 
 const INCOMPLETE_ONBOARDING_STATE_MESSAGE =
-  "Onboarding state is incomplete. Please restart onboarding and try again.";
+  t("onboarding_state_is_incomplete_please_restart_on");
 
 /**
  * Thin gate in front of {@link OnboardingWizardInner}. The inner component's
@@ -463,6 +466,7 @@ function OnboardingWizardInner({
 }: {
   saved: Record<string, unknown> | null;
 }) {
+  const { t } = useTranslation();
   const {
     onboardingOpen,
     onboardingOptions,
@@ -1312,7 +1316,7 @@ function OnboardingWizardInner({
     if (companyIdNow === companyIdAtStart || companyIdNow === returnedCompanyId) {
       return true;
     }
-    setError("Organization created, but onboarding switched to another organization.");
+    setError(t("organization_created_but_onboarding_switched_to"));
     return false;
   }
 
@@ -1356,7 +1360,7 @@ function OnboardingWizardInner({
           createdCompanyId,
           buildOnboardingIssuePayload({
             title: DEFAULT_TASK_TITLE,
-            description: DEFAULT_TASK_DESCRIPTION,
+            description: DEFAULT_TASK_DESCRIPTION + `\n\nWrite all user-facing messages, questions, option labels, plan documents, and task descriptions in the interface language (${i18n.resolvedLanguage ?? i18n.language}). Keep code, protocol values, and proper names unchanged.`,
             assigneeAgentId: createdAgentId,
             projectId,
             goalId
@@ -1389,7 +1393,7 @@ function OnboardingWizardInner({
       // dashboard) so they land on the conversation the agent will start in.
       navigate(prefix ? `/${prefix}/issues/${issueRef}` : `/issues/${issueRef}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to launch first task");
+      setError(err instanceof Error ? err.message : t("failed_to_launch_first_task"));
     } finally {
       setLoading(false);
     }
@@ -1428,8 +1432,8 @@ function OnboardingWizardInner({
         (
           await secretsApi.createUserSecretDefinition(companyId, {
             key: envKey,
-            name: `${envKey} for onboarding`,
-            description: "Created while connecting a model during onboarding.",
+            name: t("zhComponents.message_ba0b0c5b7b", { value1: envKey }),
+            description: t("created_while_connecting_a_model_during_onboardi"),
           })
         ).id;
       // Rotate rather than create when a value is already stored, because
@@ -1448,8 +1452,8 @@ function OnboardingWizardInner({
     } catch (err) {
       setError(
         err instanceof Error
-          ? `Could not store the API key: ${err.message}`
-          : "Could not store the API key.",
+          ? t("zhComponents.message_aba2f34508", { value1: err.message })
+          : t("could_not_store_the_api_key"),
       );
       return false;
     }
@@ -1528,7 +1532,7 @@ function OnboardingWizardInner({
   ): Promise<AdapterEnvironmentTestResult | null> {
     if (!createdCompanyId) {
       setAdapterEnvError(
-        "Create or select an organization before testing adapter environment."
+        t("create_or_select_an_organization_before_testing")
       );
       return null;
     }
@@ -1563,7 +1567,7 @@ function OnboardingWizardInner({
         managedSandboxOnly = experimentalSettings?.enableManagedSandboxOnly === true;
       } catch {
         setAdapterEnvError(
-          "Could not load environment settings to determine which environment to test in. Retry the test.",
+          t("could_not_load_environment_settings_to_determine"),
         );
         return null;
       }
@@ -1597,7 +1601,7 @@ function OnboardingWizardInner({
       return result;
     } catch (err) {
       setAdapterEnvError(
-        err instanceof Error ? err.message : "Adapter environment test failed"
+        err instanceof Error ? err.message : t("adapter_environment_test_failed")
       );
       return null;
     } finally {
@@ -1669,7 +1673,7 @@ function OnboardingWizardInner({
         setCreatedCompanyGoalId(goal.id);
         setStep(3);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to save the mission");
+        setError(err instanceof Error ? err.message : t("failed_to_save_the_mission"));
       } finally {
         setLoading(false);
       }
@@ -1714,7 +1718,7 @@ function OnboardingWizardInner({
 
       setStep(3); // → Create your team lead
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create organization");
+      setError(err instanceof Error ? err.message : t("failed_to_create_organization"));
     } finally {
       setLoading(false);
     }
@@ -1761,7 +1765,7 @@ function OnboardingWizardInner({
       setSelectedCompanyId(company.id);
       setStep(3);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create organization");
+      setError(err instanceof Error ? err.message : t("failed_to_create_organization"));
     } finally {
       creatingCompanyRef.current = false;
       setLoading(false);
@@ -1780,7 +1784,7 @@ function OnboardingWizardInner({
     if (adapterType === "paperclip_runner") {
       setAdapterType("claude_local");
       setModel("");
-      setError("Paperclip Runner is not available during onboarding. Choose a legacy adapter.");
+      setError(t("paperclip_runner_is_not_available_during_onboard"));
       return;
     }
     // Guarded at the button and the Enter path too; repeated here because this
@@ -1801,7 +1805,7 @@ function OnboardingWizardInner({
         const selectedModelId = model.trim();
         if (!isValidOpenCodeModelId(selectedModelId)) {
           setError(
-            "OpenCode requires an explicit model in provider/model format."
+            t("opencode_requires_an_explicit_model_in_provider")
           );
           return;
         }
@@ -1809,13 +1813,13 @@ function OnboardingWizardInner({
           setError(
             adapterModelsError instanceof Error
               ? adapterModelsError.message
-              : "Failed to load OpenCode models."
+              : t("failed_to_load_opencode_models")
           );
           return;
         }
         if (adapterModelsLoading || adapterModelsFetching) {
           setError(
-            "OpenCode models are still loading. Please wait and try again."
+            t("opencode_models_are_still_loading_please_wait_an")
           );
           return;
         }
@@ -1823,8 +1827,8 @@ function OnboardingWizardInner({
         if (!discoveredModels.some((entry) => entry.id === selectedModelId)) {
           setError(
             discoveredModels.length === 0
-              ? "No OpenCode models discovered. Run `opencode models` and authenticate providers."
-              : `Configured OpenCode model is unavailable: ${selectedModelId}`
+              ? t("no_opencode_models_discovered_run_opencode_model")
+              : t("zhComponents.message_b2bde0b995", { value1: selectedModelId })
           );
           return;
         }
@@ -1903,8 +1907,8 @@ function OnboardingWizardInner({
         if (blocksAgentCreate(result)) {
           setError(
             result.status === "fail"
-              ? "The environment test failed. Fix the reported checks before you hire this agent."
-              : "No working authentication was found. Fix the reported checks before you hire this agent.",
+              ? t("the_environment_test_failed_fix_the_reported_che")
+              : t("no_working_authentication_was_found_fix_the_repo"),
           );
           return;
         }
@@ -1928,7 +1932,7 @@ function OnboardingWizardInner({
       if (hire.approval) {
         await approvalsApi.approve(
           hire.approval.id,
-          "Approved during onboarding first-agent setup."
+          t("approved_during_onboarding_first_agent_setup")
         );
         queryClient.invalidateQueries({
           queryKey: queryKeys.approvals.list(createdCompanyId)
@@ -1974,7 +1978,7 @@ function OnboardingWizardInner({
       // strategy + hiring from the planning chat after "Get started".
       setStep(5);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create agent");
+      setError(err instanceof Error ? err.message : t("failed_to_create_agent"));
     } finally {
       hiringAgentRef.current = false;
       setLoading(false);
@@ -2016,14 +2020,14 @@ function OnboardingWizardInner({
       const result = await runAdapterEnvironmentTest(configWithUnset);
       if (result?.status === "fail") {
         setError(
-          "Retried with ANTHROPIC_API_KEY unset in adapter config, but the environment test is still failing."
+          t("retried_with_anthropic_api_key_unset_in_adapter")
         );
       }
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to unset ANTHROPIC_API_KEY and retry."
+          : t("failed_to_unset_anthropic_api_key_and_retry")
       );
     } finally {
       setUnsetAnthropicLoading(false);
@@ -2273,19 +2277,19 @@ function OnboardingWizardInner({
                       center
                       title={
                         step === 3
-                          ? "Create your first agent"
+                          ? t("create_your_first_agent")
                           : step === 4
-                            ? "Connect a model"
-                            : "Let's get started..."
+                            ? t("connect_a_model")
+                            : t("lets_get_started")
                       }
                       // The agent step carries no lede, as the prototype has it:
                       // the capsule and the heading say what this is, and a
                       // sentence restating it only pushes the fields down.
                       lede={
                         step === 3 ? undefined : step === 4 ? (
-                          <>Paperclip works with your subscription or API keys.</>
+                          <>{t("paperclip_works_with_your_subscription_or_api_ke")}</>
                         ) : (
-                          <>{agentName.trim() || "Your first agent"} is ready to work!</>
+                          <>{agentName.trim() || t("your_first_agent")} {t("is_ready_to_work")}</>
                         )
                       }
                     />
@@ -2301,44 +2305,44 @@ function OnboardingWizardInner({
                       <Sparkles className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Tell us about your team</h3>
+                      <h3 className="font-medium">{t("tell_us_about_your_team")}</h3>
                       <p className="text-xs text-muted-foreground">
-                        We'll use this to set up your lead agent and plan which agents to add.
+                        {t("well_use_this_to_set_up_your_lead_agent_and_plan")}
                       </p>
                     </div>
                   </div>
                   <div className="group">
-                    <label className="text-xs text-muted-foreground mb-1 block">What does your team work on?</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t("what_does_your_team_work_on")}</label>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                      placeholder="e.g. We create educational YouTube content about AI"
+                      placeholder={t("e_g_we_create_educational_youtube_content_about")}
                       value={q1}
                       onChange={(e) => setQ1(e.target.value)}
                     />
                   </div>
                   <div className="group">
-                    <label className="text-xs text-muted-foreground mb-1 block">What are your current workflows?</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t("what_are_your_current_workflows")}</label>
                     <textarea
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-60px)"
-                      placeholder="e.g. Manual content creation, spreadsheet tracking, email outreach"
+                      placeholder={t("e_g_manual_content_creation_spreadsheet_tracking")}
                       value={growWorkflows}
                       onChange={(e) => setGrowWorkflows(e.target.value)}
                     />
                   </div>
                   <div className="group">
-                    <label className="text-xs text-muted-foreground mb-1 block">What pain points would you solve with AI?</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t("what_pain_points_would_you_solve_with_ai")}</label>
                     <textarea
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-60px)"
-                      placeholder="e.g. Can't produce content fast enough, no time for social media"
+                      placeholder={t("e_g_cant_produce_content_fast_enough_no_time_for")}
                       value={growPainPoints}
                       onChange={(e) => setGrowPainPoints(e.target.value)}
                     />
                   </div>
                   <div className="group">
-                    <label className="text-xs text-muted-foreground mb-1 block">What would you automate first?</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t("what_would_you_automate_first")}</label>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                      placeholder="e.g. Social media scheduling and content repurposing"
+                      placeholder={t("e_g_social_media_scheduling_and_content_repurpos")}
                       value={growAutomate}
                       onChange={(e) => setGrowAutomate(e.target.value)}
                     />
@@ -2351,17 +2355,17 @@ function OnboardingWizardInner({
                           variant="outline"
                           onClick={() => {
                             const parts = [q1.trim()];
-                            if (growPainPoints.trim()) parts.push(`Key challenge: ${growPainPoints.trim()}`);
-                            if (growAutomate.trim()) parts.push(`First priority: automate ${growAutomate.trim().toLowerCase()}`);
+                            if (growPainPoints.trim()) parts.push(t("zhComponents.message_3b2c3dede0", { value1: growPainPoints.trim() }));
+                            if (growAutomate.trim()) parts.push(t("zhComponents.message_d02b2ee3e0", { value1: growAutomate.trim().toLowerCase() }));
                             setCompanyGoal(parts.join(". "));
                           }}
                         >
-                          Generate mission from answers
+                          {t("generate_mission_from_answers")}
                         </Button>
                       )}
                       {companyGoal.trim() && (
                         <div className="group">
-                          <label className="text-xs text-foreground mb-1 block">Generated mission — edit however you like:</label>
+                          <label className="text-xs text-foreground mb-1 block">{t("generated_mission_edit_however_you_like")}</label>
                           <textarea
                             className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-60px)"
                             value={companyGoal}
@@ -2375,7 +2379,7 @@ function OnboardingWizardInner({
                     className="text-(length:--text-micro) text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => { setOnboardingPath(null); setStep(0); }}
                   >
-                    ← Back to start
+                    {t("back_to_start")}
                   </button>
                 </div>
               )}
@@ -2396,7 +2400,7 @@ function OnboardingWizardInner({
                 <div className="mx-auto w-full space-y-9">
                   <OnboardingHeading
                     center
-                    title="What is the name of your organization?"
+                    title={t("what_is_the_name_of_your_organization")}
                   />
                   {/* The field takes the agent step's measure rather than the
                       column's, so the two questions the wizard asks — name the
@@ -2411,11 +2415,11 @@ function OnboardingWizardInner({
                           : "text-muted-foreground group-focus-within:text-foreground"
                       )}
                     >
-                      Name
+                      {t("name")}
                     </label>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                      placeholder="e.g. Northwind Labs"
+                      placeholder={t("e_g_northwind_labs")}
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       onKeyDown={(e) => {
@@ -2439,9 +2443,9 @@ function OnboardingWizardInner({
                       <Building2 className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Define your mission</h3>
+                      <h3 className="font-medium">{t("define_your_mission")}</h3>
                       <p className="text-xs text-muted-foreground">
-                        Your mission guides everything — your lead agent, who you bring on, and the work <strong>{companyName}</strong> takes on.
+                        {t("your_mission_guides_everything_your_lead_agent_w")} <strong>{companyName}</strong> {t("takes_on")}
                       </p>
                     </div>
                   </div>
@@ -2449,7 +2453,7 @@ function OnboardingWizardInner({
                   {/* Mission path selector */}
                   <div className="space-y-3 pt-3">
                     <label className="text-xs text-foreground block">
-                      How would you like to define your mission?
+                      {t("how_would_you_like_to_define_your_mission")}
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -2462,9 +2466,9 @@ function OnboardingWizardInner({
                         onClick={() => setMissionPath("direct")}
                       >
                         <Sparkles className="h-4 w-4" />
-                        <span className="font-medium">I know my mission</span>
+                        <span className="font-medium">{t("i_know_my_mission")}</span>
                         <span className="text-muted-foreground text-(length:--text-nano)">
-                          Type it directly
+                          {t("type_it_directly")}
                         </span>
                       </button>
                       <button
@@ -2477,9 +2481,9 @@ function OnboardingWizardInner({
                         onClick={() => setMissionPath("questionnaire")}
                       >
                         <ListTodo className="h-4 w-4" />
-                        <span className="font-medium">Help me figure it out</span>
+                        <span className="font-medium">{t("help_me_figure_it_out")}</span>
                         <span className="text-muted-foreground text-(length:--text-nano)">
-                          Answer a few questions
+                          {t("answer_a_few_questions")}
                         </span>
                       </button>
                     </div>
@@ -2497,11 +2501,11 @@ function OnboardingWizardInner({
                               : "text-muted-foreground group-focus-within:text-foreground"
                           )}
                         >
-                          Mission
+                          {t("mission")}
                         </label>
                         <textarea
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-60px)"
-                          placeholder="What is your team trying to achieve?"
+                          placeholder={t("what_is_your_team_trying_to_achieve")}
                           value={companyGoal}
                           onChange={(e) => setCompanyGoal(e.target.value)}
                           autoFocus
@@ -2532,11 +2536,11 @@ function OnboardingWizardInner({
                     <div className="space-y-3 animate-in fade-in duration-200">
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          What does your team work on?
+                          {t("what_does_your_team_work_on")}
                         </label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. We create educational YouTube content about AI"
+                          placeholder={t("e_g_we_create_educational_youtube_content_about")}
                           value={q1}
                           onChange={(e) => setQ1(e.target.value)}
                           autoFocus
@@ -2544,33 +2548,33 @@ function OnboardingWizardInner({
                       </div>
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          Who do you serve?
+                          {t("who_do_you_serve")}
                         </label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. Non-technical professionals curious about AI tools"
+                          placeholder={t("e_g_non_technical_professionals_curious_about_ai")}
                           value={q2}
                           onChange={(e) => setQ2(e.target.value)}
                         />
                       </div>
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          What's your biggest bottleneck right now?
+                          {t("whats_your_biggest_bottleneck_right_now")}
                         </label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. Can't produce content fast enough across multiple channels"
+                          placeholder={t("e_g_cant_produce_content_fast_enough_across_mult")}
                           value={q3}
                           onChange={(e) => setQ3(e.target.value)}
                         />
                       </div>
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          What would success look like in 6 months?
+                          {t("what_would_success_look_like_in_6_months")}
                         </label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. Publishing daily content across 4 platforms with a team of AI agents"
+                          placeholder={t("e_g_publishing_daily_content_across_4_platforms")}
                           value={q4}
                           onChange={(e) => setQ4(e.target.value)}
                         />
@@ -2584,7 +2588,7 @@ function OnboardingWizardInner({
                             setMissionConfirmed(true);
                           }}
                         >
-                          Generate my mission
+                          {t("generate_my_mission")}
                         </Button>
                       )}
                     </div>
@@ -2595,7 +2599,7 @@ function OnboardingWizardInner({
                     <div className="space-y-3 animate-in fade-in duration-200">
                       <div className="group">
                         <label className="text-xs text-foreground mb-1 block">
-                          Here's your draft mission — edit it however you like:
+                          {t("heres_your_draft_mission_edit_it_however_you_lik")}
                         </label>
                         <textarea
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-80px)"
@@ -2608,7 +2612,7 @@ function OnboardingWizardInner({
                         className="text-(length:--text-micro) text-muted-foreground hover:text-foreground transition-colors"
                         onClick={() => { setMissionConfirmed(false); setCompanyGoal(""); }}
                       >
-                        ← Back to questions
+                        {t("back_to_questions")}
                       </button>
                     </div>
                   )}
@@ -2616,7 +2620,7 @@ function OnboardingWizardInner({
                   {/* Confirm mission note */}
                   {companyGoal.trim() && (
                     <p className="text-(length:--text-micro) text-muted-foreground italic">
-                      You can always change your mission later in settings.
+                      {t("you_can_always_change_your_mission_later_in_sett")}
                     </p>
                   )}
                 </div>
@@ -2631,7 +2635,7 @@ function OnboardingWizardInner({
               {step === 3 && (
                 <div className="mx-auto flex w-full flex-col gap-9">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="onboarding-agent-name">Agent name</Label>
+                    <Label htmlFor="onboarding-agent-name">{t("agent_name")}</Label>
                     {/*
                       Filled, not outlined, and the column's full width — the
                       same field the naming step before the hand-off draws.
@@ -2644,7 +2648,7 @@ function OnboardingWizardInner({
                     <Input
                       id="onboarding-agent-name"
                       className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none dark:bg-muted"
-                      placeholder="e.g. Chief of staff, Designer, Ron..."
+                      placeholder={t("e_g_chief_of_staff_designer_ron")}
                       value={agentName}
                       onChange={(e) => setAgentName(e.target.value)}
                       autoFocus
@@ -2672,7 +2676,7 @@ function OnboardingWizardInner({
                         someone marks one rather than the day someone remembers
                         to edit this file. */}
                     <ModelSourceTiles
-                      label="Model source"
+                      label={t("model_source")}
                       sources={recommendedAdapters.map((opt) => ({
                         id: opt.type,
                         label: opt.label,
@@ -2774,10 +2778,10 @@ function OnboardingWizardInner({
                          them. */
                       <p className="text-xs text-muted-foreground">
                         {authSignalUndecided
-                          ? "Checking this source's credentials…"
+                          ? t("checking_this_sources_credentials")
                           : canShowAdapterLogin
-                            ? "This source is already signed in on the managed sandbox."
-                            : "No managed sandbox is available to sign in against yet."}
+                            ? t("this_source_is_already_signed_in_on_the_managed")
+                            : t("no_managed_sandbox_is_available_to_sign_in_again")}
                       </p>
                     )}
                   </ConnectInputCanvas>
@@ -2816,7 +2820,7 @@ function OnboardingWizardInner({
                             style={{ "--sc": "var(--status-task-done)" } as CSSProperties}
                           >
                             <Check className="size-3.5 shrink-0" />
-                            <span className="font-medium">Passed</span>
+                            <span className="font-medium">{t("passed")}</span>
                           </div>
                           {/* Show the checks on a pass too, so the target and the
                               auth signals stay visible before the hire. */}
@@ -2829,10 +2833,9 @@ function OnboardingWizardInner({
                       {shouldSuggestUnsetAnthropicApiKey && (
                         <div className="rounded-md border border-amber-300/60 bg-amber-50/40 px-2.5 py-2 space-y-2">
                           <p className="text-(length:--text-micro) text-amber-900/90 leading-relaxed">
-                            Claude failed while{" "}
+                            {t("claude_failed_while")}{" "}
                             <span className="font-mono">ANTHROPIC_API_KEY</span>{" "}
-                            is set. You can clear it in this adapter config
-                            and retry the probe.
+                            {t("is_set_you_can_clear_it_in_this_adapter_config_a")}
                           </p>
                           <Button
                             size="sm"
@@ -2844,15 +2847,15 @@ function OnboardingWizardInner({
                             onClick={() => void handleUnsetAnthropicApiKey()}
                           >
                             {unsetAnthropicLoading
-                              ? "Retrying..."
-                              : "Unset ANTHROPIC_API_KEY"}
+                              ? t("retrying")
+                              : t("unset_anthropic_api_key")}
                           </Button>
                         </div>
                       )}
 
                       {adapterEnvResult && adapterEnvResult.status === "fail" && (
                         <div className="rounded-md border border-border/70 bg-muted/20 px-2.5 py-2 text-(length:--text-micro) space-y-1.5">
-                          <p className="font-medium">Manual debug</p>
+                          <p className="font-medium">{t("manual_debug")}</p>
                           <p className="text-muted-foreground font-mono break-all">
                             {adapterType === "cursor"
                               ? `${effectiveAdapterCommand} -p --mode ask --output-format json \"Respond with hello.\"`
@@ -2867,8 +2870,8 @@ function OnboardingWizardInner({
                               : `${effectiveAdapterCommand} --print - --output-format stream-json --verbose`}
                           </p>
                           <p className="text-muted-foreground">
-                            Prompt:{" "}
-                            <span className="font-mono">Respond with hello.</span>
+                            {t("prompt")}{" "}
+                            <span className="font-mono">{t("respond_with_hello")}</span>
                           </p>
                           {adapterType === "cursor" ||
                           adapterType === "codex_local" ||
@@ -2876,35 +2879,35 @@ function OnboardingWizardInner({
                           adapterType === "kimi_local" ||
                           adapterType === "opencode_local" ? (
                             <p className="text-muted-foreground">
-                              If auth fails, set{" "}
+                              {t("if_auth_fails_set")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
                                   ? "CURSOR_API_KEY"
                                   : adapterType === "gemini_local"
                                     ? "GEMINI_API_KEY"
                                     : adapterType === "kimi_local"
-                                      ? "KIMI_MODEL_NAME + KIMI_MODEL_API_KEY"
+                                      ? t("kimi_model_name_kimi_model_api_key")
                                     : "OPENAI_API_KEY"}
                               </span>{" "}
-                              in env or run{" "}
+                              {t("in_env_or_run")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
-                                  ? "agent login"
+                                  ? t("agent_login")
                                   : adapterType === "codex_local"
-                                    ? "codex login"
+                                    ? t("codex_login")
                                     : adapterType === "gemini_local"
-                                      ? "gemini auth"
+                                      ? t("gemini_auth")
                                       : adapterType === "kimi_local"
-                                        ? "kimi login"
-                                      : "opencode auth login"}
+                                        ? t("kimi_login")
+                                      : t("opencode_auth_login")}
                               </span>
                               .
                             </p>
                           ) : (
                             <p className="text-muted-foreground">
-                              If login is required, run{" "}
-                              <span className="font-mono">claude login</span>{" "}
-                              and retry.
+                              {t("if_login_is_required_run")}{" "}
+                              <span className="font-mono">{t("claude_login")}</span>{" "}
+                              {t("and_retry")}
                             </p>
                           )}
                         </div>
@@ -2917,8 +2920,8 @@ function OnboardingWizardInner({
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">
                         {adapterType === "openclaw_gateway"
-                          ? "Gateway URL"
-                          : "Webhook URL"}
+                          ? t("gateway_url")
+                          : t("webhook_url")}
                       </label>
                       <input
                         className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm font-mono outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
@@ -2972,17 +2975,17 @@ function OnboardingWizardInner({
                   // prototype's own local flow draws with "Next".
                   primaryLabel={
                     step === 1
-                      ? "Continue"
+                      ? t("continue")
                       : step === 5
-                        ? "Get started"
-                        : "Next"
+                        ? t("get_started")
+                        : t("next")
                   }
                   loadingLabel={
                     step === 1
-                      ? "Creating..."
+                      ? t("creating_28ea76")
                       : step === 4
-                        ? "Connecting..."
-                        : "Launching..."
+                        ? t("connecting")
+                        : t("launching")
                   }
                   loading={step === 3 ? false : loading}
                   primaryDisabled={
@@ -3023,7 +3026,7 @@ function OnboardingWizardInner({
                       disabled={loading}
                     >
                       <ArrowLeft className="h-3.5 w-3.5 mr-1" />
-                      Back
+                      {t("back")}
                     </Button>
                   )}
                 </div>
@@ -3039,7 +3042,7 @@ function OnboardingWizardInner({
                       ) : (
                         <ArrowRight className="h-3.5 w-3.5 mr-1" />
                       )}
-                      {loading ? "Creating..." : "Confirm mission"}
+                      {loading ? t("creating_28ea76") : t("confirm_mission")}
                     </Button>
                   )}
                   {step === 3 && (
@@ -3048,7 +3051,7 @@ function OnboardingWizardInner({
                       disabled={!agentName.trim()}
                       onClick={() => setStep(4)}
                     >
-                      Next
+                      {t("next")}
                       <ArrowRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
                   )}
@@ -3068,7 +3071,7 @@ function OnboardingWizardInner({
                       ) : (
                         <ArrowRight className="h-3.5 w-3.5 mr-1" />
                       )}
-                      {loading ? "Connecting..." : "Connect"}
+                      {loading ? t("connecting") : t("connect")}
                     </Button>
                   )}
                   {step === 5 && (
@@ -3082,7 +3085,7 @@ function OnboardingWizardInner({
                       ) : (
                         <ArrowRight className="h-3.5 w-3.5 mr-1" />
                       )}
-                      {loading ? "Launching..." : "Get started"}
+                      {loading ? t("launching") : t("get_started")}
                     </Button>
                   )}
                 </div>
@@ -3113,12 +3116,13 @@ function AdapterEnvironmentResult({
 }: {
   result: AdapterEnvironmentTestResult;
 }) {
+  const { t } = useTranslation();
   const statusLabel =
     result.status === "pass"
-      ? "Passed"
+      ? t("passed")
       : result.status === "warn"
-      ? "Warnings"
-      : "Failed";
+      ? t("warnings")
+      : t("failed");
   const statusClass =
     result.status === "pass"
       ? "text-green-700 dark:text-green-300 border-green-300 dark:border-green-500/40 bg-green-50 dark:bg-green-500/10"
@@ -3131,7 +3135,7 @@ function AdapterEnvironmentResult({
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium">{statusLabel}</span>
         <span className="opacity-80">
-          {new Date(result.testedAt).toLocaleTimeString()}
+          {new Date(result.testedAt).toLocaleTimeString(i18n.resolvedLanguage ?? i18n.language)}
         </span>
       </div>
       <div className="mt-1.5 space-y-1">
@@ -3141,7 +3145,7 @@ function AdapterEnvironmentResult({
             className="leading-relaxed break-words"
           >
             <span className="font-medium uppercase tracking-wide opacity-80">
-              {check.level}
+              {getDisplayLabel(check.level)}
             </span>
             <span className="mx-1 opacity-60">·</span>
             <span>{check.message}</span>
@@ -3152,7 +3156,7 @@ function AdapterEnvironmentResult({
             )}
             {check.hint && (
               <span className="block opacity-90 break-words">
-                Hint: {check.hint}
+                {t("hint")} {check.hint}
               </span>
             )}
           </div>

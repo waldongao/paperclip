@@ -1,5 +1,6 @@
 import type { HeartbeatRunEvent } from "@paperclipai/shared";
 import type { TranscriptEntry } from "@/adapters";
+import { t } from "@/i18n";
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -193,7 +194,7 @@ function runtimeRequestEntry(input: {
     .map(record)
     .flatMap((field, index) => {
       const name = text(field?.name) ?? `answer_${index + 1}`;
-      const label = text(field?.label) ?? text(field?.name) ?? `Answer ${index + 1}`;
+      const label = text(field?.label) ?? text(field?.name) ?? t("zhComponents.message_9b70827a4b", { value1: index + 1 });
       return name && label
         ? [{ name: name.slice(0, 160), label: label.slice(0, 240), placeholder: text(field?.placeholder)?.slice(0, 500) ?? null }]
         : [];
@@ -213,7 +214,7 @@ function runtimeRequestEntry(input: {
     status,
     prompt: text(request.prompt)
       ?? input.previous?.prompt
-      ?? "Runtime approval requested",
+      ?? t("runtime_approval_requested"),
     choices: choices.length > 0 ? choices : input.previous?.choices ?? [],
     fields: fields.length > 0 ? fields : input.previous?.fields ?? [],
     questionSet: canonicalQuestionSet(request.input)
@@ -242,14 +243,14 @@ function runResultEntry(
     kind: "run_result",
     ts,
     disposition,
-    summary: text(payload.summary) ?? "Run completed",
+    summary: text(payload.summary) ?? t("run_completed"),
     objectiveSatisfied: typeof completion.objectiveSatisfied === "boolean"
       ? completion.objectiveSatisfied
       : null,
     verification: (Array.isArray(payload.verification) ? payload.verification : [])
       .map(record)
       .flatMap((item) => item ? [{
-        commandOrCheck: text(item.commandOrCheck) ?? "Verification",
+        commandOrCheck: text(item.commandOrCheck) ?? t("verification"),
         status: verificationStatus(item.status),
         ...(text(item.detail) ? { detail: text(item.detail)! } : {}),
         ...(text(item.artifactRef) ? { artifactRef: text(item.artifactRef)! } : {}),
@@ -264,7 +265,7 @@ function runResultEntry(
       .slice(0, 64),
     blocker: blocker ? {
       reasonCode: text(blocker.reasonCode) ?? "blocked",
-      unblockAction: text(blocker.unblockAction) ?? "Resolve the blocker to continue.",
+      unblockAction: text(blocker.unblockAction) ?? t("resolve_the_blocker_to_continue"),
       scope: blocker.scope === "task_wide" ? "task_wide" : "current_track",
     } : null,
     artifacts: (Array.isArray(payload.artifacts) ? payload.artifacts : [])
@@ -437,7 +438,7 @@ const PROVIDER_ACTIVITY_PRESENTATIONS = {
   "provider.notice.recorded": {
     schema: "paperclip.provider.notice.v1",
     idKey: "noticeId",
-    name: "Provider notice",
+    name: t("provider_notice"),
     summaryKeys: ["summary"],
   },
 } as const;
@@ -509,12 +510,12 @@ function toolPresentation(payload: Record<string, unknown>): { name: string; inp
   const reportedName = text(payload.name);
   if (transport === "process") {
     return {
-      name: "Bash",
+      name: t("bash"),
       input: reportedName ? { command: reportedName } : { operation: operation ?? "execute" },
     };
   }
   return {
-    name: reportedName ?? operation ?? "Tool",
+    name: reportedName ?? operation ?? t("tool"),
     input: {
       ...(operation ? { operation } : {}),
       ...(text(payload.namespace) ? { namespace: text(payload.namespace) } : {}),
@@ -831,7 +832,7 @@ export function nativeRunEventsToTranscript(events: readonly HeartbeatRunEvent[]
     entries.push({
       kind: "result",
       ...cumulativeUsageSummary,
-      text: "Provider-reported session-cumulative usage; a per-run delta was unavailable.",
+      text: t("provider_reported_session_cumulative_usage_a_per"),
       subtype: "paperclip_runner_session_usage",
       isError: false,
       errors: [],

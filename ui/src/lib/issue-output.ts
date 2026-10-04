@@ -4,6 +4,7 @@ import {
   type IssueWorkProduct,
 } from "@paperclipai/shared";
 
+
 /**
  * Helpers + selectors for the issue Output surface (PAP-10162 Phase 3).
  *

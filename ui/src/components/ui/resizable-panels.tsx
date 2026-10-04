@@ -1,6 +1,7 @@
 import { Group, Panel, Separator } from "react-resizable-panels";
 import type { GroupProps, PanelProps, SeparatorProps } from "react-resizable-panels";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 
 /**
  * Thin design-system wrapper over `react-resizable-panels` (PAP-12962 D2 — the
@@ -22,12 +23,12 @@ export function ResizablePanelGroup({ className, ...props }: GroupProps) {
     />
   );
 }
-ResizablePanelGroup.displayName = "ResizablePanelGroup";
+ResizablePanelGroup.displayName = t("resizablepanelgroup");
 
 export function ResizablePanel({ className, ...props }: PanelProps) {
   return <Panel className={cn("h-full min-h-0 overflow-hidden", className)} {...props} />;
 }
-ResizablePanel.displayName = "ResizablePanel";
+ResizablePanel.displayName = t("resizablepanel");
 
 /**
  * A 1px visible divider centred inside a wider transparent hit target
@@ -58,4 +59,4 @@ export function ResizableHandle({ className, orientation = "horizontal", ...prop
     </Separator>
   );
 }
-ResizableHandle.displayName = "ResizableHandle";
+ResizableHandle.displayName = t("resizablehandle");

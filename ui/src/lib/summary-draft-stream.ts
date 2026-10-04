@@ -1,5 +1,6 @@
 import type { RunLogChunk } from "../adapters";
 
+
 /**
  * Streaming-summary output protocol parser (see the `summarize-status` skill).
  *

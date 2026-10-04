@@ -13,6 +13,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { SidePanelLauncherItem, SidePanelLauncherSection } from "./types";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 export interface SidePanelLauncherProps {
   sections: SidePanelLauncherSection[];
@@ -35,9 +37,10 @@ function LauncherContent({
   emptyMessage,
   panel,
 }: Pick<SidePanelLauncherProps, "sections" | "onSelect" | "placeholder" | "emptyMessage"> & { panel: boolean }) {
+  const { t } = useTranslation();
   return (
     <Command className={cn(panel && "border border-border shadow-sm")}>
-      <CommandInput placeholder={placeholder} aria-label={placeholder} />
+      <CommandInput data-side-panel-resource-search placeholder={placeholder} aria-label={placeholder} />
       <CommandList className={cn(panel && "max-h-none flex-1")}>
         <CommandEmpty>{emptyMessage}</CommandEmpty>
         {sections.map((section, sectionIndex) => (
@@ -47,7 +50,7 @@ function LauncherContent({
               {section.loading ? (
                 <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground" role="status">
                   <Loader2 className="size-4 animate-spin" aria-hidden />
-                  Loading…
+                  {t("loading")}
                 </div>
               ) : null}
               {section.error ? (
@@ -74,7 +77,7 @@ function LauncherContent({
                       </span>
                     ) : null}
                   </span>
-                  {item.alreadyOpen ? <Check className="size-4 text-muted-foreground" aria-label="Already open" /> : null}
+                  {item.alreadyOpen ? <Check className="size-4 text-muted-foreground" aria-label={t("already_open")} /> : null}
                   {item.shortcut ? <CommandShortcut>{item.shortcut}</CommandShortcut> : null}
                 </CommandItem>
               ))}
@@ -93,10 +96,10 @@ export function SidePanelLauncher({
   trigger,
   open: controlledOpen,
   onOpenChange,
-  title = "Open a side panel tab",
-  description = "Choose a view or resource to open.",
-  placeholder = "Search tabs and resources…",
-  emptyMessage = "No matching tabs or resources.",
+  title = t("open_a_side_panel_tab"),
+  description = t("choose_a_view_or_resource_to_open"),
+  placeholder = t("search_tabs_and_resources"),
+  emptyMessage = t("no_matching_tabs_or_resources"),
   className,
 }: SidePanelLauncherProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);

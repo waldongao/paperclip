@@ -8,18 +8,19 @@ import { queryKeys } from "@/lib/queryKeys";
 import { BootstrapPendingPage } from "@/components/BootstrapPendingPage";
 import { PaperclipLoading } from "@/components/AnimatedPaperclipIcon";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "@/i18n";
 
 function NoBoardAccessPage() {
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-xl py-10">
       <Card className="block p-6">
-        <h1 className="text-xl font-semibold">No organization access</h1>
+        <h1 className="text-xl font-semibold">{t("no_organization_access")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This account is signed in, but it does not have an active organization membership or instance-admin access on
-          this Paperclip instance.
+          {t("this_account_is_signed_in_but_it_does_not_have_a")}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Use an organization invite or sign in with an account that already belongs to this org.
+          {t("use_an_organization_invite_or_sign_in_with_an_ac")}
         </p>
       </Card>
     </div>
@@ -27,6 +28,7 @@ function NoBoardAccessPage() {
 }
 
 export function CloudAccessGate() {
+  const { t } = useTranslation();
   const location = useLocation();
   const queryClient = useQueryClient();
   const healthQuery = useQuery({
@@ -85,7 +87,7 @@ export function CloudAccessGate() {
           ? healthQuery.error.message
           : boardAccessQuery.error instanceof Error
             ? boardAccessQuery.error.message
-            : "Failed to load app state"}
+            : t("failed_to_load_app_state")}
       </div>
     );
   }

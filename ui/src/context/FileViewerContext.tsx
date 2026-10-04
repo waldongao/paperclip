@@ -6,6 +6,7 @@ import {
   useWorkspaceFileAvailability,
   type WorkspaceFileAvailabilityRegistry,
 } from "@/hooks/useWorkspaceFileAvailability";
+import { useTranslation } from "@/i18n";
 
 export interface FileViewerUrlState {
   path: string;
@@ -341,9 +342,10 @@ export function useFileViewer(): FileViewerContextValue | null {
 }
 
 export function useRequiredFileViewer(): FileViewerContextValue {
+  const { t } = useTranslation();
   const ctx = useContext(FileViewerContext);
   if (!ctx) {
-    throw new Error("useRequiredFileViewer must be used within a FileViewerProvider");
+    throw new Error(t("userequiredfileviewer_must_be_used_within_a_file"));
   }
   return ctx;
 }

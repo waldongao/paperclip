@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import {
   ensureAgentJwtSecret,
   readAgentJwtSecretFromEnv,
@@ -9,9 +10,9 @@ import type { CheckResult } from "./index.js";
 export function agentJwtSecretCheck(configPath?: string): CheckResult {
   if (readAgentJwtSecretFromEnv(configPath)) {
     return {
-      name: "Agent JWT secret",
+      name: tCli("Agent JWT secret"),
       status: "pass",
-      message: "PAPERCLIP_AGENT_JWT_SECRET is set in environment",
+      message: tCli("PAPERCLIP_AGENT_JWT_SECRET is set in environment"),
     };
   }
 
@@ -20,21 +21,21 @@ export function agentJwtSecretCheck(configPath?: string): CheckResult {
 
   if (fileSecret) {
     return {
-      name: "Agent JWT secret",
+      name: tCli("Agent JWT secret"),
       status: "warn",
-      message: `PAPERCLIP_AGENT_JWT_SECRET is present in ${envPath} but not loaded into environment`,
-      repairHint: `Set the value from ${envPath} in your shell before starting the Paperclip server`,
+      message: tCli("PAPERCLIP_AGENT_JWT_SECRET is present in {{envPath}} but not loaded into environment", { envPath: String(envPath) }),
+      repairHint: tCli("Set the value from {{envPath}} in your shell before starting the Paperclip server", { envPath: String(envPath) }),
     };
   }
 
   return {
-    name: "Agent JWT secret",
+    name: tCli("Agent JWT secret"),
     status: "fail",
-    message: `PAPERCLIP_AGENT_JWT_SECRET missing from environment and ${envPath}`,
+    message: tCli("PAPERCLIP_AGENT_JWT_SECRET missing from environment and {{envPath}}", { envPath: String(envPath) }),
     canRepair: true,
     repair: () => {
       ensureAgentJwtSecret(configPath);
     },
-    repairHint: `Run with --repair to create ${envPath} containing PAPERCLIP_AGENT_JWT_SECRET`,
+    repairHint: tCli("Run with --repair to create {{envPath}} containing PAPERCLIP_AGENT_JWT_SECRET", { envPath: String(envPath) }),
   };
 }

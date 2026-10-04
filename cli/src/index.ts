@@ -1,3 +1,5 @@
+import { configureLocalizedHelp } from "./commands/cli-help.js";
+import { tCli, translateCliDisplayMessage } from "./i18n.js";
 import { Command } from "commander";
 import { warnIfUnsupportedNodeVersion } from "@paperclipai/shared/node-version";
 import { onboard } from "./commands/onboard.js";
@@ -52,44 +54,45 @@ import { registerServiceCommands } from "./commands/service.js";
 import { registerConnectionIntentCommands } from "./commands/client/connections.js";
 
 const program = new Command();
+configureLocalizedHelp(program);
 const DATA_DIR_OPTION_HELP =
-  "Paperclip data directory root (isolates state from ~/.paperclip)";
+  tCli("Paperclip data directory root (isolates state from ~/.paperclip)");
 
 program.enablePositionalOptions();
 
 program
   .name("paperclipai")
-  .description("Paperclip CLI — setup, diagnose, and configure your instance")
-  .version(cliVersion);
+  .description(tCli("Paperclip CLI — setup, diagnose, and configure your instance"))
+  .version(cliVersion, "-V, --version", tCli("Output the version number"));
 
 program
   .command("install")
-  .description("Install Paperclip into a managed per-user CLI store")
-  .option("--canary", "Install the npm canary channel")
-  .option("--version <version>", "Install an exact published npm version")
-  .option("--ref <ref>", "Install a GitHub branch, tag, or commit SHA")
-  .option("--repo <owner/name>", "Override the GitHub repository used with --ref")
-  .option("-y, --yes", "Consent to git-ref code execution and supported shell PATH updates without prompting")
+  .description(tCli("Install Paperclip into a managed per-user CLI store"))
+  .option("--canary", tCli("Install the npm canary channel"))
+  .option("--version <version>", tCli("Install an exact published npm version"))
+  .option("--ref <ref>", tCli("Install a GitHub branch, tag, or commit SHA"))
+  .option("--repo <owner/name>", tCli("Override the GitHub repository used with --ref"))
+  .option("-y, --yes", tCli("Consent to git-ref code execution and supported shell PATH updates without prompting"))
   .action(installCommand);
 
 program
   .command("uninstall")
-  .description("Remove the managed CLI install while preserving user data")
+  .description(tCli("Remove the managed CLI install while preserving user data"))
   .action(uninstallCommand);
 
 program
   .command("update")
   .alias("upgrade")
-  .description("Check, update, or roll back the Paperclip CLI")
-  .option("--latest", "Switch to the latest stable channel")
-  .option("--canary", "Switch to the canary channel")
-  .option("--version <version>", "Install an exact published version")
-  .option("--rollback", "Flip back to the retained previous managed payload")
-  .option("--check", "Check for an available update without applying it")
-  .option("--dry-run", "Print the action without changing anything")
-  .option("--json", "Print machine-readable output")
-  .option("-y, --yes", "Confirm an explicit downgrade")
-  .option("--no-backup", "Skip the pre-update database backup")
+  .description(tCli("Check, update, or roll back the Paperclip CLI"))
+  .option("--latest", tCli("Switch to the latest stable channel"))
+  .option("--canary", tCli("Switch to the canary channel"))
+  .option("--version <version>", tCli("Install an exact published version"))
+  .option("--rollback", tCli("Flip back to the retained previous managed payload"))
+  .option("--check", tCli("Check for an available update without applying it"))
+  .option("--dry-run", tCli("Print the action without changing anything"))
+  .option("--json", tCli("Print machine-readable output"))
+  .option("-y, --yes", tCli("Confirm an explicit downgrade"))
+  .option("--no-backup", tCli("Skip the pre-update database backup"))
   .action(updateCommand);
 
 program.hook("preAction", (_thisCommand, actionCommand) => {
@@ -105,108 +108,108 @@ program.hook("preAction", (_thisCommand, actionCommand) => {
 
 program
   .command("onboard")
-  .description("Interactive first-run setup wizard")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Interactive first-run setup wizard"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
-  .option("--bind <mode>", "Quickstart reachability preset (loopback, lan, tailnet)")
-  .option("-y, --yes", "Accept quickstart defaults (trusted local loopback unless --bind is set) and start immediately", false)
-  .option("--install-service", "Install and start the background service after onboarding")
-  .option("--no-install-service", "Do not install or suggest the background service")
-  .option("--run", "Start Paperclip immediately after saving config", false)
+  .option("--bind <mode>", tCli("Quickstart reachability preset (loopback, lan, tailnet)"))
+  .option("-y, --yes", tCli("Accept quickstart defaults (trusted local loopback unless --bind is set) and start immediately"), false)
+  .option("--install-service", tCli("Install and start the background service after onboarding"))
+  .option("--no-install-service", tCli("Do not install or suggest the background service"))
+  .option("--run", tCli("Start Paperclip immediately after saving config"), false)
   .action(onboard);
 
 program
   .command("doctor")
-  .description("Run diagnostic checks on your Paperclip setup")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Run diagnostic checks on your Paperclip setup"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
-  .option("--repair", "Attempt to repair issues automatically")
+  .option("--repair", tCli("Attempt to repair issues automatically"))
   .alias("--fix")
-  .option("-y, --yes", "Skip repair confirmation prompts")
+  .option("-y, --yes", tCli("Skip repair confirmation prompts"))
   .action(async (opts) => {
     await doctor(opts);
   });
 
 program
   .command("env")
-  .description("Print environment variables for deployment")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Print environment variables for deployment"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
   .action(envCommand);
 
 program
   .command("channels")
-  .description("Show the release channels and which one this install follows")
-  .option("--json", "Machine-readable output")
+  .description(tCli("Show the release channels and which one this install follows"))
+  .option("--json", tCli("Machine-readable output"))
   .action(async (opts) => {
     await channelsCommand(opts);
   });
 
 program
   .command("configure")
-  .description("Update configuration sections")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Update configuration sections"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
-  .option("-s, --section <section>", "Section to configure (llm, database, logging, server, storage, secrets)")
+  .option("-s, --section <section>", tCli("Section to configure (llm, database, logging, server, storage, secrets)"))
   .action(configure);
 
 program
   .command("db:backup")
-  .description("Create a one-off database backup using current config")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Create a one-off database backup using current config"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
-  .option("--dir <path>", "Backup output directory (overrides config)")
-  .option("--retention-days <days>", "Retention window used for pruning", (value) => Number(value))
-  .option("--filename-prefix <prefix>", "Backup filename prefix", "paperclip")
-  .option("--json", "Print backup metadata as JSON")
+  .option("--dir <path>", tCli("Backup output directory (overrides config)"))
+  .option("--retention-days <days>", tCli("Retention window used for pruning"), (value) => Number(value))
+  .option("--filename-prefix <prefix>", tCli("Backup filename prefix"), "paperclip")
+  .option("--json", tCli("Print backup metadata as JSON"))
   .action(async (opts) => {
     await dbBackupCommand(opts);
   });
 
 program
   .command("allowed-hostname")
-  .description("Allow a hostname for authenticated/private mode access")
-  .argument("<host>", "Hostname to allow (for example dotta-macbook-pro)")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Allow a hostname for authenticated/private mode access"))
+  .argument("<host>", tCli("Hostname to allow (for example dotta-macbook-pro)"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
   .action(addAllowedHostname);
 
 const run = program
   .command("run")
-  .description("Bootstrap local setup (onboard + doctor) and run Paperclip")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Bootstrap local setup (onboard + doctor) and run Paperclip"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
-  .option("-i, --instance <id>", "Local instance id (default: default)")
-  .option("--bind <mode>", "On first run, use onboarding reachability preset (loopback, lan, tailnet)")
-  .option("--repair", "Attempt automatic repairs during doctor", true)
-  .option("--no-repair", "Disable automatic repairs during doctor")
-  .option("--force", "Run even when the same instance is active under the service manager")
+  .option("-i, --instance <id>", tCli("Local instance id (default: default)"))
+  .option("--bind <mode>", tCli("On first run, use onboarding reachability preset (loopback, lan, tailnet)"))
+  .option("--repair", tCli("Attempt automatic repairs during doctor"), true)
+  .option("--no-repair", tCli("Disable automatic repairs during doctor"))
+  .option("--force", tCli("Run even when the same instance is active under the service manager"))
   .action(runCommand);
 
 registerRunCommands(run);
 registerServiceCommands(program);
 
-const heartbeat = program.command("heartbeat").description("Heartbeat utilities");
+const heartbeat = program.command("heartbeat").description(tCli("Heartbeat utilities"));
 
 heartbeat
   .command("run")
-  .description("Run one agent heartbeat and stream live logs")
-  .requiredOption("-a, --agent-id <agentId>", "Agent ID to invoke")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Run one agent heartbeat and stream live logs"))
+  .requiredOption("-a, --agent-id <agentId>", tCli("Agent ID to invoke"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
-  .option("--context <path>", "Path to CLI context file")
-  .option("--profile <name>", "CLI context profile name")
-  .option("--api-base <url>", "Base URL for the Paperclip server API")
-  .option("--api-key <token>", "Bearer token for agent-authenticated calls")
+  .option("--context <path>", tCli("Path to CLI context file"))
+  .option("--profile <name>", tCli("CLI context profile name"))
+  .option("--api-base <url>", tCli("Base URL for the Paperclip server API"))
+  .option("--api-key <token>", tCli("Bearer token for agent-authenticated calls"))
   .option(
     "--source <source>",
-    "Invocation source (timer | assignment | on_demand | automation)",
+    tCli("Invocation source (timer | assignment | on_demand | automation)"),
     "on_demand",
   )
-  .option("--trigger <trigger>", "Trigger detail (manual | ping | callback | system)", "manual")
-  .option("--timeout-ms <ms>", "Max time to wait before giving up", "0")
-  .option("--json", "Output raw JSON where applicable")
-  .option("--debug", "Show raw adapter stdout/stderr JSON chunks")
+  .option("--trigger <trigger>", tCli("Trigger detail (manual | ping | callback | system)"), "manual")
+  .option("--timeout-ms <ms>", tCli("Max time to wait before giving up"), "0")
+  .option("--json", tCli("Output raw JSON where applicable"))
+  .option("--debug", tCli("Show raw adapter stdout/stderr JSON chunks"))
   .action(heartbeatRun);
 
 registerContextCommands(program);
@@ -240,16 +243,16 @@ registerWorktreeCommands(program);
 registerEnvLabCommands(program);
 registerPluginCommands(program);
 
-const auth = program.command("auth").description("Authentication and bootstrap utilities");
+const auth = program.command("auth").description(tCli("Authentication and bootstrap utilities"));
 
 auth
   .command("bootstrap-ceo")
-  .description("Create a one-time bootstrap invite URL for first instance admin")
-  .option("-c, --config <path>", "Path to config file")
+  .description(tCli("Create a one-time bootstrap invite URL for first instance admin"))
+  .option("-c, --config <path>", tCli("Path to config file"))
   .option("-d, --data-dir <path>", DATA_DIR_OPTION_HELP)
-  .option("--force", "Create new invite even if admin already exists", false)
-  .option("--expires-hours <hours>", "Invite expiration window in hours", (value) => Number(value))
-  .option("--base-url <url>", "Public base URL used to print invite link")
+  .option("--force", tCli("Create new invite even if admin already exists"), false)
+  .option("--expires-hours <hours>", tCli("Invite expiration window in hours"), (value) => Number(value))
+  .option("--base-url <url>", tCli("Public base URL used to print invite link"))
   .action(bootstrapCeoInvite);
 
 registerClientAuthCommands(auth);
@@ -262,7 +265,7 @@ async function main(): Promise<void> {
     await program.parseAsync();
   } catch (err) {
     failed = true;
-    console.error(err instanceof Error ? err.message : String(err));
+    console.error(translateCliDisplayMessage(err instanceof Error ? err.message : String(err)));
   } finally {
     await flushTelemetry();
   }

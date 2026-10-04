@@ -1,3 +1,4 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useEffect, useState } from "react";
 import { Link } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import { PageSkeleton } from "../components/PageSkeleton";
 import { ChevronRight, GitBranch } from "lucide-react";
 import { cn } from "../lib/utils";
 import { agentStatusDot, agentStatusDotDefault } from "../lib/status-colors";
+import { useTranslation } from "@/i18n";
 
 function OrgTree({
   nodes,
@@ -74,7 +76,7 @@ function OrgTreeNode({
           )}
         />
         <span className="font-medium flex-1">{node.name}</span>
-        <span className="text-xs text-muted-foreground">{node.role}</span>
+        <span className="text-xs text-muted-foreground">{getDisplayLabel(node.role, "role")}</span>
         <StatusBadge status={node.status} />
       </Link>
       {hasChildren && expanded && (
@@ -85,11 +87,12 @@ function OrgTreeNode({
 }
 
 export function Org() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Org Chart" }]);
+    setBreadcrumbs([{ label: t("org_chart") }]);
   }, [setBreadcrumbs]);
 
   const { data, isLoading, error } = useQuery({
@@ -99,7 +102,7 @@ export function Org() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={GitBranch} message="Select an organization to view org chart." />;
+    return <EmptyState icon={GitBranch} message={t("select_an_organization_to_view_org_chart")} />;
   }
 
   if (isLoading) {
@@ -113,7 +116,7 @@ export function Org() {
       {data && data.length === 0 && (
         <EmptyState
           icon={GitBranch}
-          message="No agents in the organization. Create agents to build your org chart."
+          message={t("no_agents_in_the_organization_create_agents_to_b")}
         />
       )}
 

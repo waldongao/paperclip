@@ -70,6 +70,7 @@ import type {
 } from "@paperclipai/shared";
 import { api } from "./client";
 
+
 /**
  * Tools & Access API client (Phase 6, PAP-10389).
  *

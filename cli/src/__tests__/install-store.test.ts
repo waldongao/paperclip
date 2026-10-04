@@ -105,20 +105,27 @@ describe("managed install store", () => {
   });
 
   it("writes a stable shim with the validated runtime and custom store path", () => {
-    writeManagedShim(paths);
-    const shim = fs.readFileSync(paths.shimPath, "utf8");
-    expect(shim).toContain(process.execPath);
-    expect(shim).toContain(paths.currentPath);
-    expect(shim).not.toContain("PAPERCLIP_HOME");
-    expect(fs.statSync(paths.shimPath).mode & 0o777).toBe(0o755);
+    // This fixture asserts normal executable creation and rc preservation
+    // permissions independently of a developer shell's private umask.
+    const previousUmask = process.umask(0o022);
+    try {
+      writeManagedShim(paths);
+      const shim = fs.readFileSync(paths.shimPath, "utf8");
+      expect(shim).toContain(process.execPath);
+      expect(shim).toContain(paths.currentPath);
+      expect(shim).not.toContain("PAPERCLIP_HOME");
+      expect(fs.statSync(paths.shimPath).mode & 0o777).toBe(0o755);
 
-    const rcPath = path.join(root, "home", ".bashrc");
-    expect(addManagedPathBlock(rcPath)).toBe(true);
-    expect(addManagedPathBlock(rcPath)).toBe(false);
-    fs.chmodSync(rcPath, 0o640);
-    expect(removeManagedPathBlock(rcPath)).toBe(true);
-    expect(fs.readFileSync(rcPath, "utf8")).not.toContain("paperclipai managed PATH");
-    expect(fs.statSync(rcPath).mode & 0o777).toBe(0o640);
+      const rcPath = path.join(root, "home", ".bashrc");
+      expect(addManagedPathBlock(rcPath)).toBe(true);
+      expect(addManagedPathBlock(rcPath)).toBe(false);
+      fs.chmodSync(rcPath, 0o640);
+      expect(removeManagedPathBlock(rcPath)).toBe(true);
+      expect(fs.readFileSync(rcPath, "utf8")).not.toContain("paperclipai managed PATH");
+      expect(fs.statSync(rcPath).mode & 0o777).toBe(0o640);
+    } finally {
+      process.umask(previousUmask);
+    }
   });
 
   it("rejects marker substrings that are not the exact managed shim format", () => {
