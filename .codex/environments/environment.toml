@@ -1,0 +1,35 @@
+version = 1
+name = "Paperclip local development"
+
+[setup]
+script = "bash scripts/local-env.sh setup"
+
+[[actions]]
+name = "启动 Paperclip"
+icon = "tool"
+command = "bash scripts/local-env.sh start"
+
+[[actions]]
+name = "停止 Paperclip"
+icon = "tool"
+command = "bash scripts/local-env.sh stop"
+
+[[actions]]
+name = "重启 Paperclip"
+icon = "tool"
+command = "bash scripts/local-env.sh restart"
+
+[[actions]]
+name = "检查环境"
+icon = "tool"
+command = "bash scripts/local-env.sh status"
+
+[[actions]]
+name = "准备依赖"
+icon = "tool"
+command = "bash scripts/local-env.sh setup"
+
+[[actions]]
+name = "查看日志"
+icon = "tool"
+command = "bash scripts/local-env.sh logs"
