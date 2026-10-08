@@ -32,9 +32,11 @@ Git worktree 使用产品原有的独立工作区配置流程。
 - `codex/complete-chinese-localization`：当前运行和维护的中文化分支。
 - `codex/local-environment`：保留 2026-10-04 的本机运行环境提交。
 - `codex/archive/onboarding-fix-2026-09-01`：保留历史引导修复；该修复的逻辑已包含在当前代码中。
+- `codex/private-backup/before-remote-push-2026-10-08`：发布前的原始提交备份，仅保留本地。
 
 升级时从中文化分支建立独立 Git worktree，在其中同步上游、处理冲突并验证。
 当前主检出目录运行本机服务，避免在其中直接切换分支或合并上游。
 提交保存到当前开发分支。远端 `origin` 指向 Paperclip 官方仓库，用于获取上游更新；
 `personal` 指向 [waldongao/paperclip](https://github.com/waldongao/paperclip)，默认推送到该个人仓库。
-中文化、本机环境和历史归档分支均跟踪 `personal` 上的同名分支；`master` 继续跟踪 `origin/master`。
+中文化和本机环境分支跟踪 `personal` 上的同名分支；`master` 继续跟踪 `origin/master`。
+历史引导归档和发布前备份仅保留本地。旧引导归档的上传需要当前 GitHub 凭据未包含的 `workflow` 权限。
