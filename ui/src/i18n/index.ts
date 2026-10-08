@@ -37,31 +37,37 @@ function currentLocale() {
  * than in the component means any caller — switcher, deep link, tests — leaves
  * the session in the same state.
  *
- * The page is reloaded afterwards. Several hundred strings live in module-level
+ * Confirm the reload before changing the preference so callers can cancel and
+ * save any pending edits. Several hundred strings live in module-level
  * constants (select options, status filters, column definitions) that call `t()`
  * once at import time; without a reload those would keep the language the tab
  * started in and the UI would come out half-translated. Reloading re-evaluates
  * them against the stored choice, so every surface agrees. First load still
  * detects the browser language with no reload.
  */
-export function setLocale(locale: string) {
+export function setLocale(locale: string): boolean {
   if (!supportedLocales.includes(locale)) {
     console.warn(`Ignoring unsupported locale: ${locale}`);
-    return;
+    return false;
   }
-  if (locale === currentLocale()) return;
+  if (locale === currentLocale()) return true;
+
+  if (typeof window !== "undefined" && !window.confirm(t("settings.language.confirmReload"))) {
+    return false;
+  }
 
   storeLocale(locale);
   applyDocumentLocale(locale);
 
   if (typeof window !== "undefined") {
     window.location.reload();
-    return;
+    return true;
   }
 
   void i18n.changeLanguage(locale).catch((error: unknown) => {
     console.error("Failed to change language", error);
   });
+  return true;
 }
 
 function subscribeToLocale(onChange: () => void) {

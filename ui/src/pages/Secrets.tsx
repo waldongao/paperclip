@@ -4655,7 +4655,7 @@ function SecretDetailsTab({
   return (
     <dl className="divide-y divide-border/60 text-xs">
       <DetailRow label={t("description")}>
-        <span>{secret.description != null ? translateDisplayMessage(secret.description) : <span className="text-muted-foreground">—</span>}</span>
+        <span>{secret.description ?? <span className="text-muted-foreground">—</span>}</span>
       </DetailRow>
       <DetailRow label={t("provided_by")}>{t("organization")}</DetailRow>
       <DetailRow label={t("custody")}>{modeLabel(secret.managedMode)}</DetailRow>

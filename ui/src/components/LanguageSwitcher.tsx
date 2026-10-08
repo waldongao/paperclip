@@ -35,7 +35,7 @@ export function LanguageSwitcher({ className, id, variant = "select", onAfterCha
   const [expanded, setExpanded] = useState(false);
 
   function handleSelect(next: string) {
-    if (next !== locale) setLocale(next);
+    if (next !== locale && !setLocale(next)) return;
     setExpanded(false);
     onAfterChange?.();
   }

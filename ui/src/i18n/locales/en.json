@@ -679,6 +679,7 @@
     "language": {
       "label": "Language",
       "change": "Change language",
+      "confirmReload": "Changing language reloads this page. Unsaved changes may be lost. Cancel to save them first, or continue?",
       "description": "Choose the language used across the interface. Untranslated text stays in English."
     },
     "nav": {
