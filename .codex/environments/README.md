@@ -35,4 +35,6 @@ Git worktree 使用产品原有的独立工作区配置流程。
 
 升级时从中文化分支建立独立 Git worktree，在其中同步上游、处理冲突并验证。
 当前主检出目录运行本机服务，避免在其中直接切换分支或合并上游。
-提交保存到当前开发分支；推送远端时先确定用户自己的远端仓库。
+提交保存到当前开发分支。远端 `origin` 指向 Paperclip 官方仓库，用于获取上游更新；
+`personal` 指向 [waldongao/paperclip](https://github.com/waldongao/paperclip)，默认推送到该个人仓库。
+中文化、本机环境和历史归档分支均跟踪 `personal` 上的同名分支；`master` 继续跟踪 `origin/master`。
