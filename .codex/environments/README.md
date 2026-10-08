@@ -25,3 +25,14 @@
 
 Codex 操作定义在本目录的 `environment.toml`。本机脚本仅管理主检出目录；
 Git worktree 使用产品原有的独立工作区配置流程。
+
+## 本地分支维护
+
+- `master`：跟踪 `origin/master`，只保存上游主线。
+- `codex/complete-chinese-localization`：当前运行和维护的中文化分支。
+- `codex/local-environment`：保留 2026-10-04 的本机运行环境提交。
+- `codex/archive/onboarding-fix-2026-09-01`：保留历史引导修复；该修复的逻辑已包含在当前代码中。
+
+升级时从中文化分支建立独立 Git worktree，在其中同步上游、处理冲突并验证。
+当前主检出目录运行本机服务，避免在其中直接切换分支或合并上游。
+提交保存到当前开发分支；推送远端时先确定用户自己的远端仓库。
