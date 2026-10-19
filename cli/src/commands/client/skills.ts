@@ -19,6 +19,7 @@ import {
 import { readFile } from "node:fs/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
+import { ApiRequestError } from "../../client/http.js";
 import {
   addCommonClientOptions,
   formatInlineRecord,
@@ -680,7 +681,7 @@ async function updateAllCompanySkills(ctx: ResolvedClientContext, opts: SkillUpd
         skillRef: row.skill.key,
         action: "skipped",
         status: row.status,
-        reason: row.status.reason ?? tCli("Update checks are not supported for this skill."),
+        reason: row.status.reason ?? "Update checks are not supported for this skill.",
       });
       continue;
     }
@@ -689,7 +690,7 @@ async function updateAllCompanySkills(ctx: ResolvedClientContext, opts: SkillUpd
         skillRef: row.skill.key,
         action: "skipped",
         status: row.status,
-        reason: tCli("Already current."),
+        reason: "Already current.",
       });
       continue;
     }
@@ -709,7 +710,7 @@ async function updateAllCompanySkills(ctx: ResolvedClientContext, opts: SkillUpd
         skillRef: row.skill.key,
         action: "failed",
         status: row.status,
-        reason: err instanceof Error ? err.message : String(err),
+        reason: err instanceof ApiRequestError ? err.rawMessage : err instanceof Error ? err.message : String(err),
       });
     }
   }

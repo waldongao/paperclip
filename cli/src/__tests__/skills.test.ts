@@ -372,6 +372,64 @@ describe("skills CLI commands", () => {
     );
   });
 
+  it.each(["en", "zh-CN"])("preserves raw bulk-update reasons in %s JSON output", async (locale) => {
+    process.env.PAPERCLIP_LOCALE = locale;
+    const skills = [
+      skill({ id: "unsupported", key: "test/unsupported" }),
+      skill({ id: "current", key: "test/current" }),
+      skill({ id: "failed", key: "test/failed" }),
+    ];
+    const statuses = [
+      { supported: false, hasUpdate: false },
+      { supported: true, hasUpdate: false },
+      { supported: true, hasUpdate: true },
+    ];
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(skills))
+      .mockResolvedValueOnce(jsonResponse(statuses[0]))
+      .mockResolvedValueOnce(jsonResponse(statuses[1]))
+      .mockResolvedValueOnce(jsonResponse(statuses[2]))
+      .mockResolvedValueOnce(jsonResponse({ error: "Issue not found" }, 404));
+
+    await runCommand([
+      "skills", "update", "--all", "--company-id", "company-1",
+      "--api-base", "http://paperclip.test", "--api-key", "token", "--json",
+    ]);
+
+    expect(JSON.parse(String(logSpy.mock.calls[0]?.[0]))).toEqual([
+      { skillRef: "test/unsupported", action: "skipped", status: statuses[0], reason: "Update checks are not supported for this skill." },
+      { skillRef: "test/current", action: "skipped", status: statuses[1], reason: "Already current." },
+      { skillRef: "test/failed", action: "failed", status: statuses[2], reason: "Issue not found" },
+    ]);
+  });
+
+  it.each([
+    { locale: "en", expectedReasons: ["Update checks are not supported for this skill.", "Already current.", "Issue not found"] },
+    { locale: "zh-CN", expectedReasons: ["此技能不支持检查更新。", "已是最新版本。", "找不到任务"] },
+  ])("localizes bulk-update reasons for the $locale terminal", async ({ locale, expectedReasons }) => {
+    process.env.PAPERCLIP_LOCALE = locale;
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse([
+        skill({ id: "unsupported", key: "test/unsupported" }),
+        skill({ id: "current", key: "test/current" }),
+        skill({ id: "failed", key: "test/failed" }),
+      ]))
+      .mockResolvedValueOnce(jsonResponse({ supported: false, hasUpdate: false }))
+      .mockResolvedValueOnce(jsonResponse({ supported: true, hasUpdate: false }))
+      .mockResolvedValueOnce(jsonResponse({ supported: true, hasUpdate: true }))
+      .mockResolvedValueOnce(jsonResponse({ error: "Issue not found" }, 404));
+
+    await runCommand([
+      "skills", "update", "--all", "--company-id", "company-1",
+      "--api-base", "http://paperclip.test", "--api-key", "token",
+    ]);
+
+    expect(logSpy.mock.calls).toHaveLength(3);
+    for (const [index, reason] of expectedReasons.entries()) {
+      expect(String(logSpy.mock.calls[index]?.[0])).toContain(reason);
+    }
+  });
+
   it("audits installed skill bytes through the server", async () => {
     const audit = {
       skillId: "11111111-1111-1111-1111-111111111111",

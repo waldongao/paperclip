@@ -17,6 +17,7 @@ const serializedShardDurations = loadShardDurations(
 const serverRoot = path.join(repoRoot, "server");
 const serverSrcDir = path.join(repoRoot, "server", "src");
 const serverTestsDir = path.join(repoRoot, "server", "src", "__tests__");
+// Keep this list aligned with every non-server project in vitest.config.ts.
 const nonServerProjects = [
   "@paperclipai/shared",
   "@paperclipai/skills-catalog",
@@ -24,9 +25,14 @@ const nonServerProjects = [
   "@paperclipai/adapter-utils",
   "@paperclipai/adapter-claude-local",
   "@paperclipai/adapter-codex-local",
+  "@paperclipai/adapter-cursor-cloud",
+  "@paperclipai/adapter-cursor-local",
+  "@paperclipai/adapter-gemini-local",
   "@paperclipai/adapter-grok-local",
+  "@paperclipai/adapter-kimi-local",
   "@paperclipai/adapter-openclaw-gateway",
   "@paperclipai/adapter-opencode-local",
+  "@paperclipai/adapter-pi-local",
   "@paperclipai/plugin-daytona",
   "@paperclipai/plugin-sdk",
   "@paperclipai/create-paperclip-plugin",
@@ -451,7 +457,9 @@ if (options.dryRun) {
             ? generalWorkspacesAProjects
             : options.group === generalWorkspacesBGroupName
               ? generalWorkspacesBProjects
-              : null,
+              : options.group === null && options.mode !== serializedModeName
+                ? nonServerProjects
+                : null,
         workspacesVitestShard:
           options.group === generalWorkspacesAGroupName &&
           options.shardCount !== null &&

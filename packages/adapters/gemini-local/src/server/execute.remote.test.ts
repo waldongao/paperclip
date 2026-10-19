@@ -246,15 +246,28 @@ describe("gemini remote execution", () => {
         stats: { input_tokens: 1, cached_input_tokens: 0, output_tokens: 1 },
       }),
     ].join("\n");
-    const runnerExecute = vi.fn(async (input: { command: string; args?: string[] }) => ({
-      exitCode: 0,
-      signal: null,
-      timedOut: false,
-      stdout: input.command === "gemini" ? geminiOutput : "",
-      stderr: "",
-      pid: 321,
-      startedAt: new Date().toISOString(),
-    }));
+    // A valid empty tar archive stands in for the unchanged sandbox workspace.
+    // Managed-runtime reads query its size before retrieving a base64 chunk.
+    const workspaceArchive = Buffer.alloc(1024);
+    const runnerExecute = vi.fn(async (input: { command: string; args?: string[] }) => {
+      const script = input.args?.[1] ?? "";
+      const stdout = input.command === "gemini"
+        ? geminiOutput
+        : script.startsWith("wc -c < ")
+          ? `${workspaceArchive.byteLength}\n`
+          : script.startsWith("dd if=")
+            ? workspaceArchive.toString("base64")
+            : "";
+      return {
+        exitCode: 0,
+        signal: null,
+        timedOut: false,
+        stdout,
+        stderr: "",
+        pid: 321,
+        startedAt: new Date().toISOString(),
+      };
+    });
 
     await execute({
       runId: "run-sandbox-1",

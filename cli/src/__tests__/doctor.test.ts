@@ -1,10 +1,14 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { doctor } from "../commands/doctor.js";
 import { writeConfig } from "../config/store.js";
 import type { PaperclipConfig } from "../config/schema.js";
+import { checkPort } from "../utils/net.js";
+
+// Doctor repair tests must not depend on host port occupancy or socket permissions.
+vi.mock("../utils/net.js", () => ({ checkPort: vi.fn() }));
 
 const ORIGINAL_ENV = { ...process.env };
 
@@ -76,6 +80,7 @@ function createTempConfig(): string {
 
 describe("doctor", () => {
   beforeEach(() => {
+    vi.mocked(checkPort).mockReset().mockResolvedValue({ available: true });
     process.env = { ...ORIGINAL_ENV };
     delete process.env.PAPERCLIP_AGENT_JWT_SECRET;
     delete process.env.PAPERCLIP_SECRETS_MASTER_KEY;
@@ -97,6 +102,21 @@ describe("doctor", () => {
 
     expect(summary.failed).toBe(0);
     expect(summary.warned).toBe(0);
+    expect(process.env.PAPERCLIP_AGENT_JWT_SECRET).toBeTruthy();
+  });
+
+  it("preserves unrelated port warnings after repairing other checks", async () => {
+    vi.mocked(checkPort).mockResolvedValue({ available: false, error: "listen EPERM" });
+
+    const summary = await doctor({
+      config: createTempConfig(),
+      repair: true,
+      yes: true,
+    });
+
+    expect(summary.failed).toBe(0);
+    expect(summary.warned).toBe(1);
+    expect(checkPort).toHaveBeenCalledWith(3199);
     expect(process.env.PAPERCLIP_AGENT_JWT_SECRET).toBeTruthy();
   });
 });

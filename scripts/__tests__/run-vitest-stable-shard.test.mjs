@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+
+import rootVitestConfig from "../../vitest.config.ts";
 
 import {
   defaultSuiteWeight,
@@ -35,6 +38,31 @@ function dryRunJson(args) {
 
 const SHARD_COUNT = 5;
 const SERIALIZED_SHARD_COUNT = 5;
+
+test("the default runner covers every configured non-server project exactly once", () => {
+  const expectedProjects = rootVitestConfig.test.projects
+    .filter((directory) => directory !== "server")
+    .map((directory) => JSON.parse(readFileSync(path.join(repoRoot, directory, "package.json"), "utf8")).name)
+    .sort();
+
+  for (const args of [[], ["--mode", "general"]]) {
+    const plan = dryRunJson(args);
+    assert.deepEqual(
+      [...(plan.workspaceProjects ?? [])].sort(),
+      expectedProjects,
+      "default and general runs must include every non-server project from vitest.config.ts",
+    );
+  }
+
+  const laneProjects = ["general-workspaces-a", "general-workspaces-b"].flatMap((group) =>
+    dryRunJson(["--mode", "general", "--group", group]).workspaceProjects,
+  );
+  assert.deepEqual(
+    laneProjects.sort(),
+    expectedProjects,
+    "workspace lanes must partition all configured non-server projects without omissions or duplicates",
+  );
+});
 
 
 test("the serialized shards form a complete, non-overlapping partition", () => {

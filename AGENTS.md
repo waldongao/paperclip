@@ -43,7 +43,7 @@ submission.
 
 ## 4. Dev Setup (Auto DB)
 
-Use embedded PGlite in dev by leaving `DATABASE_URL` unset.
+Use embedded PostgreSQL in dev by leaving `DATABASE_URL` unset.
 
 ```sh
 pnpm install
@@ -62,12 +62,13 @@ curl http://localhost:3100/api/health
 curl http://localhost:3100/api/companies
 ```
 
-Reset local dev DB:
+The default database lives in `~/.paperclip/instances/default/db`. A custom
+`PAPERCLIP_HOME` or `PAPERCLIP_INSTANCE_ID` changes that location. Stop the
+matching instance and back up its database, storage, and secrets key before
+resetting data. See `doc/DATABASE.md` for the current database workflow.
 
-```sh
-rm -rf data/pglite
-pnpm dev
-```
+For this checkout's machine-specific setup and startup commands, see
+`.codex/environments/README.md` and `scripts/local-env.sh`.
 
 ## 5. Core Engineering Rules
 
