@@ -1,0 +1,35 @@
+version = 1
+name = "Paperclip stable maintenance"
+
+[setup]
+script = "bash scripts/local-env.sh setup"
+
+[[actions]]
+name = "启动稳定版"
+icon = "tool"
+command = '"$HOME/.local/bin/paperclip-stable" service start --instance stable-live'
+
+[[actions]]
+name = "停止 Paperclip"
+icon = "tool"
+command = '"$HOME/.local/bin/paperclip-stable" service stop --instance stable-live'
+
+[[actions]]
+name = "重启 Paperclip"
+icon = "tool"
+command = '"$HOME/.local/bin/paperclip-stable" service restart --instance stable-live'
+
+[[actions]]
+name = "检查环境"
+icon = "tool"
+command = '"$HOME/.local/bin/paperclip-stable" doctor'
+
+[[actions]]
+name = "准备依赖"
+icon = "tool"
+command = "bash scripts/local-env.sh setup"
+
+[[actions]]
+name = "查看服务与日志位置"
+icon = "tool"
+command = '"$HOME/.local/bin/paperclip-stable" service status --instance stable-live'

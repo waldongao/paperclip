@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+
+import rootVitestConfig from "../../vitest.config.ts";
+import serverVitestConfig from "../../server/vitest.config.ts";
 
 import {
   defaultSuiteWeight,
@@ -51,6 +54,52 @@ function dryRunJson(args, envOverrides = {}) {
 
 const SHARD_COUNT = 12;
 const SERIALIZED_SHARD_COUNT = 9;
+
+test("server lanes cover every source and script suite in the server Vitest includes", () => {
+  assert.deepEqual(serverVitestConfig.test.include, ["src/**/*.test.ts", "scripts/**/*.test.mjs"],
+    "update this coverage check whenever the server's Vitest includes change");
+  const expected = [
+    ...readdirSync(path.join(repoRoot, "server", "src"), { recursive: true })
+      .filter((file) => file.endsWith(".test.ts"))
+      .map((file) => `server/src/${file.split(path.sep).join("/")}`),
+    ...readdirSync(path.join(repoRoot, "server", "scripts"), { recursive: true })
+      .filter((file) => file.endsWith(".test.mjs"))
+      .map((file) => `server/scripts/${file.split(path.sep).join("/")}`),
+  ];
+  const general = dryRunJson([
+    "--mode", "general", "--group", "general-server", "--shard-index", "0", "--shard-count", "1",
+  ]).selectedGeneralServerSuites;
+  const serialized = dryRunJson([
+    "--mode", "serialized", "--shard-index", "0", "--shard-count", "1",
+  ]).selectedSerializedSuites;
+  assert.deepEqual([...general, ...serialized].sort(), expected.sort(),
+    "server lanes must partition all configured files, including suites outside __tests__");
+});
+
+test("the default runner covers every configured non-server project exactly once", () => {
+  const expectedProjects = rootVitestConfig.test.projects
+    .filter((directory) => directory !== "server")
+    .map((directory) => JSON.parse(readFileSync(path.join(repoRoot, directory, "package.json"), "utf8")).name)
+    .sort();
+
+  for (const args of [[], ["--mode", "general"]]) {
+    const plan = dryRunJson(args);
+    assert.deepEqual(
+      [...(plan.workspaceProjects ?? [])].sort(),
+      expectedProjects,
+      "default and general runs must include every non-server project from vitest.config.ts",
+    );
+  }
+
+  const laneProjects = ["general-workspaces-a", "general-workspaces-b", "general-workspaces-c"].flatMap((group) =>
+    dryRunJson(["--mode", "general", "--group", group]).workspaceProjects,
+  );
+  assert.deepEqual(
+    laneProjects.sort(),
+    expectedProjects,
+    "workspace lanes must partition all configured non-server projects without omissions or duplicates",
+  );
+});
 
 
 test("the serialized shards form a complete, non-overlapping partition", () => {

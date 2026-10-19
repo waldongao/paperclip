@@ -1,6 +1,8 @@
+import { t } from "@/i18n";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n";
 
 export interface FilterValue {
   key: string;
@@ -15,6 +17,7 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ filters, onRemove, onClear }: FilterBarProps) {
+  const { t } = useTranslation();
   if (filters.length === 0) return null;
 
   return (
@@ -32,7 +35,7 @@ export function FilterBar({ filters, onRemove, onClear }: FilterBarProps) {
         </Badge>
       ))}
       <Button variant="ghost" size="sm" className="text-xs h-6" onClick={onClear}>
-        Clear all
+        {t("clear_all")}
       </Button>
     </div>
   );

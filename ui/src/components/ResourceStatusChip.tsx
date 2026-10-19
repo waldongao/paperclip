@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { brandChipBadge, type BrandChipColor } from "@/lib/status-colors";
+import { t } from "@/i18n";
 
 /**
  * The load-bearing visual grammar for the built-in bundle status panel
@@ -33,40 +34,40 @@ interface VariantSpec {
 }
 
 const VARIANTS: Record<ResourceStatusVariant, VariantSpec> = {
-  ready: { color: "green", glyph: "●", label: "Ready", title: "Materialized and matches the shipped default" },
-  needs_setup: { color: "amber", glyph: "⚠", label: "Needs setup", title: "Present but not usable yet" },
-  missing: { color: "amber", glyph: "⚠", label: "Missing", title: "Expected resource absent; reconcile will recreate it" },
-  error: { color: "red", glyph: "✕", label: "Error", title: "Failed to load or reconcile" },
+  ready: { color: "green", glyph: "●", label: t("ready"), title: t("materialized_and_matches_the_shipped_default") },
+  needs_setup: { color: "amber", glyph: "⚠", label: t("needs_setup"), title: t("present_but_not_usable_yet") },
+  missing: { color: "amber", glyph: "⚠", label: t("missing"), title: t("expected_resource_absent_reconcile_will_recreate") },
+  error: { color: "red", glyph: "✕", label: t("error"), title: t("failed_to_load_or_reconcile") },
   update_available: {
     color: "blue",
     glyph: "↑",
-    label: "Update available",
-    title: "Unedited — a newer shipped default can be applied",
+    label: t("update_available"),
+    title: t("unedited_a_newer_shipped_default_can_be_applied"),
   },
   drifted: {
     color: "gray",
     glyph: "✎",
-    label: "Drifted",
-    title: "You've edited this; your changes are kept, not overwritten",
+    label: t("drifted"),
+    title: t("youve_edited_this_your_changes_are_kept_not_over"),
   },
   schedule_off: {
     color: "gray",
     glyph: "◌",
-    label: "Schedule off",
-    title: "No background work runs until you enable it — costs zero tokens",
+    label: t("schedule_off"),
+    title: t("no_background_work_runs_until_you_enable_it_cost"),
   },
-  schedule_on: { color: "green", glyph: "●", label: "Weekly", title: "Runs on the weekly schedule" },
+  schedule_on: { color: "green", glyph: "●", label: t("weekly"), title: t("runs_on_the_weekly_schedule") },
   pending_approval: {
     color: "amber",
     glyph: "⚠",
-    label: "Pending approval",
-    title: "Waiting on board hire approval before it can run",
+    label: t("pending_approval"),
+    title: t("waiting_on_board_hire_approval_before_it_can_run"),
   },
   proposal_pending: {
     color: "blue",
     glyph: "↑",
-    label: "Proposal pending",
-    title: "A proposed update is waiting for your review",
+    label: t("proposal_pending"),
+    title: t("a_proposed_update_is_waiting_for_your_review"),
   },
 };
 

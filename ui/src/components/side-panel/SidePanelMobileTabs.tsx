@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,16 +43,16 @@ export function SidePanelMobileTabs({ tabs, activeTabId, onActiveTabChange, onCl
           <Button
             variant="ghost"
             className="h-(--sz-44px) min-w-0 flex-1 justify-start gap-2 px-2"
-            aria-label={`Switch tabs, ${tabs.length} open`}
+            aria-label={t("stability.404609fa95ca", { value1: tabs.length, defaultValue: "Switch tabs, {{value1}} open" })}
             disabled={tabs.length === 0}
           >
-            <span id={activeTab ? `side-panel-tab-${activeTab.id}` : undefined} className="min-w-0 flex-1 truncate text-left">{activeTab?.label ?? "Choose a tab"}</span>
+            <span id={activeTab ? `side-panel-tab-${activeTab.id}` : undefined} className="min-w-0 flex-1 truncate text-left">{activeTab?.label ?? t("stability.f3af270a91d5", { defaultValue: "Choose a tab" })}</span>
             <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{tabs.length}</span>
             <ChevronDown aria-hidden className="shrink-0" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          aria-label="Open tabs"
+          aria-label={t("stability.33c2eb40cc43", { defaultValue: "Open tabs" })}
           align="start"
           className="w-(--side-panel-mobile-tabs-width) max-w-(--radix-popover-content-available-width) p-2"
           onOpenAutoFocus={(event) => {
@@ -66,8 +67,8 @@ export function SidePanelMobileTabs({ tabs, activeTabId, onActiveTabChange, onCl
             if (addButton) { event.preventDefault(); addButton.focus(); }
           }}
         >
-          <p className="px-2 py-2 text-xs font-medium text-muted-foreground">Open tabs</p>
-          <ul ref={listRef} aria-label="Open tabs" className="max-h-(--side-panel-mobile-tabs-max-height) overflow-y-auto overscroll-contain">
+          <p className="px-2 py-2 text-xs font-medium text-muted-foreground">{t("stability.33c2eb40cc43", { defaultValue: "Open tabs" })}</p>
+          <ul ref={listRef} aria-label={t("stability.33c2eb40cc43", { defaultValue: "Open tabs" })} className="max-h-(--side-panel-mobile-tabs-max-height) overflow-y-auto overscroll-contain">
             {tabs.map((tab) => (
               <li key={tab.id} className={cn("flex items-center rounded-md", tab.id === activeTabId && "bg-muted")}>
                 <button
@@ -89,7 +90,7 @@ export function SidePanelMobileTabs({ tabs, activeTabId, onActiveTabChange, onCl
                     variant="ghost"
                     size="icon"
                     className="size-(--sz-44px) shrink-0"
-                    aria-label={`Close ${tab.label}`}
+                    aria-label={t("zhComponents.message_44824becbb", { value1: tab.label })}
                     disabled={tab.disabled}
                     onClick={() => {
                       // Focus the neighboring selector before removing the

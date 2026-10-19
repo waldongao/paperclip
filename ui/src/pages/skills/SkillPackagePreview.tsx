@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, FileImage, AlertTriangle } from 'lucide-react';
@@ -32,28 +33,28 @@ export function SkillPackagePreview({ companyId, repository, commitSha, skill, i
     <DialogContent className="flex max-h-(--sz-calc-18) flex-col overflow-y-auto p-4 sm:max-w-4xl sm:p-6">
       <DialogHeader>
         <DialogTitle>{skill.name}</DialogTitle>
-        <DialogDescription className="break-all font-mono text-xs">{root || 'Repository root'}/ · {inspection?.files.length ?? skill.fileCount ?? '?'} files{commitSha ? ` · ${commitSha.slice(0, 8)}` : ''}</DialogDescription>
+        <DialogDescription className="break-all font-mono text-xs">{root || t("stability.f315d7451325", { defaultValue: "Repository root" })}/ · {inspection?.files.length ?? skill.fileCount ?? '?'}{" "}{t("zhComponents.nouns.file_other")}{commitSha ? ` · ${commitSha.slice(0, 8)}` : ''}</DialogDescription>
       </DialogHeader>
-      {!inspection && <p role="status" className="text-sm text-muted-foreground">Refresh this source to inspect its complete package contents.</p>}
+      {!inspection && <p role="status" className="text-sm text-muted-foreground">{t("stability.dae4b823e9f6", { defaultValue: "Refresh this source to inspect its complete package contents." })}</p>}
       {skill.error && <p role="alert" className="text-sm text-destructive">{skill.error}</p>}
       {inspection?.requirements && <section className="rounded-md border border-border bg-muted/30 p-3 text-sm">
-        <h3 className="font-medium">Runtime requirements</h3>
+        <h3 className="font-medium">{t("stability.e543e80b09cb", { defaultValue: "Runtime requirements" })}</h3>
         <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{inspection.requirements}</p>
-        <p className="mt-2 text-xs text-muted-foreground">Declared by the skill author. Importing does not install dependencies or run scripts.</p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("stability.8c99c7320b01", { defaultValue: "Declared by the skill author. Importing does not install dependencies or run scripts." })}</p>
       </section>}
-      {Boolean(inspection?.references.length) && <section className="rounded-md border border-border p-3 text-sm" aria-label="Package reference warnings">
-        <h3 className="flex items-center gap-2 font-medium"><AlertTriangle className="size-4" />Check references</h3>
-        <p className="mt-1 text-xs text-muted-foreground">These referenced paths are not included. If the skill needs them, fix the source or leave this skill unchecked.</p>
+      {Boolean(inspection?.references.length) && <section className="rounded-md border border-border p-3 text-sm" aria-label={t("stability.0993412a25c0", { defaultValue: "Package reference warnings" })}>
+        <h3 className="flex items-center gap-2 font-medium"><AlertTriangle className="size-4" />{t("stability.5d275227c06a", { defaultValue: "Check references" })}</h3>
+        <p className="mt-1 text-xs text-muted-foreground">{t("stability.10d7870333a3", { defaultValue: "These referenced paths are not included. If the skill needs them, fix the source or leave this skill unchecked." })}</p>
         <ul className="mt-2 space-y-2">
           {inspection!.references.map(reference => <li key={`${reference.fromPath}:${reference.resolvedPath}`} className="break-all text-xs">
-            <span className="font-mono">{reference.target}</span> · {reference.kind === 'outside_package' ? 'Outside this package' : 'Not found'}
-            <span className="text-muted-foreground"> · referenced in {reference.fromPath}</span>
+            <span className="font-mono">{reference.target}</span> · {reference.kind === 'outside_package' ? t("stability.8e6abf834b9e", { defaultValue: "Outside this package" }) : t("stability.e3ebaa16dd9d", { defaultValue: "Not found" })}
+            <span className="text-muted-foreground">{" "}{t("stability.f3875592b854", { defaultValue: "· referenced in" })}{" "}{reference.fromPath}</span>
           </li>)}
         </ul>
-        <p className="mt-2 text-xs text-muted-foreground">Checks cover Markdown links and explicit relative resource paths. They cannot establish every runtime dependency.</p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("stability.2bd60761cd9c", { defaultValue: "Checks cover Markdown links and explicit relative resource paths. They cannot establish every runtime dependency." })}</p>
       </section>}
       {Boolean(inspection?.warnings.length) && <details className="text-xs text-muted-foreground">
-        <summary className="cursor-pointer">Content audit · {inspection!.warnings.length} {inspection!.warnings.length === 1 ? 'notice' : 'notices'}</summary>
+        <summary className="cursor-pointer">{t("stability.7a62e5e65789", { defaultValue: "Content audit ·" })}{" "}{inspection!.warnings.length} {inspection!.warnings.length === 1 ? t("stability.9368a7d21e01", { defaultValue: "notice" }) : t("stability.7367ab9a4545", { defaultValue: "notices" })}</summary>
         <ul className="mt-2 space-y-1">{inspection!.warnings.map(warning => <li key={warning}>{warning}</li>)}</ul>
       </details>}
       {inspection && <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-border md:flex-row">
@@ -64,19 +65,19 @@ export function SkillPackagePreview({ companyId, repository, commitSha, skill, i
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/30 px-3 py-2 text-xs">
             <span className="break-all font-mono">{filePath}</span>
-            {file && <span className="text-muted-foreground">{file.sizeBytes.toLocaleString()} bytes{file.executable ? ' · executable' : ''}</span>}
+            {file && <span className="text-muted-foreground">{file.sizeBytes.toLocaleString()}{" "}{t("stability.277089d91c0b", { defaultValue: "bytes" })}{file.executable ? t("stability.da6c5dcfec0e", { defaultValue: " · executable" }) : ''}</span>}
           </div>
           <div className="max-h-(--sz-480px) min-h-40 overflow-auto p-3">
-            {preview.isFetching && <p role="status" className="text-sm text-muted-foreground">Loading preview…</p>}
-            {preview.error && <div role="alert" className="space-y-2 text-sm"><p className="text-destructive">{preview.error.message}</p><Button variant="outline" size="sm" onClick={() => void preview.refetch()}>Try again</Button> <Link to="/apps" className="underline">Manage GitHub access</Link></div>}
-            {skill.error && <p className="text-sm text-muted-foreground">Preview unavailable for a package that failed validation.</p>}
-            {preview.data?.file.encoding === 'base64' && <div className="flex flex-col items-center gap-3 py-8 text-sm text-muted-foreground"><FileImage className="size-6" /><p>Binary asset · included without changes</p><p className="text-xs">Open on GitHub to preview or download this file.</p></div>}
+            {preview.isFetching && <p role="status" className="text-sm text-muted-foreground">{t("stability.c4cf2b2ccb5d", { defaultValue: "Loading preview…" })}</p>}
+            {preview.error && <div role="alert" className="space-y-2 text-sm"><p className="text-destructive">{preview.error.message}</p><Button variant="outline" size="sm" onClick={() => void preview.refetch()}>{t("try_again")}</Button> <Link to="/apps" className="underline">{t("stability.7874aa288d97", { defaultValue: "Manage GitHub access" })}</Link></div>}
+            {skill.error && <p className="text-sm text-muted-foreground">{t("stability.bb6891e45706", { defaultValue: "Preview unavailable for a package that failed validation." })}</p>}
+            {preview.data?.file.encoding === 'base64' && <div className="flex flex-col items-center gap-3 py-8 text-sm text-muted-foreground"><FileImage className="size-6" /><p>{t("stability.17dcc223d82c", { defaultValue: "Binary asset · included without changes" })}</p><p className="text-xs">{t("stability.54f0bb55c230", { defaultValue: "Open on GitHub to preview or download this file." })}</p></div>}
             {preview.data?.content !== null && preview.data?.content !== undefined && <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">{preview.data.content}</pre>}
-            {preview.data?.truncated && <p className="mt-3 text-xs text-muted-foreground">Showing the first 64 KB. The complete file is imported.</p>}
+            {preview.data?.truncated && <p className="mt-3 text-xs text-muted-foreground">{t("stability.c2a5bddad63c", { defaultValue: "Showing the first 64 KB. The complete file is imported." })}</p>}
           </div>
         </div>
       </div>}
-      <div className="flex items-center justify-between gap-3"><Button type="button" variant="outline" onClick={onClose}>Back to selection</Button><Button asChild variant="ghost" size="sm"><a href={githubUrl} target="_blank" rel="noreferrer">Open on GitHub<ExternalLink className="size-3.5" /></a></Button></div>
+      <div className="flex items-center justify-between gap-3"><Button type="button" variant="outline" onClick={onClose}>{t("stability.3dadc4096c93", { defaultValue: "Back to selection" })}</Button><Button asChild variant="ghost" size="sm"><a href={githubUrl} target="_blank" rel="noreferrer">{t("open_on_github")}<ExternalLink className="size-3.5" /></a></Button></div>
     </DialogContent>
   </Dialog>;
 }

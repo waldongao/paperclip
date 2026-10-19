@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useState } from "react";
 import type { Agent } from "@paperclipai/shared";
@@ -16,8 +17,8 @@ export function ReportsToPicker({
   onChange,
   disabled = false,
   excludeAgentIds = [],
-  disabledEmptyLabel = "Reports to: N/A (CEO)",
-  chooseLabel = "Reports to...",
+  disabledEmptyLabel = t("reports_to_n_a_ceo"),
+  chooseLabel = t("reports_to_8ec4a1"),
 }: {
   agents: Agent[];
   value: string | null;
@@ -51,7 +52,7 @@ export function ReportsToPicker({
           {unknownManager ? (
             <>
               <User className="h-3 w-3 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 truncate text-muted-foreground">Unknown manager (stale ID)</span>
+              <span className="min-w-0 truncate text-muted-foreground">{t("unknown_manager_stale_id")}</span>
             </>
           ) : current ? (
             <>
@@ -62,7 +63,7 @@ export function ReportsToPicker({
                   terminatedManager && "text-amber-900 dark:text-amber-200",
                 )}
               >
-                {`Reports to ${current.name}${terminatedManager ? " (terminated)" : ""}`}
+                {t("zhComponents.message_e92e2aae48", { value1: current.name, value2: terminatedManager ? t("terminated_67f00d") : "" })}
               </span>
             </>
           ) : (
@@ -87,19 +88,19 @@ export function ReportsToPicker({
             setOpen(false);
           }}
         >
-          No manager
+          {t("no_manager")}
         </button>
         {terminatedManager && (
           <div className="flex min-w-0 items-center gap-2 overflow-hidden px-2 py-1.5 text-xs text-muted-foreground border-b border-border mb-0.5">
             <AgentAvatar agent={current} size={16} className="shrink-0 h-3 w-3"/>
             <span className="min-w-0 truncate">
-              Current: {current.name} (terminated)
+              {t("current_19889c")} {current.name} {t("terminated")}
             </span>
           </div>
         )}
         {unknownManager && (
           <div className="px-2 py-1.5 text-xs text-muted-foreground border-b border-border mb-0.5">
-            Saved manager is missing from this organization. Choose a new manager or clear.
+            {t("saved_manager_is_missing_from_this_organization")}
           </div>
         )}
         {rows.map((a) => (

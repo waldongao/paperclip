@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import { setTimeout as delay } from "node:timers/promises";
 import pc from "picocolors";
 import type { Agent, HeartbeatRun, HeartbeatRunEvent, HeartbeatRunStatus } from "@paperclipai/shared";
@@ -78,7 +79,7 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
 
   const agent = await api.get<Agent>(`/api/agents/${opts.agentId}`);
   if (!agent || typeof agent !== "object" || !agent.id) {
-    console.error(pc.red(`Agent not found: ${opts.agentId}`));
+    console.error(pc.red(tCli("Agent not found: {{value1}}", { value1: String(opts.agentId) })));
     return;
   }
 
@@ -90,16 +91,16 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
     },
   );
   if (!invokeRes) {
-    console.error(pc.red("Failed to invoke heartbeat"));
+    console.error(pc.red(tCli("Failed to invoke heartbeat")));
     return;
   }
   if ((invokeRes as { status?: string }).status === "skipped") {
-    console.log(pc.yellow("Heartbeat invocation was skipped"));
+    console.log(pc.yellow(tCli("Heartbeat invocation was skipped")));
     return;
   }
 
   const run = invokeRes as HeartbeatRun;
-  console.log(pc.cyan(`Invoked heartbeat run ${run.id} for agent ${agent.name} (${agent.id})`));
+  console.log(pc.cyan(tCli("Invoked heartbeat run {{value1}} for agent {{value2}} ({{value3}})", { value1: String(run.id), value2: String(agent.name), value3: String(agent.id) })));
 
   const runId = run.id;
   let activeRunId: string | null = null;
@@ -132,22 +133,22 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
         ? (payload.context as Record<string, unknown>)
         : null;
 
-    console.log(pc.cyan(`Adapter: ${adapterType}`));
-    if (cwd) console.log(pc.cyan(`Working dir: ${cwd}`));
+    console.log(pc.cyan(tCli("Adapter: {{value1}}", { value1: String(adapterType) })));
+    if (cwd) console.log(pc.cyan(tCli("Working dir: {{value1}}", { value1: String(cwd) })));
     if (command) {
       const rendered = args.length > 0 ? `${command} ${args.join(" ")}` : command;
-      console.log(pc.cyan(`Command: ${rendered}`));
+      console.log(pc.cyan(tCli("Command: {{value1}}", { value1: String(rendered) })));
     }
     if (env) {
-      console.log(pc.cyan("Env:"));
+      console.log(pc.cyan(tCli("Env:")));
       console.log(pc.gray(JSON.stringify(env, null, 2)));
     }
     if (context) {
-      console.log(pc.cyan("Context:"));
+      console.log(pc.cyan(tCli("Context:")));
       console.log(pc.gray(JSON.stringify(context, null, 2)));
     }
     if (prompt) {
-      console.log(pc.cyan("Prompt:"));
+      console.log(pc.cyan(tCli("Prompt:")));
       console.log(prompt);
     }
   };
@@ -186,7 +187,7 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
     if (eventType === "heartbeat.run.status") {
       const status = typeof payload.status === "string" ? payload.status : null;
       if (status) {
-        console.log(pc.blue(`[status] ${status}`));
+        console.log(pc.blue(tCli("[status] {{value1}}", { value1: tCli(String(status)) })));
       }
     } else if (eventType === "adapter.invoke") {
       printAdapterInvoke(payload);
@@ -198,7 +199,7 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
         handleStreamChunk(stream, chunk);
       }
     } else if (typeof event.message === "string") {
-      console.log(pc.gray(`[event] ${eventType || "heartbeat.run.event"}: ${event.message}`));
+      console.log(pc.gray(tCli("[event] {{value1}}: {{value2}}", { value1: String(eventType || "heartbeat.run.event"), value2: translateCliDisplayMessage(event.message) })));
     }
 
     lastEventSeq = Math.max(lastEventSeq, event.seq ?? 0);
@@ -211,7 +212,7 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
 
   const deadline = timeoutMs > 0 ? Date.now() + timeoutMs : null;
   if (!activeRunId) {
-    console.error(pc.red("Failed to capture heartbeat run id"));
+    console.error(pc.red(tCli("Failed to capture heartbeat run id")));
     return;
   }
 
@@ -229,14 +230,14 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
       const currentRun = runList.find((r) => r && r.id === activeRunId) ?? null;
 
     if (!currentRun) {
-      console.error(pc.red("Heartbeat run disappeared"));
+      console.error(pc.red(tCli("Heartbeat run disappeared")));
       break;
     }
 
     const currentStatus = currentRun.status as HeartbeatRunStatus | undefined;
     if (currentStatus !== finalStatus && currentStatus) {
       finalStatus = currentStatus;
-      console.log(pc.blue(`Status: ${currentStatus}`));
+      console.log(pc.blue(tCli("Status: {{value1}}", { value1: tCli(String(currentStatus)) })));
     }
 
     if (currentStatus && TERMINAL_STATUSES.has(currentStatus)) {
@@ -247,7 +248,7 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
     }
 
     if (deadline && Date.now() >= deadline) {
-      finalError = `CLI timed out after ${timeoutMs}ms`;
+      finalError = tCli("CLI timed out after {{value1}}ms", { value1: String(timeoutMs) });
       finalStatus = "timed_out";
       console.error(pc.yellow(finalError));
       break;
@@ -279,7 +280,7 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
       cliAdapter.formatStdoutEvent(stdoutJsonBuffer, debug);
       stdoutJsonBuffer = "";
     }
-    const label = `Run ${activeRunId} completed with status ${finalStatus}`;
+    const label = tCli("Run {{value1}} completed with status {{value2}}", { value1: String(activeRunId), value2: tCli(String(finalStatus)) });
     if (finalStatus === "succeeded") {
       console.log(pc.green(label));
       return;
@@ -287,7 +288,7 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
 
     console.log(pc.red(label));
     if (finalError) {
-      console.log(pc.red(`Error: ${finalError}`));
+      console.log(pc.red(tCli("Error: {{value1}}", { value1: translateCliDisplayMessage(finalError) })));
     }
     if (finalRun) {
       const resultObj = asRecord(finalRun.resultJson);
@@ -297,29 +298,29 @@ export async function heartbeatRun(opts: HeartbeatRunOptions): Promise<void> {
         const errors = Array.isArray(resultObj.errors) ? resultObj.errors.map(asErrorText).filter(Boolean) : [];
         const resultText = typeof resultObj.result === "string" ? resultObj.result.trim() : "";
         if (subtype || isError || errors.length > 0 || resultText) {
-          console.log(pc.red("Claude result details:"));
-          if (subtype) console.log(pc.red(`  subtype: ${subtype}`));
-          if (isError) console.log(pc.red("  is_error: true"));
-          if (errors.length > 0) console.log(pc.red(`  errors: ${errors.join(" | ")}`));
-          if (resultText) console.log(pc.red(`  result: ${resultText}`));
+          console.log(pc.red(tCli("Claude result details:")));
+          if (subtype) console.log(pc.red(tCli("  subtype: {{value1}}", { value1: String(subtype) })));
+          if (isError) console.log(pc.red(tCli("  is_error: true")));
+          if (errors.length > 0) console.log(pc.red(tCli("  errors: {{value1}}", { value1: String(errors.join(" | ")) })));
+          if (resultText) console.log(pc.red(tCli("  result: {{value1}}", { value1: String(resultText) })));
         }
       }
 
       const stderrExcerpt = typeof finalRun.stderrExcerpt === "string" ? finalRun.stderrExcerpt.trim() : "";
       const stdoutExcerpt = typeof finalRun.stdoutExcerpt === "string" ? finalRun.stdoutExcerpt.trim() : "";
       if (stderrExcerpt) {
-        console.log(pc.red("stderr excerpt:"));
+        console.log(pc.red(tCli("stderr excerpt:")));
         console.log(stderrExcerpt);
       }
       if (stdoutExcerpt && (debug || !stderrExcerpt)) {
-        console.log(pc.gray("stdout excerpt:"));
+        console.log(pc.gray(tCli("stdout excerpt:")));
         console.log(stdoutExcerpt);
       }
     }
     process.exitCode = 1;
   } else {
     process.exitCode = 1;
-    console.log(pc.gray("Heartbeat stream ended without terminal status"));
+    console.log(pc.gray(tCli("Heartbeat stream ended without terminal status")));
   }
 }
 

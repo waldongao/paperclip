@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { Brain, CirclePause, Gauge, Layers3 } from "lucide-react";
 import type { TaskChatActivityPhaseItem } from "./task-chat-model";
 import {
@@ -9,20 +10,20 @@ import { protocolActivityPresentation } from "./task-chat-activity-presentation"
 
 type Activity = TaskChatActivityPhaseItem["items"][number];
 const labels: Record<ToolFamily, string> = {
-  terminal: "Ran commands",
-  grep: "Searched files",
-  search: "Searched files",
-  read: "Read files",
-  edit: "Edited files",
-  web: "Searched the web",
-  plan: "Worked on a plan",
-  question: "Requested input",
-  agent: "Worked with agents",
-  safety: "Reviewed safety",
-  image: "Worked with images",
-  wait: "Waited",
-  mcp: "Used connected tools",
-  other: "Used tools",
+  terminal: t("stability.80905baf3aae"),
+  grep: t("searched_files"),
+  search: t("searched_files"),
+  read: t("stability.4e792beef219"),
+  edit: t("edited_files"),
+  web: t("searched_the_web"),
+  plan: t("stability.cc9edfa1e141"),
+  question: t("requested_input"),
+  agent: t("stability.8e1471062f03"),
+  safety: t("reviewed_safety"),
+  image: t("stability.d8966505b596"),
+  wait: t("waited"),
+  mcp: t("stability.084d97476500"),
+  other: t("stability.836c94ab8f0d"),
 };
 
 /** Describe observed activities, never infer success from a finished group. */
@@ -72,24 +73,24 @@ export function completedActivitySummary(items: Activity[]) {
         const label =
           (
             {
-              research: "Searched the web",
-              plan: "Worked on a plan",
-              delegation: "Worked with agents",
-              artifact: "Worked with artifacts",
-              context: "Managed context",
-              memory: "Checked memory",
+              research: t("searched_the_web"),
+              plan: t("stability.cc9edfa1e141"),
+              delegation: t("stability.8e1471062f03"),
+              artifact: t("stability.0b98b99f2fc7"),
+              context: t("stability.fa532ff325ae"),
+              memory: t("stability.a022dec00248"),
               model_identity: "Checked model settings",
               review: "Worked in review mode",
               hook: "Ran hooks",
-              safety: "Reviewed safety",
-              terminal: "Ran commands",
-              wait: "Waited",
+              safety: t("reviewed_safety"),
+              terminal: t("stability.80905baf3aae"),
+              wait: t("waited"),
               provider_notice: "Received a provider update",
               workspace_change: "Worked on files",
               workspace_file: "Referenced files",
               resource: "Added resources",
             } as Record<string, string>
-          )[family] ?? "Used tools";
+          )[family] ?? t("stability.836c94ab8f0d");
         add(label, p.icon, order);
       }
     }
@@ -110,21 +111,21 @@ export function completedActivitySummary(items: Activity[]) {
   }
   if (!categories.size) {
     if (items.some((item) => item.kind === "thinking"))
-      add("Thought through the task", Brain);
+      add(t("stability.9257b9ec74c2"), Brain);
     else if (items.some((item) => item.kind === "marker"))
-      add("Activity stopped", CirclePause);
-    else add("Recorded usage", Gauge);
+      add(t("stability.98e2e327b5c9"), CirclePause);
+    else add(t("stability.fce3c2264f76"), Gauge);
   }
   const values = [...categories.values()].sort((a, b) => a.order - b.order);
   const join = (parts: string[]) =>
     parts
       .map((p, i) => (i ? p.charAt(0).toLowerCase() + p.slice(1) : p))
-      .join(", ");
+      .join(t("activityLog.listSeparator"));
   const fullLabel = join(values.map((v) => v.label));
   return {
     label:
       values.length > 3
-        ? `${join(values.slice(0, 2).map((v) => v.label))}, and more`
+        ? t("stability.47b46b187a70", { activities: join(values.slice(0, 2).map((v) => v.label)) })
         : fullLabel,
     fullLabel,
     icon: values.length === 1 ? values[0].icon : Layers3,

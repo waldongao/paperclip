@@ -68,6 +68,7 @@ import type {
 } from "@paperclipai/shared";
 import { api, detachInflightGet } from "./client";
 
+
 /**
  * Tools & Access API client (Phase 6, PAP-10389).
  *

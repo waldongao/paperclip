@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { IssueAttachment } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 export interface FileKind {
   icon: LucideIcon;
@@ -37,48 +38,48 @@ const IMAGE_EXTENSIONS = new Set([
 ]);
 
 const KIND_BY_EXTENSION: Record<string, FileKind> = {
-  pdf: { icon: FileText, label: "PDF" },
-  doc: { icon: FileText, label: "Doc" },
-  docx: { icon: FileText, label: "Doc" },
-  txt: { icon: FileText, label: "Text" },
-  md: { icon: FileText, label: "Markdown" },
-  rtf: { icon: FileText, label: "Text" },
-  csv: { icon: FileSpreadsheet, label: "CSV" },
-  tsv: { icon: FileSpreadsheet, label: "TSV" },
-  xls: { icon: FileSpreadsheet, label: "Sheet" },
-  xlsx: { icon: FileSpreadsheet, label: "Sheet" },
-  zip: { icon: FileArchive, label: "ZIP" },
-  gz: { icon: FileArchive, label: "Archive" },
-  tar: { icon: FileArchive, label: "Archive" },
-  tgz: { icon: FileArchive, label: "Archive" },
-  rar: { icon: FileArchive, label: "Archive" },
-  "7z": { icon: FileArchive, label: "Archive" },
-  mp3: { icon: FileAudio, label: "Audio" },
-  wav: { icon: FileAudio, label: "Audio" },
-  m4a: { icon: FileAudio, label: "Audio" },
-  ogg: { icon: FileAudio, label: "Audio" },
-  mp4: { icon: FileVideo, label: "Video" },
-  mov: { icon: FileVideo, label: "Video" },
-  webm: { icon: FileVideo, label: "Video" },
+  pdf: { icon: FileText, label: t("stability.1d393b0081b6", { defaultValue: "PDF" }) },
+  doc: { icon: FileText, label: t("doc") },
+  docx: { icon: FileText, label: t("doc") },
+  txt: { icon: FileText, label: t("text") },
+  md: { icon: FileText, label: t("markdown") },
+  rtf: { icon: FileText, label: t("text") },
+  csv: { icon: FileSpreadsheet, label: t("stability.eb6b42f54c42", { defaultValue: "CSV" }) },
+  tsv: { icon: FileSpreadsheet, label: t("stability.fca171475604", { defaultValue: "TSV" }) },
+  xls: { icon: FileSpreadsheet, label: t("sheet") },
+  xlsx: { icon: FileSpreadsheet, label: t("sheet") },
+  zip: { icon: FileArchive, label: t("stability.eaca4b306928", { defaultValue: "ZIP" }) },
+  gz: { icon: FileArchive, label: t("archive") },
+  tar: { icon: FileArchive, label: t("archive") },
+  tgz: { icon: FileArchive, label: t("archive") },
+  rar: { icon: FileArchive, label: t("archive") },
+  "7z": { icon: FileArchive, label: t("archive") },
+  mp3: { icon: FileAudio, label: t("audio") },
+  wav: { icon: FileAudio, label: t("audio") },
+  m4a: { icon: FileAudio, label: t("audio") },
+  ogg: { icon: FileAudio, label: t("audio") },
+  mp4: { icon: FileVideo, label: t("video") },
+  mov: { icon: FileVideo, label: t("video") },
+  webm: { icon: FileVideo, label: t("video") },
   json: { icon: FileCode, label: "JSON" },
   yaml: { icon: FileCode, label: "YAML" },
   yml: { icon: FileCode, label: "YAML" },
-  xml: { icon: FileCode, label: "XML" },
+  xml: { icon: FileCode, label: t("stability.40658e9af8fd", { defaultValue: "XML" }) },
   html: { icon: FileCode, label: "HTML" },
   css: { icon: FileCode, label: "CSS" },
-  js: { icon: FileCode, label: "Code" },
-  jsx: { icon: FileCode, label: "Code" },
-  ts: { icon: FileCode, label: "Code" },
-  tsx: { icon: FileCode, label: "Code" },
-  py: { icon: FileCode, label: "Code" },
-  rb: { icon: FileCode, label: "Code" },
-  go: { icon: FileCode, label: "Code" },
-  rs: { icon: FileCode, label: "Code" },
-  sh: { icon: FileCode, label: "Code" },
+  js: { icon: FileCode, label: t("code") },
+  jsx: { icon: FileCode, label: t("code") },
+  ts: { icon: FileCode, label: t("code") },
+  tsx: { icon: FileCode, label: t("code") },
+  py: { icon: FileCode, label: t("code") },
+  rb: { icon: FileCode, label: t("code") },
+  go: { icon: FileCode, label: t("code") },
+  rs: { icon: FileCode, label: t("code") },
+  sh: { icon: FileCode, label: t("code") },
   sql: { icon: FileCode, label: "SQL" },
-  log: { icon: FileText, label: "Log" },
-  patch: { icon: FileCode, label: "Patch" },
-  diff: { icon: FileCode, label: "Patch" },
+  log: { icon: FileText, label: t("log") },
+  patch: { icon: FileCode, label: t("patch") },
+  diff: { icon: FileCode, label: t("patch") },
 };
 
 function extensionOf(name: string): string {
@@ -115,7 +116,7 @@ export function isImageAttachment(ref: AttachmentRef): boolean {
 
 /** Kind icon + short label for a filename; unknown extensions get File/"File". */
 export function fileKindForName(name: string): FileKind {
-  return KIND_BY_EXTENSION[extensionOf(name)] ?? { icon: FileIcon, label: "File" };
+  return KIND_BY_EXTENSION[extensionOf(name)] ?? { icon: FileIcon, label: t("file") };
 }
 
 export function fileKindForAttachment(ref: AttachmentRef): FileKind {
@@ -123,18 +124,18 @@ export function fileKindForAttachment(ref: AttachmentRef): FileKind {
   if (byName.label !== "File") return byName;
 
   const contentType = normalizedContentType(ref.contentType);
-  if (contentType === "application/pdf") return { icon: FileText, label: "PDF" };
+  if (contentType === "application/pdf") return { icon: FileText, label: t("stability.1d393b0081b6", { defaultValue: "PDF" }) };
   if (contentType === "application/json" || contentType.endsWith("+json")) {
     return { icon: FileCode, label: "JSON" };
   }
   if (contentType === "text/csv" || contentType === "application/csv") {
-    return { icon: FileSpreadsheet, label: "CSV" };
+    return { icon: FileSpreadsheet, label: t("stability.eb6b42f54c42", { defaultValue: "CSV" }) };
   }
-  if (contentType.startsWith("text/")) return { icon: FileText, label: "Text" };
-  if (contentType.startsWith("audio/")) return { icon: FileAudio, label: "Audio" };
-  if (contentType.startsWith("video/")) return { icon: FileVideo, label: "Video" };
+  if (contentType.startsWith("text/")) return { icon: FileText, label: t("text") };
+  if (contentType.startsWith("audio/")) return { icon: FileAudio, label: t("audio") };
+  if (contentType.startsWith("video/")) return { icon: FileVideo, label: t("video") };
   if (contentType.includes("zip") || contentType.includes("archive")) {
-    return { icon: FileArchive, label: "Archive" };
+    return { icon: FileArchive, label: t("archive") };
   }
   return byName;
 }

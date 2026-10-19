@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { Link } from "react-router-dom";
 import { useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -18,70 +19,41 @@ export function SlackCapabilitiesView({
 }) {
   return (
     <section className="space-y-3">
-      <h3 className="text-sm font-semibold">Slack tools</h3>
-      <p className="text-sm">
-        Invite the bot to a channel, then ask it to read the discussion and act
-        on it. Only linked people can direct these tools.
-      </p>
-      <p className="text-sm text-muted-foreground">
-        The agent can read channels shared by the bot and the requester, even
-        when responses are disabled there. Allowed Channels below controls
-        replies and writes. Private research stays in its source channel or your
-        DM with the bot.
-      </p>
+      <h3 className="text-sm font-semibold">{t("stability.192c25289bd0", { defaultValue: "Slack tools" })}</h3>
+      <p className="text-sm">{t("stability.b6286a432fa1", { defaultValue: "Invite the bot to a channel, then ask it to read the discussion and act on it. Only linked people can direct these tools." })}</p>
+      <p className="text-sm text-muted-foreground">{t("stability.deea995a561a", { defaultValue: "The agent can read channels shared by the bot and the requester, even when responses are disabled there. Allowed Channels below controls replies and writes. Private research stays in its source channel or your DM with the bot." })}</p>
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}
       {!capabilities && !error && (
-        <p role="status" className="text-sm text-muted-foreground">
-          Checking Slack permissions…
-        </p>
+        <p role="status" className="text-sm text-muted-foreground">{t("stability.d85521cb24d0", { defaultValue: "Checking Slack permissions…" })}</p>
       )}
       {capabilities && (
         <>
           <ul className="space-y-2 text-sm">
-            <li>
-              Read channels, threads, messages, files and source links; search
-              available channel history.
-            </li>
-            <li>
-              Send messages and files, react, pin, bookmark, and work with
-              canvases and lists.
-            </li>
-            <li>
-              Creating channels, inviting people and destructive changes require
-              approval.
-            </li>
+            <li>{t("stability.9ab0409ccc65", { defaultValue: "Read channels, threads, messages, files and source links; search available channel history." })}</li>
+            <li>{t("stability.64d0b04e2d3b", { defaultValue: "Send messages and files, react, pin, bookmark, and work with canvases and lists." })}</li>
+            <li>{t("stability.a8caa4712d5a", { defaultValue: "Creating channels, inviting people and destructive changes require approval." })}</li>
           </ul>
           {capabilities.missingScopes.length > 0 && (
             <div className="rounded-lg border border-border bg-muted p-3 space-y-2">
-              <p className="text-sm font-medium">
-                Add permissions to unlock more tools
-              </p>
-              <p className="text-sm">
-                Your existing connection still works. In{" "}
+              <p className="text-sm font-medium">{t("stability.a716eb3e29fb", { defaultValue: "Add permissions to unlock more tools" })}</p>
+              <p className="text-sm">{t("stability.090a1069c85c", { defaultValue: "Your existing connection still works. In" })}{" "}
                 <a
                   className="underline underline-offset-4"
                   href="https://api.slack.com/apps"
                   target="_blank"
                   rel="noreferrer"
-                >
-                  Slack app settings
-                </a>
-                , choose your app, open OAuth &amp; Permissions, add these Bot
-                Token Scopes, then reinstall the app to your workspace.
-              </p>
+                >{t("stability.d811efd520ae", { defaultValue: "Slack app settings" })}</a>{t("stability.4e7c59382e8c", { defaultValue: ", choose your app, open OAuth & Permissions, add these Bot Token Scopes, then reinstall the app to your workspace." })}</p>
               <p className="text-xs font-mono break-words">
                 {capabilities.missingScopes.join(", ")}
               </p>
             </div>
           )}
           <details className="text-sm">
-            <summary className="cursor-pointer text-muted-foreground">
-              Tool permissions and availability
-            </summary>
+            <summary className="cursor-pointer text-muted-foreground">{t("stability.c1e8c89862b6", { defaultValue: "Tool permissions and availability" })}</summary>
             <ul className="mt-3 divide-y divide-border">
               {capabilities.tools.map((tool) => (
                 <li
@@ -93,22 +65,18 @@ export function SlackCapabilitiesView({
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {tool.available === false
-                      ? "Needs permissions"
+                      ? t("stability.fa8dc2e4876b", { defaultValue: "Needs permissions" })
                       : tool.available === null
-                        ? "Not verified"
+                        ? t("stability.151339072593", { defaultValue: "Not verified" })
                         : tool.risk === "approval"
-                          ? "Ask first"
-                          : "Available"}
+                          ? t("ask_first")
+                          : t("zhComponents.protocolFields.available")}
                   </span>
                 </li>
               ))}
             </ul>
           </details>
-          <p className="text-xs text-muted-foreground">
-            Slack plan, membership and per-action permissions still apply.
-            Native search availability depends on the app and runtime; history
-            scans report what they inspected.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("stability.1b5d79b204d2", { defaultValue: "Slack plan, membership and per-action permissions still apply. Native search availability depends on the app and runtime; history scans report what they inspected." })}</p>
         </>
       )}
     </section>
@@ -149,12 +117,8 @@ export function SlackSearchView({
   };
   return (
     <section className="space-y-3">
-      <h3 className="text-sm font-semibold">Your Slack search access</h3>
-      <p className="text-sm text-muted-foreground">
-        Optional personal authorization enables private search on supported
-        runtimes. It cannot read channels the bot hasn’t joined or let the bot
-        write as you. Basic channel reading works without it.
-      </p>
+      <h3 className="text-sm font-semibold">{t("stability.c49a014b0e92", { defaultValue: "Your Slack search access" })}</h3>
+      <p className="text-sm text-muted-foreground">{t("stability.5d5b66af4990", { defaultValue: "Optional personal authorization enables private search on supported runtimes. It cannot read channels the bot hasn’t joined or let the bot write as you. Basic channel reading works without it." })}</p>
       {!status.nativeSearchAvailable && (
         <p role="status" className="text-sm text-muted-foreground">
           {status.limitation}
@@ -162,36 +126,27 @@ export function SlackSearchView({
       )}
       {status.connected ? (
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm">Slack search connected</span>
+          <span className="text-sm">{t("stability.7ce7998d7058", { defaultValue: "Slack search connected" })}</span>
           <Button
             variant="outline"
             size="sm"
             disabled={pending}
             onClick={() => void perform(onDisconnect)}
-          >
-            Disconnect search
-          </Button>
+          >{t("stability.1ae291964c7b", { defaultValue: "Disconnect search" })}</Button>
         </div>
       ) : (
         <Button
           variant="outline"
           disabled={pending || !status.configured}
           onClick={() => void perform(onConnect)}
-        >
-          Connect Slack search
-        </Button>
+        >{t("stability.e8b57c084f02", { defaultValue: "Connect Slack search" })}</Button>
       )}
       {!status.configured && (
-        <p className="text-sm text-muted-foreground">
-          A connection manager needs to configure your Slack app’s OAuth
-          credentials first.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("stability.c83c40760e29", { defaultValue: "A connection manager needs to configure your Slack app’s OAuth credentials first." })}</p>
       )}
       {status.canConfigure && (
         <details className="text-sm">
-          <summary className="cursor-pointer text-muted-foreground">
-            OAuth app configuration for connection managers
-          </summary>
+          <summary className="cursor-pointer text-muted-foreground">{t("stability.ee4c0f2a349c", { defaultValue: "OAuth app configuration for connection managers" })}</summary>
           <form
             className="mt-3 space-y-3"
             onSubmit={(event) => {
@@ -202,18 +157,16 @@ export function SlackSearchView({
               });
             }}
           >
-            <p className="text-sm">
-              In Slack app settings, add this redirect URL under OAuth &amp;
-              Permissions. Add user scopes <code>search:read.public</code>,{" "}
-              <code>search:read.private</code> and{" "}
+            <p className="text-sm">{t("stability.a1453f1f7dba", { defaultValue: "In Slack app settings, add this redirect URL under OAuth & Permissions. Add user scopes" })}{" "}<code>search:read.public</code>,{" "}
+              <code>search:read.private</code>{" "}{t("zhComponents.text_cffa50a32c")}{" "}
               <code>search:read.files</code>. Find Client ID and Client Secret
               under Basic Information.
             </p>
             <p className="text-xs font-mono break-all">
-              {status.redirectUri ?? "Configure a public HTTPS URL first."}
+              {status.redirectUri ?? t("stability.a5716c99bdb7", { defaultValue: "Configure a public HTTPS URL first." })}
             </p>
             <div className="space-y-2">
-              <label htmlFor={`${id}-client`}>Client ID</label>
+              <label htmlFor={`${id}-client`}>{t("client_id")}</label>
               <Input
                 id={`${id}-client`}
                 value={clientId}
@@ -221,7 +174,7 @@ export function SlackSearchView({
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor={`${id}-secret`}>Client Secret</label>
+              <label htmlFor={`${id}-secret`}>{t("stability.ae21cf6d24b8", { defaultValue: "Client Secret" })}</label>
               <Input
                 id={`${id}-secret`}
                 type="password"
@@ -235,9 +188,7 @@ export function SlackSearchView({
                 type="submit"
                 size="sm"
                 disabled={pending || !clientId || !clientSecret}
-              >
-                Save OAuth configuration
-              </Button>
+              >{t("stability.37b148485378", { defaultValue: "Save OAuth configuration" })}</Button>
             </div>
           </form>
         </details>
@@ -274,9 +225,7 @@ export function SlackToolsSettings({
         <Link
           className="text-sm underline underline-offset-4"
           to={`/apps/${connectionId}/permissions`}
-        >
-          Manage action permissions
-        </Link>
+        >{t("stability.94d9b7f3ceeb", { defaultValue: "Manage action permissions" })}</Link>
       )}
     </div>
   );
@@ -300,9 +249,7 @@ export function SlackSearchAccess({
     );
   if (!query.data)
     return (
-      <p role="status" className="text-sm text-muted-foreground">
-        Loading search access…
-      </p>
+      <p role="status" className="text-sm text-muted-foreground">{t("stability.20c6a0280b6b", { defaultValue: "Loading search access…" })}</p>
     );
   return (
     <SlackSearchView

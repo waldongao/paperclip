@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../../i18n.js";
 import { Command } from "commander";
 import type {
   Approval,
@@ -61,15 +62,15 @@ interface TeamInstallApprovalFallbackResult {
 }
 
 export function registerTeamCommands(program: Command): void {
-  const teams = program.command("teams").description("App-shipped team catalog operations");
+  const teams = program.command("teams").description(tCli("App-shipped team catalog operations"));
 
   addCommonClientOptions(
     teams
       .command("browse")
-      .description("Browse app-shipped catalog teams without installing them")
-      .option("--kind <kind>", "Catalog kind filter (bundled or optional)")
-      .option("--category <slug>", "Catalog category filter")
-      .option("--query <text>", "Search catalog text")
+      .description(tCli("Browse app-shipped catalog teams without installing them"))
+      .option("--kind <kind>", tCli("Catalog kind filter (bundled or optional)"))
+      .option("--category <slug>", tCli("Catalog category filter"))
+      .option("--query <text>", tCli("Search catalog text"))
       .action(async (opts: TeamBrowseOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -88,10 +89,10 @@ export function registerTeamCommands(program: Command): void {
   addCommonClientOptions(
     teams
       .command("list")
-      .description("List app-shipped catalog teams with installed status for a company")
-      .option("--kind <kind>", "Catalog kind filter (bundled or optional)")
-      .option("--category <slug>", "Catalog category filter")
-      .option("--query <text>", "Search catalog text")
+      .description(tCli("List app-shipped catalog teams with installed status for a company"))
+      .option("--kind <kind>", tCli("Catalog kind filter (bundled or optional)"))
+      .option("--category <slug>", tCli("Catalog category filter"))
+      .option("--query <text>", tCli("Search catalog text"))
       .action(async (opts: TeamListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -111,10 +112,10 @@ export function registerTeamCommands(program: Command): void {
   addCommonClientOptions(
     teams
       .command("search")
-      .description("Search app-shipped catalog teams without installing them")
-      .argument("<query>", "Search text")
-      .option("--kind <kind>", "Catalog kind filter (bundled or optional)")
-      .option("--category <slug>", "Catalog category filter")
+      .description(tCli("Search app-shipped catalog teams without installing them"))
+      .argument("<query>", tCli("Search text"))
+      .option("--kind <kind>", tCli("Catalog kind filter (bundled or optional)"))
+      .option("--category <slug>", tCli("Catalog category filter"))
       .action(async (query: string, opts: TeamBrowseOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -133,9 +134,9 @@ export function registerTeamCommands(program: Command): void {
   addCommonClientOptions(
     teams
       .command("inspect")
-      .description("Inspect an app-shipped catalog team before installing it")
-      .argument("<catalogRef>", "Catalog team ID, key, or unique slug")
-      .option("--file <path>", "Print a specific catalog team file instead of the manifest detail")
+      .description(tCli("Inspect an app-shipped catalog team before installing it"))
+      .argument("<catalogRef>", tCli("Catalog team ID, key, or unique slug"))
+      .option("--file <path>", tCli("Print a specific catalog team file instead of the manifest detail"))
       .action(async (catalogRef: string, opts: BaseClientOptions & { file?: string }) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -167,17 +168,17 @@ export function registerTeamCommands(program: Command): void {
   addCommonClientOptions(
     teams
       .command("preview")
-      .description("Preview importing a catalog team into a company")
-      .argument("<catalogRef>", "Catalog team ID, key, or unique slug")
-      .option("--target-manager-agent-id <id>", "Existing agent ID that catalog root agents should report to")
-      .option("--target-manager-slug <slug>", "Portable manager slug that catalog root agents should report to")
-      .option("--agent <slug>", "Only preview selected agent slug; may be repeated", collectOptionValue, [] as string[])
-      .option("--collision-strategy <strategy>", "Import collision strategy (rename, skip, replace)")
-      .option("--name-override <slug=name>", "Override an imported entity name; may be repeated", collectOptionValue, [] as string[])
-      .option("--selected-file <path>", "Restrict import preview to selected portable file; may be repeated", collectOptionValue, [] as string[])
-      .option("--allow-external-sources", "Allow GitHub, URL, or skills.sh skill sources declared by the catalog team", false)
-      .option("--allow-unpinned-optional-sources", "Allow optional-team external skill sources that are not pinned to a commit", false)
-      .option("--allow-local-path-sources", "Development only: allow local-path skill sources declared by the catalog team", false)
+      .description(tCli("Preview importing a catalog team into a company"))
+      .argument("<catalogRef>", tCli("Catalog team ID, key, or unique slug"))
+      .option("--target-manager-agent-id <id>", tCli("Existing agent ID that catalog root agents should report to"))
+      .option("--target-manager-slug <slug>", tCli("Portable manager slug that catalog root agents should report to"))
+      .option("--agent <slug>", tCli("Only preview selected agent slug; may be repeated"), collectOptionValue, [] as string[])
+      .option("--collision-strategy <strategy>", tCli("Import collision strategy (rename, skip, replace)"))
+      .option("--name-override <slug=name>", tCli("Override an imported entity name; may be repeated"), collectOptionValue, [] as string[])
+      .option("--selected-file <path>", tCli("Restrict import preview to selected portable file; may be repeated"), collectOptionValue, [] as string[])
+      .option("--allow-external-sources", tCli("Allow GitHub, URL, or skills.sh skill sources declared by the catalog team"), false)
+      .option("--allow-unpinned-optional-sources", tCli("Allow optional-team external skill sources that are not pinned to a commit"), false)
+      .option("--allow-local-path-sources", tCli("Development only: allow local-path skill sources declared by the catalog team"), false)
       .action(async (catalogRef: string, opts: TeamPreviewOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -200,25 +201,25 @@ export function registerTeamCommands(program: Command): void {
   addCommonClientOptions(
     teams
       .command("install")
-      .description("Install a catalog team into a company")
-      .argument("<catalogRef>", "Catalog team ID, key, or unique slug")
-      .option("--target-manager-agent-id <id>", "Existing agent ID that catalog root agents should report to")
-      .option("--target-manager-slug <slug>", "Portable manager slug that catalog root agents should report to")
-      .option("--agent <slug>", "Only install selected agent slug; may be repeated", collectOptionValue, [] as string[])
-      .option("--collision-strategy <strategy>", "Import collision strategy (rename, skip, replace)")
-      .option("--name-override <slug=name>", "Override an imported entity name; may be repeated", collectOptionValue, [] as string[])
-      .option("--selected-file <path>", "Restrict install to selected portable file; may be repeated", collectOptionValue, [] as string[])
-      .option("--secret-value <key=value>", "Secret env input value for install; may be repeated", collectOptionValue, [] as string[])
-      .option("--adapter-override <slug=type>", "Adapter type override for an imported agent slug; may be repeated", collectOptionValue, [] as string[])
-      .option("--allow-external-sources", "Allow GitHub, URL, or skills.sh skill sources declared by the catalog team", false)
-      .option("--allow-unpinned-optional-sources", "Allow optional-team external skill sources that are not pinned to a commit", false)
-      .option("--allow-local-path-sources", "Development only: allow local-path skill sources declared by the catalog team", false)
+      .description(tCli("Install a catalog team into a company"))
+      .argument("<catalogRef>", tCli("Catalog team ID, key, or unique slug"))
+      .option("--target-manager-agent-id <id>", tCli("Existing agent ID that catalog root agents should report to"))
+      .option("--target-manager-slug <slug>", tCli("Portable manager slug that catalog root agents should report to"))
+      .option("--agent <slug>", tCli("Only install selected agent slug; may be repeated"), collectOptionValue, [] as string[])
+      .option("--collision-strategy <strategy>", tCli("Import collision strategy (rename, skip, replace)"))
+      .option("--name-override <slug=name>", tCli("Override an imported entity name; may be repeated"), collectOptionValue, [] as string[])
+      .option("--selected-file <path>", tCli("Restrict install to selected portable file; may be repeated"), collectOptionValue, [] as string[])
+      .option("--secret-value <key=value>", tCli("Secret env input value for install; may be repeated"), collectOptionValue, [] as string[])
+      .option("--adapter-override <slug=type>", tCli("Adapter type override for an imported agent slug; may be repeated"), collectOptionValue, [] as string[])
+      .option("--allow-external-sources", tCli("Allow GitHub, URL, or skills.sh skill sources declared by the catalog team"), false)
+      .option("--allow-unpinned-optional-sources", tCli("Allow optional-team external skill sources that are not pinned to a commit"), false)
+      .option("--allow-local-path-sources", tCli("Development only: allow local-path skill sources declared by the catalog team"), false)
       .option(
         "--request-approval-on-forbidden",
-        "When install is denied by agents:create permissions, create a board approval request instead of exiting with the raw 403",
+        tCli("When install is denied by agents:create permissions, create a board approval request instead of exiting with the raw 403"),
         false,
       )
-      .option("--approval-issue-id <id>", "Issue ID to link to the fallback approval request; defaults to PAPERCLIP_TASK_ID when set")
+      .option("--approval-issue-id <id>", tCli("Issue ID to link to the fallback approval request; defaults to PAPERCLIP_TASK_ID when set"))
       .action(async (catalogRef: string, opts: TeamInstallOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -291,7 +292,7 @@ async function listCatalogTeamStatusRows(
   opts: TeamListOptions,
 ): Promise<CatalogTeamStatusRow[]> {
   if (!ctx.companyId) {
-    throw new Error("Company ID is required.");
+    throw new Error(tCli("Company ID is required."));
   }
 
   const [teams, installed] = await Promise.all([
@@ -321,11 +322,11 @@ async function listCatalogTeamStatusRows(
 async function getCatalogTeam(ctx: ResolvedClientContext, catalogRef: string): Promise<CatalogTeam> {
   const ref = catalogRef.trim();
   if (!ref) {
-    throw new Error("Catalog team reference is required.");
+    throw new Error(tCli("Catalog team reference is required."));
   }
   const detail = await ctx.api.get<CatalogTeam>(`/api/teams/catalog/ref?ref=${encodeURIComponent(ref)}`);
   if (!detail) {
-    throw new Error(`Catalog team not found: ${catalogRef}`);
+    throw new Error(tCli("Catalog team not found: {{catalogRef}}", { catalogRef: catalogRef }));
   }
   return detail;
 }
@@ -337,14 +338,14 @@ async function getCatalogTeamFile(
 ): Promise<{ content: string } | null> {
   const ref = catalogRef.trim();
   const path = filePath.trim();
-  if (!ref) throw new Error("Catalog team reference is required.");
-  if (!path) throw new Error("Catalog team file path is required.");
+  if (!ref) throw new Error(tCli("Catalog team reference is required."));
+  if (!path) throw new Error(tCli("Catalog team file path is required."));
   const params = new URLSearchParams({ ref, path });
   return ctx.api.get(`/api/teams/catalog/ref/files?${params.toString()}`);
 }
 
 function catalogTeamCompanyPath(companyId: string | undefined, catalogRef: string, action: "preview" | "install") {
-  if (!companyId) throw new Error("Company ID is required.");
+  if (!companyId) throw new Error(tCli("Company ID is required."));
   const params = new URLSearchParams({ ref: catalogRef.trim() });
   return `/api/companies/${encodeURIComponent(companyId)}/teams/catalog/ref/${action}?${params.toString()}`;
 }
@@ -378,7 +379,7 @@ const SECRET_VALUE_REDACTION = "[redacted]";
 function shouldRequestInstallApproval(error: unknown, opts: TeamInstallOptions): error is ApiRequestError {
   if (!(opts.requestApprovalOnForbidden || isPaperclipTaskRun())) return false;
   if (!(error instanceof ApiRequestError) || error.status !== 403) return false;
-  const message = error.message.toLowerCase();
+  const message = error.rawMessage.toLowerCase();
   return INSTALL_APPROVAL_FALLBACK_MESSAGES.some((expected) => message.includes(expected));
 }
 
@@ -393,7 +394,7 @@ async function requestInstallApproval(
   opts: TeamInstallOptions,
   error: ApiRequestError,
 ): Promise<TeamInstallApprovalFallbackResult> {
-  if (!ctx.companyId) throw new Error("Company ID is required.");
+  if (!ctx.companyId) throw new Error(tCli("Company ID is required."));
   const trimmedRef = catalogRef.trim();
   const issueIds = resolveApprovalIssueIds(opts);
   const approvalInstallOptions = omitInstallSecretValues(installOptions);
@@ -402,27 +403,27 @@ async function requestInstallApproval(
     type: "request_board_approval",
     issueIds,
     payload: {
-      title: `Approve catalog team install: ${trimmedRef}`,
+      title: tCli("Approve catalog team install: {{trimmedRef}}", { trimmedRef: trimmedRef }),
       summary:
-        `A Paperclip CLI agent-run attempted to install catalog team "${trimmedRef}" into company "${ctx.companyId}", ` +
-        `but the API denied the install with: ${error.message}.`,
+        tCli("A Paperclip CLI agent-run attempted to install catalog team \"{{trimmedRef}}\" into company \"{{companyId}}\", ", { trimmedRef: trimmedRef, companyId: ctx.companyId }) +
+        tCli("but the API denied the install with: {{message}}.", { message: error.message }),
       recommendedAction:
-        "Approve the catalog team source and rerun the install with a board or agent-creator token, or grant agents:create to the requesting agent and rerun the same command.",
+        tCli("Approve the catalog team source and rerun the install with a board or agent-creator token, or grant agents:create to the requesting agent and rerun the same command."),
       risks: [
-        "Catalog team installation can create agents, projects, tasks, routines, skills, and secret bindings.",
-        "Only approve after checking the catalog source, selected files, target manager, and collision strategy.",
+        tCli("Catalog team installation can create agents, projects, tasks, routines, skills, and secret bindings."),
+        tCli("Only approve after checking the catalog source, selected files, target manager, and collision strategy."),
       ],
       installAttempt: {
         companyId: ctx.companyId,
         catalogRef: trimmedRef,
         options: approvalInstallOptions,
-        deniedReason: error.message,
+        deniedReason: error.rawMessage,
       },
     },
   };
   const approval = await ctx.api.post<Approval>(apiPath`/api/companies/${ctx.companyId}/approvals`, payload);
   if (!approval) {
-    throw new Error("Approval request failed.");
+    throw new Error(tCli("Approval request failed."));
   }
   return {
     status: "approval_requested",
@@ -431,7 +432,7 @@ async function requestInstallApproval(
       companyId: ctx.companyId,
       catalogRef: trimmedRef,
       options: returnedInstallOptions,
-      deniedReason: error.message,
+      deniedReason: error.rawMessage,
     },
   };
 }
@@ -477,7 +478,7 @@ function parseNameOverrides(values: string[] | undefined): Record<string, string
   for (const raw of values) {
     const [slug, name] = parseKeyValueOption(raw, "--name-override", "slug=name");
     if (!slug || !name) {
-      throw new Error(`Invalid --name-override "${raw}". Use slug=name.`);
+      throw new Error(tCli("Invalid --name-override \"{{raw}}\". Use slug=name.", { raw: raw }));
     }
     result[slug] = name;
   }
@@ -490,7 +491,7 @@ function parseSecretValues(values: string[] | undefined): Record<string, string>
   for (const raw of values) {
     const [key, value] = parseKeyValueOption(raw, "--secret-value", "key=value");
     if (!key) {
-      throw new Error(`Invalid --secret-value "${raw}". Use key=value.`);
+      throw new Error(tCli("Invalid --secret-value \"{{raw}}\". Use key=value.", { raw: raw }));
     }
     result[key] = value;
   }
@@ -505,7 +506,7 @@ function parseAdapterOverrides(
   for (const raw of values) {
     const [slug, adapterType] = parseKeyValueOption(raw, "--adapter-override", "slug=type");
     if (!slug || !adapterType) {
-      throw new Error(`Invalid --adapter-override "${raw}". Use slug=type.`);
+      throw new Error(tCli("Invalid --adapter-override \"{{raw}}\". Use slug=type.", { raw: raw }));
     }
     result[slug] = { adapterType };
   }
@@ -515,7 +516,7 @@ function parseAdapterOverrides(
 function parseKeyValueOption(raw: string, flag: string, format: string): [string, string] {
   const separator = raw.indexOf("=");
   if (separator <= 0) {
-    throw new Error(`Invalid ${flag} "${raw}". Use ${format}.`);
+    throw new Error(tCli("Invalid {{flag}} \"{{raw}}\". Use {{format}}.", { flag: flag, raw: raw, format: format }));
   }
   return [raw.slice(0, separator).trim(), raw.slice(separator + 1).trim()];
 }
@@ -642,7 +643,7 @@ function printCatalogTeamDetail(team: CatalogTeam): void {
   console.log(
     `counts=agents:${team.counts.agents},projects:${team.counts.projects},tasks:${team.counts.tasks},skills:${team.counts.localSkills + team.counts.catalogSkills}`,
   );
-  console.log("files:");
+  console.log(tCli("files:"));
   printTable(team.files.map((file) => ({
     path: file.path,
     kind: file.kind,
@@ -653,26 +654,26 @@ function printCatalogTeamDetail(team: CatalogTeam): void {
 
 function printCatalogTeamPreview(result: CatalogTeamImportPreviewResult | null): void {
   if (!result) {
-    console.log("Catalog team preview returned no result.");
+    console.log(tCli("Catalog team preview returned no result."));
     return;
   }
   const preview = result.portabilityPreview;
   console.log(
-    `Catalog team preview: ${result.team.name} (${result.team.key}) agents=${preview.plan.agentPlans.length} projects=${preview.plan.projectPlans.length} issues=${preview.plan.issuePlans.length} warnings=${result.warnings.length} errors=${result.errors.length}`,
+    tCli("Catalog team preview: {{name}} ({{key}}) agents={{count}} projects={{count3}} issues={{count4}} warnings={{count5}} errors={{count6}}", { name: result.team.name, key: result.team.key, count: preview.plan.agentPlans.length, count3: preview.plan.projectPlans.length, count4: preview.plan.issuePlans.length, count5: result.warnings.length, count6: result.errors.length }),
   );
-  for (const warning of result.warnings) console.log(`warning=${warning}`);
-  for (const error of result.errors) console.log(`error=${error}`);
+  for (const warning of result.warnings) console.log(tCli("warning={{warning}}", { warning: translateCliDisplayMessage(warning) }));
+  for (const error of result.errors) console.log(`error=${translateCliDisplayMessage(error)}`);
 }
 
 function printCatalogTeamInstall(result: CatalogTeamInstallResult | null): void {
   if (!result) {
-    console.log("Catalog team install returned no result.");
+    console.log(tCli("Catalog team install returned no result."));
     return;
   }
   console.log(
-    `Catalog team installed: ${result.team.name} (${result.team.key}) agents=${result.portabilityImport.agents.length} projects=${result.portabilityImport.projects.length} warnings=${result.warnings.length}`,
+    tCli("Catalog team installed: {{name}} ({{key}}) agents={{count}} projects={{count3}} warnings={{count4}}", { name: result.team.name, key: result.team.key, count: result.portabilityImport.agents.length, count3: result.portabilityImport.projects.length, count4: result.warnings.length }),
   );
-  for (const warning of result.warnings) console.log(`warning=${warning}`);
+  for (const warning of result.warnings) console.log(tCli("warning={{warning}}", { warning: translateCliDisplayMessage(warning) }));
 }
 
 function printInstallApprovalRequested(result: TeamInstallApprovalFallbackResult): void {
@@ -686,7 +687,7 @@ function printInstallApprovalRequested(result: TeamInstallApprovalFallbackResult
       deniedReason: result.installAttempt.deniedReason,
     }),
   );
-  console.log("Install was not performed. The board must approve the request and rerun the install with an authorized token.");
+  console.log(tCli("Install was not performed. The board must approve the request and rerun the install with an authorized token."));
 }
 
 function printTable(rows: Array<Record<string, unknown>>): void {

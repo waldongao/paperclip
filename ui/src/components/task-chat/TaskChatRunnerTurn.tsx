@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useRef } from "react";
 import type { ExecutionProjection } from "@paperclipai/shared";
 import { useSecondTick } from "@/hooks/useSecondTick";
@@ -84,12 +85,12 @@ function RunnerTurnStatus({
   const elapsed = formatCompactDuration(elapsedMs);
 
   const failed = terminalStatusFailed(status);
-  const label = terminal ? (failed ? "Stopped" : "Worked") : "Working";
+  const label = terminal ? (failed ? t("stopped") : t("worked")) : t("working_3b4dfc");
   const semanticLabel = terminal
     ? elapsed
-      ? `${label} ${failed ? "after" : "for"} ${elapsed}`
+      ? (failed ? t("label_after_elapsed", { label, elapsed }) : t("label_for_elapsed", { label, elapsed }))
       : label
-    : `${label} for ${elapsed ?? "0s"}`;
+    : t("label_for_elapsed", { label, elapsed: elapsed ?? "0s" });
   const visibleLabel = continuedAfterSteering
     ? `Continued after steering · ${semanticLabel}`
     : semanticLabel;
@@ -110,7 +111,7 @@ function RunnerTurnStatus({
 function RunnerCurrentActivityTail({ status }: { status: string }) {
   if (isTerminalRunStatus(status)) return null;
   return <div className="mt-2 flex min-h-8 min-w-0 items-center gap-2 px-1 py-1 text-xs text-muted-foreground" data-testid="task-chat-current-activity" data-turn-position="tail">
-    <span className="shimmer-text shimmer-text-muted" aria-live="polite" data-testid="task-chat-current-activity-label">Thinking</span>
+    <span className="shimmer-text shimmer-text-muted" aria-live="polite" data-testid="task-chat-current-activity-label">{t("thinking_d08d8d")}</span>
   </div>;
 }
 
@@ -229,9 +230,7 @@ export function TaskChatRunnerTurn({
           className="px-1 py-1 text-xs text-muted-foreground"
           role="status"
           data-testid="task-chat-activity-unavailable"
-        >
-          Live runner activity is temporarily unavailable. Retrying…
-        </div>
+        >{t("live_runner_activity_is_temporarily_unavailable")}</div>
       ) : null}
       {timelineRows.length > 0 ? (
         <div

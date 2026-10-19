@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+import { t } from "@/i18n";
 import type { SourceTrustMetadata } from "@paperclipai/shared";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +21,8 @@ export function SourceTrustBadge({
 
   const promoted = sourceTrust?.disposition === "promoted";
   const tooltip = promoted
-    ? `Promoted from low-trust${sourceTrust.promotedAt ? ` on ${new Date(sourceTrust.promotedAt).toLocaleString()}` : ""}.`
-    : `Authored by a low-trust review agent. Raw ${artifactLabel} is not auto-shared with higher-trust agents.`;
+    ? t("zhComponents.message_1073422b34", { value1: sourceTrust.promotedAt ? t("zhComponents.message_d9a685b0db", { value1: new Date(sourceTrust.promotedAt).toLocaleString(i18n.resolvedLanguage ?? i18n.language) }) : "" })
+    : t("zhComponents.message_6b54527efa", { value1: ({ comment: t("comment"), document: t("document"), "work product": t("work_product"), content: t("content") })[artifactLabel] });
 
   return (
     <Tooltip>

@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+import { t } from "@/i18n";
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity as ActivityIcon } from "lucide-react";
@@ -58,9 +60,9 @@ export function ActivitySection({ isLoading = false, error }: { isLoading?: bool
   const groups = useMemo(() => {
     const byDay = new Map<string, typeof events>();
     for (const event of events) {
-      let label = "Earlier";
+      let label = t("earlier");
       try {
-        label = new Date(event.createdAt).toLocaleDateString(undefined, {
+        label = new Date(event.createdAt).toLocaleDateString(i18n.resolvedLanguage ?? i18n.language, {
           weekday: "short",
           month: "short",
           day: "numeric",
@@ -75,11 +77,11 @@ export function ActivitySection({ isLoading = false, error }: { isLoading?: bool
     return Array.from(byDay.entries());
   }, [events]);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading activity…</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">{t("stability.a389c395010e", { defaultValue: "Loading activity…" })}</p>;
   if (error) return <p role="alert" className="text-sm text-destructive">{error.message}</p>;
 
   if (events.length === 0) {
-    return <EmptyState icon={ActivityIcon} message="No activity yet." />;
+    return <EmptyState icon={ActivityIcon} message={t("no_activity_yet")} />;
   }
 
   return (

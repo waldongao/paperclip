@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { ReactNode } from "react";
+import { act as reactAct, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
   WorkspaceRuntimeControls,
 } from "./WorkspaceRuntimeControls";
 import { queryKeys } from "@/lib/queryKeys";
+import { i18n } from "@/i18n";
 
 const mockInstanceSettingsApi = vi.hoisted(() => ({
   getExperimental: vi.fn(),
@@ -592,6 +593,34 @@ describe("WorkspaceRuntimeControls", () => {
       act(() => root.unmount());
     },
   );
+
+  it("localizes exposure errors and their title without changing persisted failure state", async () => {
+    const originalLanguage = i18n.language;
+    const service = createRuntimeService({
+      exposure: {
+        provider: "tailscale_https", state: "failed", publicUrl: null,
+        hostname: "paperclip-dev.tail29c1aa.ts.net", listeners: [], brokerRef: "service-1",
+        lastError: "external HTTPS health probe did not validate", updatedAt: "2026-08-12T00:00:00.000Z",
+      },
+    });
+    const root = createRoot(container);
+    try {
+      await reactAct(async () => { await i18n.changeLanguage("zh-CN"); });
+      const sections = buildWorkspaceRuntimeControlSections({
+        runtimeConfig: { commands: [{ id: "web", name: "web", kind: "service", command: "pnpm dev" }] },
+        runtimeServices: [service], canStartServices: true,
+      });
+      act(() => root.render(withQueryClient(<WorkspaceRuntimeControls sections={sections} onAction={vi.fn()} />)));
+      const alert = container.querySelector('[role="alert"]');
+      expect(alert?.textContent).toContain("外部 HTTPS 健康检查未通过");
+      expect(alert?.firstElementChild?.getAttribute("title")).toBe("外部 HTTPS 健康检查未通过");
+      expect(service.exposure?.state).toBe("failed");
+      expect(service.exposure?.lastError).toBe("external HTTPS health probe did not validate");
+    } finally {
+      act(() => root.unmount());
+      await reactAct(async () => { await i18n.changeLanguage(originalLanguage); });
+    }
+  });
 
   it("can render square plain surfaces for embedded configuration pages", () => {
     const sections = buildWorkspaceRuntimeControlSections({

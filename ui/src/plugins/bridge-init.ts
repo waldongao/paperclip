@@ -60,6 +60,7 @@ import {
 } from "@/lib/recent-assignees";
 import { getRecentProjectIds, trackRecentProject } from "@/lib/recent-projects";
 import { copyTextToClipboard } from "@/lib/clipboard";
+import { t, useTranslation } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Global bridge registry
@@ -256,6 +257,7 @@ function PluginSdkIssuesList({
   createIssueLabel,
   searchWithinLoadedIssues = true,
 }: PluginIssuesListProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const issueFilters = useMemo(
     () => compactIssueFilters({
@@ -324,7 +326,7 @@ function PluginSdkIssuesList({
   });
 
   if (!companyId) {
-    return createElement("div", { className: "text-sm text-muted-foreground" }, "Select an organization to view tasks.");
+    return createElement("div", { className: "text-sm text-muted-foreground" }, t("select_an_organization_to_view_tasks"));
   }
 
   return createElement(HostIssuesList, {
@@ -347,10 +349,10 @@ function PluginSdkAssigneePicker({
   companyId,
   value,
   onChange,
-  placeholder = "Responsible",
-  noneLabel = "No responsible",
-  searchPlaceholder = "Search responsible...",
-  emptyMessage = "No responsible found.",
+  placeholder = t("responsible"),
+  noneLabel = t("no_responsible"),
+  searchPlaceholder = t("search_responsible"),
+  emptyMessage = t("no_responsible_found"),
   includeUsers = true,
   includeTerminatedAgents = false,
   className,
@@ -457,10 +459,10 @@ function PluginSdkProjectPicker({
   companyId,
   value,
   onChange,
-  placeholder = "Project",
-  noneLabel = "No project",
-  searchPlaceholder = "Search projects...",
-  emptyMessage = "No projects found.",
+  placeholder = t("project"),
+  noneLabel = t("no_project"),
+  searchPlaceholder = t("search_projects"),
+  emptyMessage = t("no_projects_found"),
   includeArchived = false,
   className,
   onConfirm,
@@ -579,10 +581,11 @@ type PluginDataTableProps = {
   emptyMessage?: string;
 };
 
-function PluginSdkDataTable({ columns, rows, loading, emptyMessage = "No rows." }: PluginDataTableProps) {
-  if (loading) return createElement("div", { className: "text-sm text-muted-foreground" }, "Loading...");
+function PluginSdkDataTable({ columns, rows, loading, emptyMessage = t("no_rows_fdbeab") }: PluginDataTableProps) {
+  const { t } = useTranslation();
+  if (loading) return createElement("div", { className: "text-sm text-muted-foreground" }, t("loading_b04ba4"));
   if (!rows.length) return createElement("div", { className: "text-sm text-muted-foreground" }, emptyMessage);
-  const gridColumns = columns.map((column) => column.width ?? "minmax(0, 1fr)").join(" ");
+  const gridColumns = columns.map((column) => column.width ?? t("minmax_0_1fr")).join(" ");
   return createElement(
     "div",
     { className: "overflow-hidden rounded-md border" },
@@ -620,6 +623,7 @@ type PluginKeyValueListProps = {
 };
 
 function PluginSdkKeyValueList({ pairs }: PluginKeyValueListProps) {
+  const { t } = useTranslation();
   return createElement(
     "dl",
     { className: "grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_minmax(0,1fr)]" },
@@ -643,7 +647,7 @@ function PluginSdkJsonTree({ data }: { data: unknown }) {
   return createElement("pre", { className: "max-h-80 overflow-auto rounded-md border bg-muted/30 p-2 text-xs" }, JSON.stringify(data, null, 2));
 }
 
-function PluginSdkSpinner({ label = "Loading" }: { size?: "sm" | "md" | "lg"; label?: string }) {
+function PluginSdkSpinner({ label = t("loading_8f26c6") }: { size?: "sm" | "md" | "lg"; label?: string }) {
   return createElement("span", {
     className: "inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground align-middle",
     role: "status",
@@ -660,7 +664,7 @@ class PluginSdkErrorBoundary extends Component<{ children: ReactNode; fallback?:
 
   override render() {
     if (this.state.hasError) {
-      return this.props.fallback ?? createElement("div", { className: "rounded-md border border-destructive/30 p-3 text-sm text-destructive" }, "Plugin UI failed to render.");
+      return this.props.fallback ?? createElement("div", { className: "rounded-md border border-destructive/30 p-3 text-sm text-destructive" }, t("plugin_ui_failed_to_render"));
     }
     return this.props.children;
   }

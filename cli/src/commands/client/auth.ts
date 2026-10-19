@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import type { Command } from "commander";
 import {
   getStoredBoardCredential,
@@ -31,9 +32,9 @@ export function registerClientAuthCommands(auth: Command): void {
   addCommonClientOptions(
     auth
       .command("login")
-      .description("Authenticate the CLI for board-user access")
-      .option("--instance-admin", "Request instance-admin approval instead of plain board access", false)
-      .option("--no-browser", "Don't try to open a browser; just print the approval URL")
+      .description(tCli("Authenticate the CLI for board-user access"))
+      .option("--instance-admin", tCli("Request instance-admin approval instead of plain board access"), false)
+      .option("--no-browser", tCli("Don't try to open a browser; just print the approval URL"))
       .action(async (opts: AuthLoginOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -63,7 +64,7 @@ export function registerClientAuthCommands(auth: Command): void {
   addCommonClientOptions(
     auth
       .command("logout")
-      .description("Remove the stored board-user credential for this API base")
+      .description(tCli("Remove the stored board-user credential for this API base"))
       .action(async (opts: AuthLogoutOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -101,7 +102,7 @@ export function registerClientAuthCommands(auth: Command): void {
   addCommonClientOptions(
     auth
       .command("revoke-current")
-      .description("Revoke the current board API token")
+      .description(tCli("Revoke the current board API token"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -115,7 +116,7 @@ export function registerClientAuthCommands(auth: Command): void {
   addCommonClientOptions(
     auth
       .command("whoami")
-      .description("Show the current board-user identity for this API base")
+      .description(tCli("Show the current board-user identity for this API base"))
       .action(async (opts: AuthWhoamiOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -134,12 +135,12 @@ export function registerClientAuthCommands(auth: Command): void {
       }),
   );
 
-  const challenge = auth.command("challenge").description("CLI auth challenge operations");
+  const challenge = auth.command("challenge").description(tCli("CLI auth challenge operations"));
   addCommonClientOptions(
     challenge
       .command("create")
-      .description("Create a CLI auth challenge")
-      .requiredOption("--payload-json <json>", "CreateCliAuthChallenge JSON payload")
+      .description(tCli("Create a CLI auth challenge"))
+      .requiredOption("--payload-json <json>", tCli("CreateCliAuthChallenge JSON payload"))
       .action(async (opts: AuthChallengeOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -152,10 +153,10 @@ export function registerClientAuthCommands(auth: Command): void {
   addCommonClientOptions(
     challenge
       .command("get")
-      .description("Get a CLI auth challenge")
-      .argument("<id>", "Challenge ID")
-      .option("--token <token>", "Challenge secret")
-      .option("--token-env <name>", "Read the challenge secret from an environment variable")
+      .description(tCli("Get a CLI auth challenge"))
+      .argument("<id>", tCli("Challenge ID"))
+      .option("--token <token>", tCli("Challenge secret"))
+      .option("--token-env <name>", tCli("Read the challenge secret from an environment variable"))
       .action(async (id: string, opts: AuthChallengeOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -170,10 +171,10 @@ export function registerClientAuthCommands(auth: Command): void {
     addCommonClientOptions(
       challenge
         .command(action)
-        .description(`${action} a CLI auth challenge`)
-        .argument("<id>", "Challenge ID")
-        .option("--token <token>", "Challenge secret")
-        .option("--token-env <name>", "Read the challenge secret from an environment variable")
+        .description(tCli("{{action}} a CLI auth challenge", { action: tCli(action) }))
+        .argument("<id>", tCli("Challenge ID"))
+        .option("--token <token>", tCli("Challenge secret"))
+        .option("--token-env <name>", tCli("Read the challenge secret from an environment variable"))
         .action(async (id: string, opts: AuthChallengeOptions) => {
           try {
             const ctx = resolveCommandContext(opts);
@@ -197,7 +198,7 @@ function resolveChallengeToken(opts: AuthChallengeOptions): string {
   if (envName) {
     const envValue = process.env[envName]?.trim();
     if (envValue) return envValue;
-    throw new Error(`Environment variable ${envName} is empty or not set.`);
+    throw new Error(tCli("Environment variable {{envName}} is empty or not set.", { envName: envName }));
   }
-  throw new Error("Challenge secret is required. Pass --token or --token-env.");
+  throw new Error(tCli("Challenge secret is required. Pass --token or --token-env."));
 }

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import {
   Clock3,
   LoaderCircle,
@@ -78,7 +79,7 @@ export function TaskBrowserFooter({
 
   return (
     <footer
-      aria-label="Browser session"
+      aria-label={t("stability.ccf3756dcb8c", { defaultValue: "Browser session" })}
       className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t px-3 py-2 text-xs text-muted-foreground"
     >
       {closingSoon && (
@@ -89,28 +90,25 @@ export function TaskBrowserFooter({
         >
           <Clock3 className="size-3" aria-hidden="true" />
           {seconds > 0 ? (
-            <>
-              Closes in{" "}
+            <>{t("stability.0d844154b41e", { defaultValue: "Closes in" })}{" "}
               <span className="font-mono tabular-nums">{countdown}</span>
             </>
           ) : (
-            "Closing…"
+            t("stability.abdb0cfdd8ac", { defaultValue: "Closing…" })
           )}
         </span>
       )}
       {controlledElsewhere && viewport === "fit" && (
-        <span>Size follows another viewer</span>
+        <span>{t("stability.a9be4d07588f", { defaultValue: "Size follows another viewer" })}</span>
       )}
       {resizing ? (
         <span role="status" className="flex items-center gap-1">
           <LoaderCircle
             className="size-3 animate-spin motion-reduce:animate-none"
             aria-hidden="true"
-          />
-          Resizing…
-        </span>
+          />{t("stability.6f2769b24c0f", { defaultValue: "Resizing…" })}</span>
       ) : (
-        browser.status === "running" && <span>Browsing</span>
+        browser.status === "running" && <span>{t("stability.bd6eb3cf2d0b", { defaultValue: "Browsing" })}</span>
       )}
       <div className="ml-auto flex items-center gap-1">
         {closingSoon && canExtend && (
@@ -121,14 +119,9 @@ export function TaskBrowserFooter({
                 variant="ghost"
                 disabled={disabled}
                 onClick={() => onControl("keep_open")}
-              >
-                Keep browsing
-              </Button>
+              >{t("stability.a1ecf4928d2e", { defaultValue: "Keep browsing" })}</Button>
             </TooltipTrigger>
-            <TooltipContent>
-              Keep this browser open for up to {BROWSER_USE_IDLE_MS / 60000}{" "}
-              more minutes.
-            </TooltipContent>
+            <TooltipContent>{t("stability.fe13fadd6cd3", { defaultValue: "Keep this browser open for up to" })}{" "}{BROWSER_USE_IDLE_MS / 60000}{" "}{t("stability.65fb622c9040", { defaultValue: "more minutes." })}</TooltipContent>
           </Tooltip>
         )}
         {browser.status === "running" && (
@@ -140,12 +133,9 @@ export function TaskBrowserFooter({
                 disabled={disabled}
                 onClick={() => onControl("cancel")}
               >
-                <Square aria-hidden="true" /> Stop browsing
-              </Button>
+                <Square aria-hidden="true" />{" "}{t("stability.5698d349ee48", { defaultValue: "Stop browsing" })}</Button>
             </TooltipTrigger>
-            <TooltipContent>
-              Stop the agent’s browser work and leave the browser open.
-            </TooltipContent>
+            <TooltipContent>{t("stability.8a3f89710393", { defaultValue: "Stop the agent’s browser work and leave the browser open." })}</TooltipContent>
           </Tooltip>
         )}
         {live && (
@@ -154,7 +144,7 @@ export function TaskBrowserFooter({
               <Button
                 size="icon-xs"
                 variant="ghost"
-                aria-label="Browser options"
+                aria-label={t("stability.0017e5fbb9fd", { defaultValue: "Browser options" })}
                 disabled={disabled}
               >
                 <MoreHorizontal aria-hidden="true" />
@@ -164,13 +154,13 @@ export function TaskBrowserFooter({
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger disabled={resizing || !resizeAvailable}>
                   <Monitor aria-hidden="true" />
-                  <span>Browser size</span>
+                  <span>{t("stability.ccc196e0e42e", { defaultValue: "Browser size" })}</span>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {sizeLabel}
                   </span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-64">
-                  <DropdownMenuLabel>Browser size</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("stability.ccc196e0e42e", { defaultValue: "Browser size" })}</DropdownMenuLabel>
                   <DropdownMenuRadioGroup
                     value={viewport}
                     onValueChange={(value) =>
@@ -182,13 +172,9 @@ export function TaskBrowserFooter({
                       onSelect={() => {
                         if (viewport === "fit") onResize("fit");
                       }}
-                    >
-                      Fit to pane
-                    </DropdownMenuRadioItem>
+                    >{t("stability.4afeed1a87c0", { defaultValue: "Fit to pane" })}</DropdownMenuRadioItem>
                     {controlledElsewhere && (
-                      <DropdownMenuItem onSelect={() => onResize("fit")}>
-                        Fit to this pane instead
-                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => onResize("fit")}>{t("stability.0b459f0661b1", { defaultValue: "Fit to this pane instead" })}</DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuRadioItem
@@ -196,9 +182,7 @@ export function TaskBrowserFooter({
                       onSelect={() => {
                         if (viewport === "default") onResize("default");
                       }}
-                    >
-                      Browser default
-                    </DropdownMenuRadioItem>
+                    >{t("stability.44f0527601f9", { defaultValue: "Browser default" })}</DropdownMenuRadioItem>
                     <DropdownMenuSeparator />
                     {BROWSER_USE_VIEWPORT_PRESETS.map((preset) => (
                       <DropdownMenuRadioItem
@@ -221,10 +205,8 @@ export function TaskBrowserFooter({
               <DropdownMenuItem onSelect={onReconnect} className="items-start">
                 <RefreshCw className="mt-0.5" aria-hidden="true" />
                 <span className="flex flex-col gap-1">
-                  <span>Reconnect view</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    Reload the live view. Browser work keeps running.
-                  </span>
+                  <span>{t("stability.96216c2c26ea", { defaultValue: "Reconnect view" })}</span>
+                  <span className="text-xs font-normal text-muted-foreground">{t("stability.8aa42041d294", { defaultValue: "Reload the live view. Browser work keeps running." })}</span>
                 </span>
               </DropdownMenuItem>
               {canExtend && (
@@ -234,10 +216,8 @@ export function TaskBrowserFooter({
                 >
                   <Clock3 className="mt-0.5" aria-hidden="true" />
                   <span className="flex flex-col gap-1">
-                    <span>Keep browser open</span>
-                    <span className="text-xs font-normal text-muted-foreground">
-                      Keep it open for up to 10 more minutes.
-                    </span>
+                    <span>{t("stability.5a76dedb51fa", { defaultValue: "Keep browser open" })}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{t("stability.713281671243", { defaultValue: "Keep it open for up to 10 more minutes." })}</span>
                   </span>
                 </DropdownMenuItem>
               )}
@@ -249,10 +229,8 @@ export function TaskBrowserFooter({
               >
                 <X className="mt-0.5" aria-hidden="true" />
                 <span className="flex flex-col gap-1">
-                  <span>Close browser</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    End this browser and stop any browsing.
-                  </span>
+                  <span>{t("stability.dd33033e79b0", { defaultValue: "Close browser" })}</span>
+                  <span className="text-xs font-normal text-muted-foreground">{t("stability.3bbffb165068", { defaultValue: "End this browser and stop any browsing." })}</span>
                 </span>
               </DropdownMenuItem>
             </DropdownMenuContent>

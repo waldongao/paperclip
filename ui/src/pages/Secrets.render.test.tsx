@@ -17,6 +17,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProviderVaultsTab, Secrets } from "./Secrets";
 import { ApiError } from "../api/client";
 import { queryKeys } from "../lib/queryKeys";
+import { i18n } from "@/i18n";
 
 const mockSecretsApi = vi.hoisted(() => ({
   list: vi.fn(),
@@ -677,6 +678,36 @@ describe("Secrets page layout", () => {
     await act(async () => {
       root.unmount();
     });
+  });
+
+  it("preserves user-authored descriptions that match a system message in Chinese", async () => {
+    const previousLanguage = i18n.language;
+    const root = createRoot(container);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    mockSecretsApi.list.mockResolvedValue([makeCompanySecret({ description: "Read-only" })]);
+    mockSecretsApi.usage.mockResolvedValue({ secretId: "secret-openai", bindings: [] });
+    mockSecretsApi.accessEvents.mockResolvedValue([]);
+
+    try {
+      await i18n.changeLanguage("zh-CN");
+      await act(async () => {
+        root.render(
+          <MemoryRouter initialEntries={["/company/settings/secrets?secret=secret-openai"]}>
+            <QueryClientProvider client={queryClient}>
+              <Secrets />
+            </QueryClientProvider>
+          </MemoryRouter>,
+        );
+      });
+      await waitForReact(() => document.body.querySelector("[role='dialog']") !== null);
+
+      expect(document.body.querySelector("[role='dialog']")?.textContent).toContain("Read-only");
+    } finally {
+      await act(async () => root.unmount());
+      await i18n.changeLanguage(previousLanguage);
+    }
   });
 
   it("writes a new value through the provider for external reference secrets", async () => {

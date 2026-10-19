@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Agent } from "@paperclipai/shared";
 import { toolsApi } from "@/api/tools";
@@ -34,12 +35,10 @@ export function EmailConnectionAccess({
     },
   });
   if (grants.isLoading || installs.isLoading)
-    return <p className="text-sm text-muted-foreground">Loading access…</p>;
+    return <p className="text-sm text-muted-foreground">{t("stability.a55b4d69fcfd", { defaultValue: "Loading access…" })}</p>;
   if (grants.error || installs.error)
     return (
-      <p role="alert" className="text-sm text-destructive">
-        Connection access could not be loaded.
-      </p>
+      <p role="alert" className="text-sm text-destructive">{t("stability.95339012793d", { defaultValue: "Connection access could not be loaded." })}</p>
     );
   const active = grants.data?.grants.filter((g) => g.status === "active") ?? [];
   const everyone = active.some((g) => g.kind === "organization");
@@ -62,15 +61,11 @@ export function EmailConnectionAccess({
   return (
     <div className="space-y-8">
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold">
-          Which humans can use this credential?
-        </h2>
+        <h2 className="text-sm font-semibold">{t("which_humans_can_use_this_credential")}</h2>
         <p className="text-sm">{humanLabel}</p>
       </section>
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold">
-          Which agents can use this connection?
-        </h2>
+        <h2 className="text-sm font-semibold">{t("which_agents_can_use_this_connection")}</h2>
         <RadioCardGroup
           ariaLabel="Which agents can use this connection"
           value={allAgents ? "all" : "selected"}
@@ -106,9 +101,7 @@ export function EmailConnectionAccess({
             }
           />
         )}
-        <p className="text-xs text-muted-foreground">
-          Removing an assigned agent stops receiving and sending from its inbox.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("stability.e816d5d69a24", { defaultValue: "Removing an assigned agent stops receiving and sending from its inbox." })}</p>
         {save.error && (
           <p role="alert" className="text-sm text-destructive">
             {save.error.message}

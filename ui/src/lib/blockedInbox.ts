@@ -4,6 +4,7 @@ import type {
   IssueBlockedInboxReason,
   IssueBlockedInboxSeverity,
 } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 export type BlockedReasonVariant =
   | "needs_decision"
@@ -38,27 +39,27 @@ export const BLOCKED_REASON_VARIANT_ORDER: BlockedReasonVariant[] = [
 ];
 
 export const BLOCKED_VARIANT_LABELS: Record<BlockedReasonVariant, string> = {
-  needs_decision: "Needs decision",
-  stalled: "Blocked chain stalled",
-  needs_attention: "Needs attention",
-  recovery_required: "Recovery required",
-  external_wait: "External wait",
-  owner_paused: "Owner paused",
+  needs_decision: t("needs_decision"),
+  stalled: t("blocked_chain_stalled"),
+  needs_attention: t("needs_attention"),
+  recovery_required: t("recovery_required"),
+  external_wait: t("external_wait"),
+  owner_paused: t("owner_paused"),
 };
 
 const REASON_LABELS: Record<IssueBlockedInboxReason, string> = {
-  pending_board_decision: "Pending board decision",
-  pending_user_decision: "Pending user decision",
-  missing_successful_run_disposition: "Pick disposition",
-  blocked_chain_stalled: "Blocked chain stalled",
-  blocked_by_unassigned_issue: "Unassigned blocker",
-  blocked_by_assigned_backlog_issue: "Parked blocker",
-  blocked_by_cancelled_issue: "Cancelled blocker",
-  in_review_without_action_path: "Review without action path",
-  invalid_review_participant: "Invalid review participant",
-  open_recovery_issue: "Recovery in progress",
-  external_owner_action: "External owner action",
-  blocked_by_uninvokable_assignee: "Owner paused",
+  pending_board_decision: t("pending_board_decision"),
+  pending_user_decision: t("pending_user_decision"),
+  missing_successful_run_disposition: t("pick_disposition"),
+  blocked_chain_stalled: t("blocked_chain_stalled"),
+  blocked_by_unassigned_issue: t("unassigned_blocker"),
+  blocked_by_assigned_backlog_issue: t("parked_blocker"),
+  blocked_by_cancelled_issue: t("cancelled_blocker"),
+  in_review_without_action_path: t("review_without_action_path"),
+  invalid_review_participant: t("invalid_review_participant"),
+  open_recovery_issue: t("recovery_in_progress_c8f61c"),
+  external_owner_action: t("external_owner_action"),
+  blocked_by_uninvokable_assignee: t("owner_paused"),
 };
 
 const SEVERITY_RANK: Record<IssueBlockedInboxSeverity, number> = {
@@ -75,7 +76,7 @@ export function blockedReasonVariant(reason: IssueBlockedInboxReason): BlockedRe
 }
 
 export function blockedReasonLabel(reason: IssueBlockedInboxReason): string {
-  return REASON_LABELS[reason] ?? "Stopped";
+  return REASON_LABELS[reason] ?? t("stopped");
 }
 
 export function blockedVariantLabel(variant: BlockedReasonVariant): string {
@@ -110,14 +111,14 @@ export type BlockedInboxGroupBy = "blocker_type" | "none";
 export type BlockedInboxSort = "urgency" | "most_recent" | "longest_stopped";
 
 export const BLOCKED_GROUP_OPTIONS: readonly [BlockedInboxGroupBy, string][] = [
-  ["blocker_type", "Blocker type"],
-  ["none", "None"],
+  ["blocker_type", t("blocker_type")],
+  ["none", t("none")],
 ];
 
 export const BLOCKED_SORT_OPTIONS: readonly [BlockedInboxSort, string][] = [
-  ["urgency", "Most urgent"],
-  ["most_recent", "Most recent"],
-  ["longest_stopped", "Longest stopped"],
+  ["urgency", t("most_urgent")],
+  ["most_recent", t("most_recent")],
+  ["longest_stopped", t("longest_stopped")],
 ];
 
 export interface BlockedInboxGroup {
@@ -249,27 +250,27 @@ export function blockedBadgeTone(rows: readonly BlockedInboxIssueRow[]): Blocked
 }
 
 export function formatStoppedAge(stoppedSinceAt: string | null, now: number = Date.now()): string {
-  if (!stoppedSinceAt) return "stopped";
+  if (!stoppedSinceAt) return t("zhSupport.stopped.label");
   const then = new Date(stoppedSinceAt).getTime();
-  if (!Number.isFinite(then)) return "stopped";
+  if (!Number.isFinite(then)) return t("zhSupport.stopped.label");
   const seconds = Math.max(0, Math.round((now - then) / 1000));
-  if (seconds < 60) return "stopped just now";
+  if (seconds < 60) return t("stopped_just_now");
   if (seconds < 3600) {
     const m = Math.floor(seconds / 60);
-    return `stopped ${m}m`;
+    return t("zhSupport.stopped.minutes", { count: m });
   }
   if (seconds < 86_400) {
     const h = Math.floor(seconds / 3600);
-    return `stopped ${h}h`;
+    return t("zhSupport.stopped.hours", { count: h });
   }
   if (seconds < 86_400 * 7) {
     const d = Math.floor(seconds / 86_400);
-    return `stopped ${d}d`;
+    return t("zhSupport.stopped.days", { count: d });
   }
   if (seconds < 86_400 * 30) {
     const w = Math.floor(seconds / (86_400 * 7));
-    return `stopped ${w}w`;
+    return t("zhSupport.stopped.weeks", { count: w });
   }
   const mo = Math.floor(seconds / (86_400 * 30));
-  return `stopped ${mo}mo`;
+  return t("zhSupport.stopped.months", { count: mo });
 }

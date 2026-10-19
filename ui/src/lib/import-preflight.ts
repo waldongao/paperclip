@@ -1,5 +1,6 @@
 import type { CompanyPortabilityFileEntry } from "@paperclipai/shared";
 
+
 // Inline imports post the whole parsed package as one JSON body, so oversized
 // packages must be blocked before the request is built. Packages past this
 // limit go through the zip upload path (a far higher, operator-configurable
@@ -14,7 +15,7 @@ const utf8 = new TextEncoder();
 
 // Fixed serialization overhead of a base64 entry object around its data and
 // contentType values: {"encoding":"base64","data":"…","contentType":"…"}.
-const BASE64_ENTRY_STRUCTURE_BYTES = '{"encoding":"base64","data":"","contentType":""}'.length;
+const BASE64_ENTRY_STRUCTURE_BYTES = "{\"encoding\":\"base64\",\"data\":\"\",\"contentType\":\"\"}".length;
 
 // Allowance for everything in the request body besides the files map itself
 // (rootPath, include flags, target, collision strategy, adapter overrides,

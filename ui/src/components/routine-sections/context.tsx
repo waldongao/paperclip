@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { createContext, useContext } from "react";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type {
@@ -17,6 +18,7 @@ import type {
 import type { agentsApi } from "../../api/agents";
 import type { projectsApi } from "../../api/projects";
 import type { secretsApi } from "../../api/secrets";
+import { useTranslation } from "@/i18n";
 
 export const ROUTINE_SECTION_KEYS = [
   "overview",
@@ -174,9 +176,10 @@ export type RoutineDetailContextValue = {
 export const RoutineDetailContext = createContext<RoutineDetailContextValue | null>(null);
 
 export function useRoutineDetail(): RoutineDetailContextValue {
+  const { t } = useTranslation();
   const value = useContext(RoutineDetailContext);
   if (!value) {
-    throw new Error("useRoutineDetail must be used within a RoutineDetailContext provider");
+    throw new Error(t("useroutinedetail_must_be_used_within_a_routinede"));
   }
   return value;
 }

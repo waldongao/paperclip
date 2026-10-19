@@ -637,7 +637,79 @@ describeEmbeddedPostgres("generic remote MCP connections", () => {
     await expect(db.select().from(toolApplications)).resolves.toHaveLength(0);
   });
 
-  it("emits DNS guidance for a real NXDOMAIN failure", async () => {
+  it.each([
+    { deploymentMode: "local_trusted", deploymentExposure: "private" },
+    { deploymentMode: "authenticated", deploymentExposure: "public" },
+  ] as const)("emits DNS guidance for an ENOTFOUND lookup in $deploymentMode mode", async (deployment) => {
+    // Do not rely on public DNS: VPNs and DNS proxies can resolve .invalid to
+    // a synthetic address. Reproduce Node's lookup failure at the DNS boundary.
+    const lookup = vi.fn().mockRejectedValue(Object.assign(
+      new Error("getaddrinfo ENOTFOUND qa-nonexistent.invalid"),
+      { code: "ENOTFOUND", syscall: "getaddrinfo", hostname: "qa-nonexistent.invalid" },
+    ));
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockRejectedValue(
+      new Error("Unexpected outbound request after DNS failure"),
+    );
+    const company = await createCompany(db);
+    const app = createRouteApp(db, {
+      ...deployment,
+      remoteHttpEndpointLookup: lookup,
+    });
+
+    const response = await request(app)
+      .post(`/api/companies/${company.id}/tools/apps/connect`)
+      .send({ link: "https://qa-nonexistent.invalid/mcp", name: "Missing DNS fixture" })
+      .expect(400);
+
+    expect(response.body).toMatchObject({
+      error: "Remote MCP connection hostname could not be resolved",
+      details: { code: "remote_http_dns_failed" },
+    });
+    expect(lookup).toHaveBeenCalledWith("qa-nonexistent.invalid");
+    expect(fetchMock).not.toHaveBeenCalled();
+    await expect(db.select().from(toolApplications)).resolves.toHaveLength(0);
+  });
+
+  it("emits DNS guidance for an ENOTFOUND cause from platform fetch", async () => {
+    const cause = Object.assign(new Error("getaddrinfo ENOTFOUND fixture.invalid"), {
+      code: "ENOTFOUND",
+      syscall: "getaddrinfo",
+      hostname: "fixture.invalid",
+    });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockRejectedValue(
+      new TypeError("fetch failed", { cause }),
+    );
+    const company = await createCompany(db);
+    const app = createRouteApp(db, {
+      deploymentMode: "local_trusted",
+      deploymentExposure: "private",
+    });
+
+    // IP literals exercise the platform-fetch cause classifier without a DNS
+    // lookup or an actual outbound request.
+    const response = await request(app)
+      .post(`/api/companies/${company.id}/tools/apps/connect`)
+      .send({ link: MCP_URL, name: "Fetch DNS fixture" })
+      .expect(502);
+
+    expect(response.body).toMatchObject({
+      error: "Remote MCP connection hostname could not be resolved",
+      details: { code: "remote_http_dns_failed" },
+    });
+    expect(fetchMock).toHaveBeenCalled();
+    await expect(db.select().from(toolApplications)).resolves.toHaveLength(0);
+  });
+
+  it("does not classify a non-DNS platform-fetch cause as a DNS failure", async () => {
+    const cause = Object.assign(new Error("connect ECONNREFUSED 8.8.8.8:443"), {
+      code: "ECONNREFUSED",
+      syscall: "connect",
+      address: "8.8.8.8",
+      port: 443,
+    });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockRejectedValue(
+      new TypeError("fetch failed", { cause }),
+    );
     const company = await createCompany(db);
     const app = createRouteApp(db, {
       deploymentMode: "local_trusted",
@@ -646,16 +718,14 @@ describeEmbeddedPostgres("generic remote MCP connections", () => {
 
     const response = await request(app)
       .post(`/api/companies/${company.id}/tools/apps/connect`)
-      .send({ link: "https://qa-nonexistent.invalid/mcp", name: "Missing DNS fixture" });
+      .send({ link: MCP_URL, name: "Fetch connection failure fixture" })
+      .expect(502);
 
-    // Public-mode preflight returns 400; local-mode platform fetch reports the
-    // same failure from the health check as 502. The machine code is the stable
-    // UI contract across both paths.
-    expect([400, 502]).toContain(response.status);
     expect(response.body).toMatchObject({
-      details: { code: "remote_http_dns_failed" },
+      error: "fetch failed",
+      details: { code: "runtime_error" },
     });
-    expect(response.body.error).not.toBe("fetch failed");
+    expect(fetchMock).toHaveBeenCalled();
     await expect(db.select().from(toolApplications)).resolves.toHaveLength(0);
   });
 

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useId } from "react";
 import { Loader2, Pause, Play } from "lucide-react";
 import { Link } from "@/lib/router";
@@ -35,12 +36,12 @@ export function TaskChatPausedTakeover({
         <Pause aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-(--status-task-icon-todo)" />
         <div className="flex min-w-0 flex-col gap-1">
           <h2 id={headingId} className="text-sm font-medium text-foreground">
-            {subtree ? "Subtree is paused." : "Task is paused."}
+            {subtree ? t("stability.f9ebf72d55c3", { defaultValue: "Subtree is paused." }) : t("stability.fb9c04c93b5e", { defaultValue: "Task is paused." })}
           </h2>
           <p className="text-sm text-muted-foreground">
             {subtree
-              ? "Resume this subtree to send a message."
-              : "Resume this task to send a message."}
+              ? t("stability.1f80fbce1bce", { defaultValue: "Resume this subtree to send a message." })
+              : t("stability.24253739dd69", { defaultValue: "Resume this task to send a message." })}
           </p>
         </div>
       </div>
@@ -51,11 +52,11 @@ export function TaskChatPausedTakeover({
       ) : null}
       <div className="flex flex-wrap items-center justify-end gap-3">
         {hasDraft ? (
-          <p className="mr-auto text-xs text-muted-foreground">Your draft is saved.</p>
+          <p className="mr-auto text-xs text-muted-foreground">{t("stability.58c808d96ad9", { defaultValue: "Your draft is saved." })}</p>
         ) : null}
         {resumeHref ? (
           <Button asChild size="sm" className="bg-(--status-agent-paused) text-foreground hover:bg-(--status-agent-paused)/80 dark:text-background">
-            <Link to={resumeHref}><Play aria-hidden="true" />Resume subtree</Link>
+            <Link to={resumeHref}><Play aria-hidden="true" />{t("resume_subtree")}</Link>
           </Button>
         ) : (
           <Button
@@ -65,7 +66,7 @@ export function TaskChatPausedTakeover({
             className="bg-(--status-agent-paused) text-foreground hover:bg-(--status-agent-paused)/80 dark:text-background"
           >
             {pending ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Play aria-hidden="true" />}
-            {pending ? "Resuming…" : subtree ? "Resume subtree" : "Resume task"}
+            {pending ? t("resuming") : subtree ? t("resume_subtree") : t("stability.c697c0563394", { defaultValue: "Resume task" })}
           </Button>
         )}
       </div>

@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { i18n } from "@/i18n";
+const initialLanguage = i18n.language;
+afterEach(async () => { await i18n.changeLanguage(initialLanguage); });
 import {
   buildOnboardingIssuePayload,
   buildOnboardingProjectPayload,
@@ -83,6 +86,14 @@ describe("selectDefaultCompanyGoalId", () => {
 });
 
 describe("onboarding launch payloads", () => {
+  it.each(["en", "zh-CN"])("reuses historical onboarding projects without changing identity in %s", async (locale) => {
+    await i18n.changeLanguage(locale);
+    for (const name of ["Onboarding", "入职引导"]) {
+      const project = { name, status: "in_progress" as const };
+      expect(selectReusableOnboardingProject([project])).toBe(project);
+    }
+    expect(buildOnboardingProjectPayload(null).name).toBe("Onboarding");
+  });
   it("reuses a non-cancelled Onboarding project by name", () => {
     expect(
       selectReusableOnboardingProject([

@@ -1,7 +1,8 @@
 // @vitest-environment node
 
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { i18n } from "@/i18n";
 import { AgentStatusBadge, IssueStatusBadge, StatusBadge } from "./StatusBadge";
 import { agentStatusVar, taskStatusVar } from "../lib/status-colors";
 
@@ -68,5 +69,27 @@ describe("StatusBadge", () => {
   it("uses the graduated brand hues", () => {
     expect(renderToStaticMarkup(<StatusBadge status="todo" />)).toContain("bg-amber-100");
     expect(renderToStaticMarkup(<StatusBadge status="in_progress" />)).toContain("bg-blue-100");
+  });
+});
+
+const originalLanguage = i18n.language;
+afterEach(async () => { await i18n.changeLanguage(originalLanguage); });
+
+describe("localized status badges", () => {
+  it("translates built-in agent, run and task status labels in Chinese", async () => {
+    await i18n.changeLanguage("zh-CN");
+    const html = renderToStaticMarkup(<><AgentStatusBadge status="error" /><AgentStatusBadge status="active" /><StatusBadge status="succeeded" /><IssueStatusBadge status="todo" /></>);
+    expect(html).toContain("错误");
+    expect(html).toContain("空闲");
+    expect(html).toContain("成功");
+    expect(html).toContain("待办");
+    expect(html).not.toMatch(/>error<|>idle<|>succeeded<|>todo</);
+  });
+
+  it("preserves unknown extension labels and explicit user labels", async () => {
+    await i18n.changeLanguage("zh-CN");
+    const html = renderToStaticMarkup(<><StatusBadge status="plugin-ready" /><StatusBadge status="pending" label="Custom customer label" /></>);
+    expect(html).toContain("plugin ready");
+    expect(html).toContain("Custom customer label");
   });
 });

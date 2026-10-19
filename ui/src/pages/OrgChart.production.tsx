@@ -1,3 +1,5 @@
+import { getDisplayLabel } from "@/lib/display-labels";
+import { t } from "@/i18n";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "@/lib/router";
@@ -166,7 +168,7 @@ const statusDotColor: Record<string, string> = {
   active: "var(--hex-4ade80)",
   paused: "var(--hex-facc15)",
   idle: "var(--hex-facc15)",
-  error: "var(--hex-f87171)",
+  error: t("var_hex_f87171"),
   terminated: "var(--hex-a3a3a3)",
 };
 const defaultDotColor = "var(--hex-a3a3a3)";
@@ -204,7 +206,7 @@ export function OrgChart() {
   }, [agents]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Org Chart" }]);
+    setBreadcrumbs([{ label: t("org_chart") }]);
   }, [setBreadcrumbs]);
 
   // Layout computation
@@ -439,7 +441,7 @@ export function OrgChart() {
   }, [pan, zoom]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Network} message="Select a company to view the org chart." />;
+    return <EmptyState icon={Network} message={t("select_a_company_to_view_the_org_chart")} />;
   }
 
   if (isLoading) {
@@ -447,7 +449,7 @@ export function OrgChart() {
   }
 
   if (orgTree && orgTree.length === 0) {
-    return <EmptyState icon={Network} message="No organizational hierarchy defined." />;
+    return <EmptyState icon={Network} message={t("no_organizational_hierarchy_defined")} />;
   }
 
   return (
@@ -457,7 +459,7 @@ export function OrgChart() {
           <Link to="/company/import">
             <Button variant="outline" size="sm">
               <Upload className="mr-1.5 h-3.5 w-3.5" />
-              Import company
+              {t("import_company")}
             </Button>
           </Link>
         )}
@@ -465,7 +467,7 @@ export function OrgChart() {
           <Link to="/company/export">
             <Button variant="outline" size="sm">
               <Download className="mr-1.5 h-3.5 w-3.5" />
-              Export company
+              {t("export_company")}
             </Button>
           </Link>
         )}
@@ -502,8 +504,8 @@ export function OrgChart() {
                 });
               }
             }}
-            title="Zoom in"
-            aria-label="Zoom in"
+            title={t("zoom_in")}
+            aria-label={t("zoom_in")}
           >
             <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </button>
@@ -518,16 +520,16 @@ export function OrgChart() {
                 });
               }
             }}
-            title="Zoom out"
-            aria-label="Zoom out"
+            title={t("zoom_out")}
+            aria-label={t("zoom_out")}
           >
             <Minus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </button>
           <button
             className="flex size-9 items-center justify-center rounded border border-border bg-background text-(length:--text-nano) transition-colors hover:bg-accent sm:size-7"
             onClick={fitToScreen}
-            title="Fit to screen"
-            aria-label="Fit chart to screen"
+            title={t("fit_to_screen")}
+            aria-label={t("fit_chart_to_screen")}
           >
             <Maximize2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </button>
@@ -637,5 +639,5 @@ export function OrgChart() {
 const roleLabels: Record<string, string> = AGENT_ROLE_LABELS;
 
 function roleLabel(role: string): string {
-  return roleLabels[role] ?? role;
+  return getDisplayLabel(role, "role");
 }

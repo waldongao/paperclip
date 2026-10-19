@@ -5,6 +5,10 @@ import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ActiveAgentsPanel, AgentRunCard } from "./ActiveAgentsPanel";
+import { i18n, t } from "@/i18n";
+import { getDisplayLabel } from "@/lib/display-labels";
+import { relativeTime } from "@/lib/utils";
+const initialLanguage = i18n.language;
 
 const mockHeartbeatsApi = vi.hoisted(() => ({
   liveRunsForCompany: vi.fn(),
@@ -122,7 +126,8 @@ describe("ActiveAgentsPanel", () => {
     mockIssuesApi.get.mockRejectedValue(new Error("Issue not found"));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await i18n.changeLanguage(initialLanguage);
     container.remove();
     document.body.innerHTML = "";
     vi.clearAllMocks();
@@ -280,6 +285,38 @@ describe("ActiveAgentsPanel", () => {
     await act(async () => {
       root.unmount();
     });
+  });
+
+  it.each(["en", "zh-CN"])("localizes dashboard run metadata while preserving raw run and task states in %s", async (locale) => {
+    await i18n.changeLanguage(locale);
+    const root = createRoot(container);
+    const issue = { title: "User-authored release review", identifier: "PAP-559", status: "blocked" as const };
+    const date = "2026-04-24T12:00:00.000Z";
+    const runs = [
+      { ...createIssueRun(0, "issue-1"), status: "failed", finishedAt: date },
+      { ...createIssueRun(1, "issue-1"), status: "running", finishedAt: null },
+      { ...createIssueRun(2, "issue-1"), status: "queued", finishedAt: null, startedAt: null },
+    ];
+    await act(async () => root.render(<>{runs.map(run => <AgentRunCard key={run.id} companyId="company-1" run={run} issue={issue} />)}</>));
+    const timestamps = Array.from(container.querySelectorAll("time"), node => node.textContent);
+    expect(timestamps).toEqual([
+      t("zhComponents.message_d41511ce19", { value1: relativeTime(date) }),
+      t("zhComponents.message_aaeaecb4a4", { value1: relativeTime(date) }),
+      t("stability.60804217ea70", { value1: relativeTime(runs[2].createdAt) }),
+    ]);
+    const firstLink = container.querySelector('a[href="/agents/agent-0/runs/run-0"]');
+    const failedLabel = getDisplayLabel("Failed", "raw");
+    expect(firstLink?.getAttribute("aria-label")).toBe(t("stability.b39c4b2021d5", { value1: "Agent 0", value2: failedLabel }));
+    expect(firstLink?.getAttribute("title")).toContain(failedLabel);
+    expect(container.querySelectorAll(`[aria-label="${t("stability.1d1fee61f37f", { value1: getDisplayLabel("blocked", "raw") })}"]`)).toHaveLength(3);
+    expect(Array.from(container.querySelectorAll("[data-run-status]"), node => node.getAttribute("data-run-status"))).toEqual(["failed", "running", "queued"]);
+    expect(issue.status).toBe("blocked");
+    expect(container.textContent).toContain(issue.title);
+    if (locale === "zh-CN") {
+      expect(firstLink?.getAttribute("aria-label")).not.toContain("Failed");
+      expect(timestamps.join(" ")).not.toMatch(/Finished|Started|Queued/);
+    }
+    await act(async () => root.unmount());
   });
 
   it("keeps run outcomes distinct from the linked task status", async () => {

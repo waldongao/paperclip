@@ -14,6 +14,8 @@ async function seed(value: unknown, mode = 0o600) {
   const file = credentialPath(resource);
   await fs.mkdir(path.dirname(file), { mode: 0o700 });
   await fs.writeFile(file, typeof value === "string" ? value : JSON.stringify(value), { mode });
+  // Make the fixture permissions exact even when the runner uses a restrictive umask.
+  await fs.chmod(file, mode);
   return file;
 }
 const stored = () => ({ resource, issuer: "https://paperclip.example", clientId: "client", companyId: "company", accessToken: "private-access", refreshToken: "private-refresh", expiresAt: 0 });

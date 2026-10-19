@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import type { DashboardSummary } from "@paperclipai/shared";
 import {
@@ -14,13 +15,13 @@ interface DashboardGetOptions extends BaseClientOptions {
 }
 
 export function registerDashboardCommands(program: Command): void {
-  const dashboard = program.command("dashboard").description("Dashboard summary operations");
+  const dashboard = program.command("dashboard").description(tCli("Dashboard summary operations"));
 
   addCommonClientOptions(
     dashboard
       .command("get")
-      .description("Get dashboard summary for a company")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .description(tCli("Get dashboard summary for a company"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: DashboardGetOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });

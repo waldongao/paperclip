@@ -12,6 +12,7 @@ import {
 import { agentAvatarUrl } from "@/lib/agent-avatar-url";
 import { hexToRgb, pickTextColorForPillBg } from "./color-contrast";
 
+
 export type ParsedMentionChip =
   | {
       kind: "agent";

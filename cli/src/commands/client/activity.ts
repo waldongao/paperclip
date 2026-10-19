@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import type { ActivityEvent } from "@paperclipai/shared";
 import {
@@ -19,16 +20,16 @@ interface ActivityListOptions extends BaseClientOptions {
 }
 
 export function registerActivityCommands(program: Command): void {
-  const activity = program.command("activity").description("Activity log operations");
+  const activity = program.command("activity").description(tCli("Activity log operations"));
 
   addCommonClientOptions(
     activity
       .command("list")
-      .description("List company activity log entries")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--agent-id <id>", "Filter by agent ID")
-      .option("--entity-type <type>", "Filter by entity type")
-      .option("--entity-id <id>", "Filter by entity ID")
+      .description(tCli("List company activity log entries"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--agent-id <id>", tCli("Filter by agent ID"))
+      .option("--entity-type <type>", tCli("Filter by entity type"))
+      .option("--entity-id <id>", tCli("Filter by entity ID"))
       .action(async (opts: ActivityListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -74,9 +75,9 @@ export function registerActivityCommands(program: Command): void {
   addCommonClientOptions(
     activity
       .command("create")
-      .description("Create a company activity log entry")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--payload-json <json>", "CreateActivity JSON payload")
+      .description(tCli("Create a company activity log entry"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("CreateActivity JSON payload"))
       .action(async (opts: ActivityListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -92,8 +93,8 @@ export function registerActivityCommands(program: Command): void {
   addCommonClientOptions(
     activity
       .command("issue")
-      .description("List activity for an issue")
-      .argument("<issueId>", "Issue ID")
+      .description(tCli("List activity for an issue"))
+      .argument("<issueId>", tCli("Issue ID"))
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);

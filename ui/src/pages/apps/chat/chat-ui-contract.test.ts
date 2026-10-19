@@ -1,8 +1,86 @@
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
+
+const testRequire = createRequire(import.meta.url);
+const reactRequire = createRequire(testRequire.resolve("@vitejs/plugin-react"));
+const babelRequire = createRequire(reactRequire.resolve("@babel/core"));
+const { parse } = babelRequire("@babel/parser");
+const englishCatalog: unknown = JSON.parse(
+  readFileSync(new URL("../../../i18n/locales/en.json", import.meta.url), "utf8"),
+);
+
+type SourceNode = {
+  type: string;
+  start: number;
+  end: number;
+  name?: string;
+  value?: unknown;
+  callee?: SourceNode;
+  arguments?: SourceNode[];
+  properties?: SourceNode[];
+  key?: SourceNode;
+  expression?: SourceNode;
+  [key: string]: unknown;
+};
+
+function englishMessage(key: string): string {
+  const value = key.split(".").reduce<unknown>((parent, name) =>
+    parent && typeof parent === "object"
+      ? (parent as Record<string, unknown>)[name]
+      : undefined, englishCatalog);
+  if (typeof value !== "string") throw new Error(`Missing English UI message: ${key}`);
+  return value;
+}
 
 function source(relativePath: string) {
   return readFileSync(new URL(relativePath, import.meta.url), "utf8");
+}
+
+function englishCopy(text: string) {
+  // These contracts cover both copy and executable provider flows. Resolve only
+  // the copy emitted by translation calls; routes, credentials and conditions
+  // stay in place for the existing structural and negative assertions.
+  const patches: Array<{ start: number; end: number; value: string }> = [];
+  const ast = parse(text, { sourceType: "module", plugins: ["typescript", "jsx"] });
+  function translatedCopy(node: SourceNode | undefined): string | null {
+    if (node?.type !== "CallExpression" || node.callee?.name !== "t"
+      || node.arguments?.[0]?.type !== "StringLiteral") return null;
+    const message = englishMessage(String(node.arguments[0].value));
+    const values = new Map<string, string>();
+    for (const property of node.arguments[1]?.properties ?? []) {
+      if (property.type !== "ObjectProperty") continue;
+      const name = property.key?.name ?? property.key?.value;
+      const value = property.value as SourceNode;
+      if (typeof name === "string" && value?.type) values.set(name, text.slice(value.start, value.end));
+    }
+    return message.replace(/{{\s*([\w.-]+)\s*}}/g, (placeholder, name: string) =>
+      values.has(name) ? `{${values.get(name)}}` : placeholder);
+  }
+  function visit(value: unknown) {
+    if (!value || typeof value !== "object") return;
+    const node = value as SourceNode;
+    if (node.type === "JSXExpressionContainer") {
+      const copy = translatedCopy(node.expression);
+      if (copy !== null || (node.expression?.type === "StringLiteral" && node.expression.value === " ")) {
+        patches.push({ start: node.start, end: node.end, value: copy ?? " " });
+        return;
+      }
+    }
+    const copy = translatedCopy(node);
+    if (copy !== null) {
+      patches.push({ start: node.start, end: node.end, value: JSON.stringify(copy) });
+      return;
+    }
+    for (const [key, child] of Object.entries(node)) {
+      if (["loc", "comments", "tokens", "leadingComments", "trailingComments", "innerComments"].includes(key)) continue;
+      if (Array.isArray(child)) child.forEach(visit);
+      else if (child && typeof child === "object") visit(child);
+    }
+  }
+  visit(ast);
+  return patches.sort((a, b) => b.start - a.start).reduce((result, patch) =>
+    result.slice(0, patch.start) + patch.value + result.slice(patch.end), text);
 }
 
 describe("chat connector UI contract", () => {
@@ -53,8 +131,8 @@ describe("chat connector UI contract", () => {
       expect(detail).toContain(`"${tab}"`);
     }
     expect(detail).not.toContain('"overview"');
-    expect(detail).toContain("Open {providerNames[provider]}");
-    expect(detail).toContain("Open task");
+    expect(englishCopy(detail)).toContain("Open {providerNames[provider]}");
+    expect(englishCopy(detail)).toContain("Open task");
     expect(detail.toLowerCase()).not.toContain("detach");
   });
 
@@ -110,17 +188,17 @@ describe("chat connector UI contract", () => {
     );
     const activity = detail.slice(detail.indexOf("function Activity"));
     expect(detail).toContain('"pause" | "resume" | "remove"');
-    expect(detail).toContain("Remove this connection?");
+    expect(englishCopy(detail)).toContain("Remove this connection?");
     expect(detail).toContain("purpose=chat&resume=${endpoint.id}");
     expect(detail).toContain('? "" : "&reconnect=1"');
-    expect(detail).toContain("Finish setup");
+    expect(englishCopy(detail)).toContain("Finish setup");
     expect(detail).toContain("Continue setup");
     expect(detail).toContain('endpoint.setup?.step !== "complete"');
     expect(detail).toContain("Reconnect");
     expect(detail).not.toContain("Change agent");
     for (const label of ["Pause", "Resume", "Reconnect", "Remove connection"]) {
-      expect(activity).toContain(label);
-      expect(settings).not.toContain(label);
+      expect(englishCopy(activity)).toContain(label);
+      expect(englishCopy(settings)).not.toContain(label);
     }
   });
 
@@ -190,9 +268,7 @@ describe("chat connector UI contract", () => {
     expect(setup).not.toContain("/setprivacy");
     expect(setup).toContain("/task@bot_username");
     expect(setup).toContain("registers its command menu automatically");
-    expect(setup).toContain(
-      "ordinary\n          mentions are not delivered to bots",
-    );
+    expect(englishCopy(setup)).toMatch(/ordinary\s+mentions are not delivered to bots/);
     expect(setup).toContain("Create Azure Bot");
     expect(setup).toContain("Microsoft 365 work or school organization");
     expect(setup).toContain("teams.live.com");

@@ -23,6 +23,7 @@ import { getOrCreatePaperclipReactRoot } from "./lib/react-root";
 import { startServiceWorkerUpdates } from "./lib/service-worker-updates";
 import "@mdxeditor/editor/style.css";
 import "./index.css";
+import { t } from "@/i18n";
 
 initPluginBridge(React, ReactDOM);
 
@@ -58,7 +59,7 @@ function CompanyAwareBreadcrumbProvider({ children }: { children: React.ReactNod
 }
 
 const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Paperclip root element is missing");
+if (!rootElement) throw new Error(t("paperclip_root_element_is_missing"));
 
 getOrCreatePaperclipReactRoot(window, rootElement).render(
   <StrictMode>

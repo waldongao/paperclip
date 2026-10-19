@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useId, useState, type ReactNode } from "react";
 import {
   ChevronDown,
@@ -9,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { t, useTranslation } from "@/i18n";
 
 export type SystemNoticeTone = "neutral" | "info" | "success" | "warning" | "danger";
 
@@ -57,7 +60,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-muted text-foreground/70",
     icon: Info,
     iconClass: "text-muted-foreground",
-    label: "text-muted-foreground",
+    label: t("stability.35f35c41d134", { defaultValue: "text-muted-foreground" }),
     divider: "border-border/70",
   },
   info: {
@@ -66,7 +69,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200",
     icon: Info,
     iconClass: "text-sky-700 dark:text-sky-300",
-    label: "text-sky-800 dark:text-sky-200",
+    label: t("text_sky_800_dark_text_sky_200"),
     divider: "border-sky-300/50 dark:border-sky-500/30",
   },
   success: {
@@ -75,7 +78,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
     icon: CircleCheck,
     iconClass: "text-emerald-700 dark:text-emerald-300",
-    label: "text-emerald-800 dark:text-emerald-200",
+    label: t("text_emerald_800_dark_text_emerald_200"),
     divider: "border-emerald-300/50 dark:border-emerald-500/30",
   },
   warning: {
@@ -84,7 +87,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200",
     icon: TriangleAlert,
     iconClass: "text-amber-700 dark:text-amber-300",
-    label: "text-amber-900 dark:text-amber-200",
+    label: t("text_amber_900_dark_text_amber_200"),
     divider: "border-amber-300/60 dark:border-amber-500/30",
   },
   danger: {
@@ -93,14 +96,14 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200",
     icon: OctagonAlert,
     iconClass: "text-red-700 dark:text-red-300",
-    label: "text-red-900 dark:text-red-200",
+    label: t("text_red_900_dark_text_red_200"),
     divider: "border-red-400/50 dark:border-red-500/30",
   },
 };
 
 function formatTimestamp(ts: string) {
   try {
-    return new Date(ts).toLocaleString(undefined, {
+    return new Date(ts).toLocaleString(i18n.resolvedLanguage ?? i18n.language, {
       month: "short",
       day: "numeric",
       hour: "numeric",
@@ -179,7 +182,7 @@ function MetadataRow({ row, tone }: { row: SystemNoticeMetadataRow; tone: ToneTo
                 <>
                   <code className="rounded bg-muted px-1.5 py-0.5 text-foreground/80">{runShort}</code>
                   {row.status ? (
-                    <span className={cn("font-sans", tone.label)}>{row.status}</span>
+                    <span className={cn("font-sans", tone.label)}>{getDisplayLabel(row.status, "raw")}</span>
                   ) : null}
                 </>
               );
@@ -248,6 +251,7 @@ export function SystemNotice({
   timestamp,
   className,
 }: SystemNoticeProps) {
+  const { t } = useTranslation();
   const tokens = TONE_TOKENS[tone];
   const ToneIcon = tokens.icon;
   const [open, setOpen] = useState(detailsDefaultOpen);
@@ -256,11 +260,11 @@ export function SystemNotice({
   const resolvedLabel =
     label ??
     {
-      neutral: "System notice",
-      info: "System notice",
-      success: "System notice",
-      warning: "System warning",
-      danger: "System alert",
+      neutral: t("system_notice"),
+      info: t("system_notice"),
+      success: t("system_notice"),
+      warning: t("system_warning"),
+      danger: t("system_alert"),
     }[tone];
 
   return (
@@ -326,7 +330,7 @@ export function SystemNotice({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             )}
           >
-            <span>{open ? "Hide details" : "Details"}</span>
+            <span>{open ? t("hide_details") : t("details")}</span>
             <ChevronDown
               className={cn(
                 "h-3.5 w-3.5 transition-transform duration-150",

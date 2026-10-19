@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdapterExecutionContext, AdapterInvocationMeta } from "@paperclipai/adapter-utils";
 import { runChildProcess } from "@paperclipai/adapter-utils/server-utils";
 
@@ -9,6 +9,30 @@ import { runChildProcess } from "@paperclipai/adapter-utils/server-utils";
 // to the actual factory by default. Only the wiring test further down reads
 // the call arguments; it does not change this behavior.
 const mockCreateWorkspaceRestoreTeardown = vi.hoisted(() => vi.fn());
+
+// These adapter tests exercise workspace staging, auth seeding, and teardown
+// against real temporary files. FakeRuntime never speaks ACP or calls the API,
+// so keep the two socket transports at that same fake-runtime boundary. Their
+// real protocols are covered by adapter-utils' bridge and run-site tests.
+const bridgeMocks = vi.hoisted(() => {
+  const stopPaperclip = vi.fn(async () => {});
+  const stopProcess = vi.fn(async () => {});
+  return {
+    stopPaperclip,
+    stopProcess,
+    startPaperclip: vi.fn(async () => ({ env: {}, stop: stopPaperclip })),
+    startProcess: vi.fn(async () => ({ agentCommand: "fake-sandbox-acp", stop: stopProcess })),
+  };
+});
+
+vi.mock("@paperclipai/adapter-utils/execution-target", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    startAdapterExecutionTargetPaperclipBridge: bridgeMocks.startPaperclip,
+    startAdapterExecutionTargetProcessSessionBridge: bridgeMocks.startProcess,
+  };
+});
 
 vi.mock("@paperclipai/adapter-utils/workspace-restore-teardown", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -92,6 +116,13 @@ function setNodeVersion(version: string): void {
     value: version,
   });
 }
+
+beforeEach(() => {
+  bridgeMocks.startPaperclip.mockClear();
+  bridgeMocks.startProcess.mockClear();
+  bridgeMocks.stopPaperclip.mockClear();
+  bridgeMocks.stopProcess.mockClear();
+});
 
 afterEach(async () => {
   setNodeVersion(originalNodeVersion);
@@ -607,6 +638,7 @@ describe("gemini_local ACP lane", () => {
           cwd: localCwd,
           agentCommand: "node ./fake-acp.js",
           stateDir: path.join(root, "state"),
+          env: { HOME: path.join(root, "home") },
           promptTemplate: "Do the assigned work.",
         },
         context: {
@@ -628,6 +660,10 @@ describe("gemini_local ACP lane", () => {
     // The teardown fired `restoreWorkspace`, so the sandbox-authored file is now
     // in the host worktree.
     await expect(fs.readFile(path.join(localCwd, "from-sandbox.txt"), "utf8")).resolves.toBe("synced");
+    expect(bridgeMocks.startPaperclip).toHaveBeenCalledOnce();
+    expect(bridgeMocks.startProcess).toHaveBeenCalledOnce();
+    expect(bridgeMocks.stopPaperclip).toHaveBeenCalledOnce();
+    expect(bridgeMocks.stopProcess).toHaveBeenCalledOnce();
   });
 
   it("passes the Gemini-specific teardown messages to the shared workspace-restore-teardown factory", async () => {
@@ -654,6 +690,7 @@ describe("gemini_local ACP lane", () => {
           cwd: localCwd,
           agentCommand: "node ./fake-acp.js",
           stateDir: path.join(root, "state"),
+          env: { HOME: path.join(root, "home") },
           promptTemplate: "Do the assigned work.",
         },
         context: {

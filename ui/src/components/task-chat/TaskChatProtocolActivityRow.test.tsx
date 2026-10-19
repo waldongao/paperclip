@@ -4,6 +4,8 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { i18n, t } from "@/i18n";
+const initialLanguage = i18n.language;
 import { MemoryRouter } from "@/lib/router";
 import type { TaskChatProtocolItem, TaskChatProviderActivityItem } from "./task-chat-model";
 import { TaskChatProtocolActivityRow, TaskChatProtocolActivityDetails } from "./TaskChatProtocolActivityRow";
@@ -18,9 +20,10 @@ describe("TaskChatProtocolActivityRow", () => {
     root = createRoot(container);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     act(() => root.unmount());
     container.remove();
+    await i18n.changeLanguage(initialLanguage);
   });
 
   function render(item: TaskChatProtocolItem) {
@@ -176,6 +179,14 @@ describe("TaskChatProtocolActivityRow", () => {
     expect(row?.textContent).toContain("Searching the task index · Paperclip · search_tasks");
     expect(row?.textContent).not.toMatch(/Ran a tool|Tool execution|tool call/i);
     expect(row?.querySelector('[data-testid="task-chat-protocol-activity-icon"]')?.querySelectorAll("path")).toHaveLength(3);
+  });
+
+  it.each(["en", "zh-CN"])("classifies informational notices from raw severity in %s", async (locale) => {
+    await i18n.changeLanguage(locale);
+    render({ id: "info", kind: "protocol", surface: "provider_activity", family: "provider_notice", eventType: "provider.notice.recorded", status: "informational", title: "Provider notice", summary: "User-authored provider message", details: [{ label: "Severity", value: "info" }], steps: [], links: [], children: [] });
+    expect(container.textContent).toContain(t("stability.9c32c14815e4"));
+    expect(container.textContent).not.toContain(t("warning"));
+    expect(container.textContent).toContain("User-authored provider message");
   });
 
   it("keeps a notice readable and preserves metadata in a collapsed disclosure", () => {

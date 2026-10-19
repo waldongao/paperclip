@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useRef, useState } from "react";
 import type { IssueWorkMode } from "@paperclipai/shared";
 import { Check, ClipboardList, MessageCircleQuestion, Paperclip, Plus, Target, X, type LucideIcon } from "lucide-react";
@@ -42,14 +43,14 @@ export function ComposerAddMenu({
   const mobile = mobileProp ?? narrow;
   if (!onModeChange && !onAttachFile && !onGoal) return null;
   const actions: Array<{ id: string; label: string; detail?: string; Icon: LucideIcon; select: () => void; disabled?: boolean; selected?: boolean }> = [
-    ...(onAttachFile ? [{ id: "composer-add-file", label: "Files and images", Icon: Paperclip, select: onAttachFile, disabled: attachDisabled }] : []),
-    ...(onGoal ? [{ id: "composer-add-goal", label: "Goal", detail: "Keep pursuing", Icon: Target, select: onGoal }] : []),
+    ...(onAttachFile ? [{ id: "composer-add-file", label: t("stability.bad8aa9e1066", { defaultValue: "Files and images" }), Icon: Paperclip, select: onAttachFile, disabled: attachDisabled }] : []),
+    ...(onGoal ? [{ id: "composer-add-goal", label: t("goal_9fe00a"), detail: "Keep pursuing", Icon: Target, select: onGoal }] : []),
     ...(onModeChange ? [
-      { id: "composer-add-plan", label: "Plan mode", detail: "Plan before acting", Icon: ClipboardList, select: () => onModeChange(mode === "planning" ? "standard" : "planning"), selected: mode === "planning" },
-      { id: "composer-add-ask", label: "Ask mode", detail: "Answer without changes", Icon: MessageCircleQuestion, select: () => onModeChange(mode === "ask" ? "standard" : "ask"), selected: mode === "ask" },
+      { id: "composer-add-plan", label: t("plan_mode"), detail: "Plan before acting", Icon: ClipboardList, select: () => onModeChange(mode === "planning" ? "standard" : "planning"), selected: mode === "planning" },
+      { id: "composer-add-ask", label: t("ask_mode"), detail: "Answer without changes", Icon: MessageCircleQuestion, select: () => onModeChange(mode === "ask" ? "standard" : "ask"), selected: mode === "ask" },
     ] : []),
   ];
-  const trigger = <button type="button" aria-label="Add to composer" aria-keyshortcuts={onModeChange ? "Meta+Period Control+Period Shift+Tab" : undefined}
+  const trigger = <button type="button" aria-label={t("stability.423f6a56cd74", { defaultValue: "Add to composer" })} aria-keyshortcuts={onModeChange ? "Meta+Period Control+Period Shift+Tab" : undefined}
     disabled={disabled} data-testid={triggerTestId}
     className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50">
     <Plus className="size-4" aria-hidden />
@@ -65,8 +66,8 @@ export function ComposerAddMenu({
       onCloseAutoFocus={(event) => { if (goalFocusRef.current) { event.preventDefault(); goalFocusRef.current = false; } }}
       className="composer-mobile-dialog top-(--pct-50) -translate-y-(--pct-50) gap-0 overflow-y-auto p-0">
       <div className="flex items-center gap-2 px-3 py-2">
-        <DialogTitle className="min-w-0 flex-1 text-sm font-medium">Add</DialogTitle>
-        <DialogClose asChild><button type="button" aria-label="Close Add menu" className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent"><X className="size-4" /></button></DialogClose>
+        <DialogTitle className="min-w-0 flex-1 text-sm font-medium">{t("add")}</DialogTitle>
+        <DialogClose asChild><button type="button" aria-label={t("stability.b4ae95cdd2e2", { defaultValue: "Close Add menu" })} className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent"><X className="size-4" /></button></DialogClose>
       </div>
       <div className="p-2 pt-0">{actions.map((action) => <button key={action.id} type="button" disabled={action.disabled} data-testid={action.id}
         onClick={() => { goalFocusRef.current = action.id === "composer-add-goal"; action.select(); setOpen(false); }}
@@ -79,7 +80,7 @@ export function ComposerAddMenu({
     <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
     <DropdownMenuContent side="top" align="start" sideOffset={8} data-testid={menuTestId}
       className="w-(--sz-300px) rounded-xl p-1.5 shadow-sm">
-      <div className="px-2 py-1 text-xs text-muted-foreground">Add</div>
+      <div className="px-2 py-1 text-xs text-muted-foreground">{t("add")}</div>
       {actions.map((action) => <DropdownMenuItem key={action.id} onSelect={action.select} disabled={action.disabled} data-testid={action.id}>
         {content(action)}
       </DropdownMenuItem>)}
@@ -100,7 +101,7 @@ export function ComposerModeChip({ mode, onRemove, disabled, testId, mobile = fa
   const meta = workModeMetaFor(mode);
   const Icon = meta.icon;
   return <button type="button" onClick={onRemove} disabled={disabled || !onRemove}
-    aria-label={`Remove ${meta.label}`} data-pending-work-mode={mode} data-testid={testId}
+    aria-label={t("zhComponents.message_2f5a604b2a", { value1: meta.label })} data-pending-work-mode={mode} data-testid={testId}
     className={cn("inline-flex h-8 shrink-0 items-center rounded-full border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", mobile ? "gap-1 px-2" : "gap-1 px-2 sm:gap-1.5 sm:px-2.5", meta.classes.chip)}>
     <Icon className="size-3.5" aria-hidden />
     <span className={mobile ? "sr-only" : "max-sm:sr-only"}>{meta.label}</span>

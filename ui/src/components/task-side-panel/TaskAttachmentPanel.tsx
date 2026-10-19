@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Code2, Download, Eye } from "lucide-react";
@@ -46,23 +47,23 @@ export function TextAttachmentPreview({ title, text, markdown, downloadUrl }: {
       <header className="flex items-center gap-2 border-b border-border px-3 py-2">
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium" title={title}>{title}</h2>
         {markdown ? (
-          <div className="flex gap-1" role="group" aria-label="Markdown view">
-            <Button size="icon-sm" variant={raw ? "ghost" : "secondary"} aria-label="Rendered" title="Rendered" aria-pressed={!raw} onClick={() => setRaw(false)}>
+          <div className="flex gap-1" role="group" aria-label={t("stability.4baf040eff22", { defaultValue: "Markdown view" })}>
+            <Button size="icon-sm" variant={raw ? "ghost" : "secondary"} aria-label={t("stability.331e25aab7ff", { defaultValue: "Rendered" })} title={t("stability.331e25aab7ff", { defaultValue: "Rendered" })} aria-pressed={!raw} onClick={() => setRaw(false)}>
               <Eye aria-hidden />
             </Button>
-            <Button size="icon-sm" variant={raw ? "secondary" : "ghost"} aria-label="Raw" title="Raw" aria-pressed={raw} onClick={() => setRaw(true)}>
+            <Button size="icon-sm" variant={raw ? "secondary" : "ghost"} aria-label={t("stability.848123d14f84", { defaultValue: "Raw" })} title={t("stability.848123d14f84", { defaultValue: "Raw" })} aria-pressed={raw} onClick={() => setRaw(true)}>
               <Code2 aria-hidden />
             </Button>
           </div>
         ) : null}
         <Button asChild variant="ghost" size="icon-sm">
-          <a href={downloadUrl} download aria-label={`Download ${title}`} title={`Download ${title}`}><Download aria-hidden /></a>
+          <a href={downloadUrl} download aria-label={t("zhComponents.message_304fadefc9", { value1: title })} title={t("zhComponents.message_304fadefc9", { value1: title })}><Download aria-hidden /></a>
         </Button>
       </header>
       <div className="min-h-0 flex-1 overflow-auto p-4">
-        {text.length === 0 ? <p className="text-sm text-muted-foreground">File is empty.</p>
+        {text.length === 0 ? <p className="text-sm text-muted-foreground">{t("stability.912dda303fa8", { defaultValue: "File is empty." })}</p>
           : markdown && !raw ? <MarkdownBody mediaMode="reference">{text}</MarkdownBody>
-          : <pre className="whitespace-pre-wrap break-words font-mono text-sm" aria-label={`${title} raw text`}>{text}</pre>}
+          : <pre className="whitespace-pre-wrap break-words font-mono text-sm" aria-label={t("stability.36254db453a8", { value1: title, defaultValue: "{{value1}} raw text" })}>{text}</pre>}
       </div>
     </div>
   );
@@ -85,19 +86,19 @@ export function TaskAttachmentPanel({ issueId, attachmentId }: { issueId: string
     enabled: Boolean(eligible),
     retry: false,
   });
-  if (attachments.isLoading) return <p className="p-4 text-sm" role="status">Loading file…</p>;
-  if (attachments.isError) return <div className="p-4" role="alert">Could not load attachment details. <Button onClick={() => void attachments.refetch()}>Retry</Button></div>;
-  if (!attachment) return <p className="p-4 text-sm" role="status">File no longer available. Close this tab or choose another file.</p>;
+  if (attachments.isLoading) return <p className="p-4 text-sm" role="status">{t("stability.e937adaa3f44", { defaultValue: "Loading file…" })}</p>;
+  if (attachments.isError) return <div className="p-4" role="alert">{t("stability.9c8510950354", { defaultValue: "Could not load attachment details." })}{" "}<Button onClick={() => void attachments.refetch()}>{t("common.retry")}</Button></div>;
+  if (!attachment) return <p className="p-4 text-sm" role="status">{t("stability.e33f3900faa5", { defaultValue: "File no longer available. Close this tab or choose another file." })}</p>;
   const downloadUrl = attachmentDownloadPath(attachment);
   if (!eligible || content.isError) {
     return (
       <div className="space-y-3 p-4" role="alert">
-        <p className="text-sm">{content.isError ? "Could not preview this file. Retry or download it." : "This file is too large or is not supported for text preview. Download it instead."}</p>
-        {eligible ? <Button onClick={() => void content.refetch()}>Retry</Button> : null}
-        <Button asChild variant="outline"><a href={downloadUrl} download>Download file</a></Button>
+        <p className="text-sm">{content.isError ? t("stability.d928e7da9572", { defaultValue: "Could not preview this file. Retry or download it." }) : t("stability.ff7f7c37c41d", { defaultValue: "This file is too large or is not supported for text preview. Download it instead." })}</p>
+        {eligible ? <Button onClick={() => void content.refetch()}>{t("common.retry")}</Button> : null}
+        <Button asChild variant="outline"><a href={downloadUrl} download>{t("download_file")}</a></Button>
       </div>
     );
   }
-  if (content.data === undefined) return <p className="p-4 text-sm" role="status">Loading file…</p>;
+  if (content.data === undefined) return <p className="p-4 text-sm" role="status">{t("stability.e937adaa3f44", { defaultValue: "Loading file…" })}</p>;
   return <TextAttachmentPreview title={attachment.originalFilename ?? attachment.id} text={content.data} markdown={isMarkdownAttachment(attachment)} downloadUrl={downloadUrl} />;
 }

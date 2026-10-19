@@ -135,7 +135,8 @@ describe("company CLI commands", () => {
     expect(JSON.parse(String(logSpy.mock.calls[0]?.[0]))).toMatchObject({ id: COMPANY_ID, name: "Paperclip" });
   });
 
-  it("lists the scoped agent company when board-wide company listing is denied", async () => {
+  it.each(["en", "zh-CN"])("lists the scoped agent company when board-wide company listing is denied in %s", async (locale) => {
+    process.env.PAPERCLIP_LOCALE = locale;
     fetchMock
       .mockResolvedValueOnce(jsonResponse({ error: "Board access required" }, 403))
       .mockResolvedValueOnce(jsonResponse({ id: "agent-1", companyId: COMPANY_ID }))
@@ -169,8 +170,13 @@ describe("company CLI commands", () => {
     expect(JSON.parse(String(logSpy.mock.calls[0]?.[0]))).toMatchObject([{ id: COMPANY_ID, name: "Paperclip" }]);
   });
 
-  it("explains that company creation requires board instance-admin authentication under agent auth", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ error: "Board access required" }, 403));
+  it.each([
+    ["en", "Board access required"],
+    ["zh-CN", "Board access required"],
+    ["zh-CN", "Instance admin required"],
+  ])("explains company creation authentication requirements in %s for %s", async (locale, rawMessage) => {
+    process.env.PAPERCLIP_LOCALE = locale;
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: rawMessage }, 403));
     vi.spyOn(process, "exit").mockImplementation(((code?: string | number | null) => {
       throw new Error(`exit:${code ?? 0}`);
     }) as typeof process.exit);
@@ -192,7 +198,9 @@ describe("company CLI commands", () => {
       expect.objectContaining({ method: "POST" }),
     );
     const rendered = String(errorSpy.mock.calls[0]?.[0]);
-    expect(rendered).toContain("Creating companies requires board/instance-admin authentication");
+    expect(rendered).toContain(locale === "zh-CN"
+      ? "创建组织需要管理端/实例管理员身份验证"
+      : "Creating companies requires board/instance-admin authentication");
     expect(rendered).toContain("company list --json");
   });
 });

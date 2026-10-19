@@ -1,20 +1,21 @@
+import { tCli } from "../i18n.js";
 import type { PaperclipConfig } from "../config/schema.js";
 import type { CheckResult } from "./index.js";
 
 export async function llmCheck(config: PaperclipConfig): Promise<CheckResult> {
   if (!config.llm) {
     return {
-      name: "LLM provider",
+      name: tCli("LLM provider"),
       status: "pass",
-      message: "No LLM provider configured (optional)",
+      message: tCli("No LLM provider configured (optional)"),
     };
   }
 
   if (!config.llm.apiKey) {
     return {
-      name: "LLM provider",
+      name: tCli("LLM provider"),
       status: "pass",
-      message: `${config.llm.provider} configured but no API key set (optional)`,
+      message: tCli("{{provider}} configured but no API key set (optional)", { provider: String(config.llm.provider) }),
     };
   }
 
@@ -34,49 +35,49 @@ export async function llmCheck(config: PaperclipConfig): Promise<CheckResult> {
         }),
       });
       if (res.ok || res.status === 400) {
-        return { name: "LLM provider", status: "pass", message: "Claude API key is valid" };
+        return { name: tCli("LLM provider"), status: "pass", message: tCli("Claude API key is valid") };
       }
       if (res.status === 401) {
         return {
-          name: "LLM provider",
+          name: tCli("LLM provider"),
           status: "fail",
-          message: "Claude API key is invalid (401)",
+          message: tCli("Claude API key is invalid (401)"),
           canRepair: false,
-          repairHint: "Run `paperclipai configure --section llm`",
+          repairHint: tCli("Run `paperclipai configure --section llm`"),
         };
       }
       return {
-        name: "LLM provider",
+        name: tCli("LLM provider"),
         status: "warn",
-        message: `Claude API returned status ${res.status}`,
+        message: tCli("Claude API returned status {{status}}", { status: String(res.status) }),
       };
     } else {
       const res = await fetch("https://api.openai.com/v1/models", {
         headers: { Authorization: `Bearer ${config.llm.apiKey}` },
       });
       if (res.ok) {
-        return { name: "LLM provider", status: "pass", message: "OpenAI API key is valid" };
+        return { name: tCli("LLM provider"), status: "pass", message: tCli("OpenAI API key is valid") };
       }
       if (res.status === 401) {
         return {
-          name: "LLM provider",
+          name: tCli("LLM provider"),
           status: "fail",
-          message: "OpenAI API key is invalid (401)",
+          message: tCli("OpenAI API key is invalid (401)"),
           canRepair: false,
-          repairHint: "Run `paperclipai configure --section llm`",
+          repairHint: tCli("Run `paperclipai configure --section llm`"),
         };
       }
       return {
-        name: "LLM provider",
+        name: tCli("LLM provider"),
         status: "warn",
-        message: `OpenAI API returned status ${res.status}`,
+        message: tCli("OpenAI API returned status {{status}}", { status: String(res.status) }),
       };
     }
   } catch {
     return {
-      name: "LLM provider",
+      name: tCli("LLM provider"),
       status: "warn",
-      message: "Could not reach API to validate key",
+      message: tCli("Could not reach API to validate key"),
     };
   }
 }

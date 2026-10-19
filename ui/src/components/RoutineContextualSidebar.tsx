@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -36,11 +37,11 @@ export type RoutineContextualNavItem = {
 };
 
 export const ROUTINE_CONTEXTUAL_NAV_ITEMS: readonly RoutineContextualNavItem[] = [
-  { view: "overview", label: "Overview", icon: LayoutDashboard },
-  { view: "triggers", label: "Triggers", icon: CalendarClock },
-  { view: "variables", label: "Variables", icon: Braces },
-  { view: "delivery", label: "Delivery", icon: Send },
-  { view: "secrets", label: "Secrets", icon: KeyRound },
+  { view: "overview", label: t("overview"), icon: LayoutDashboard },
+  { view: "triggers", label: t("triggers_047708"), icon: CalendarClock },
+  { view: "variables", label: t("variables"), icon: Braces },
+  { view: "delivery", label: t("delivery"), icon: Send },
+  { view: "secrets", label: t("secrets"), icon: KeyRound },
 ];
 
 export function isRoutineDetailView(value: string | null | undefined): value is RoutineDetailView {
@@ -76,7 +77,7 @@ export function RoutineContextualSidebar({
     queryFn: () => routinesApi.get(routineId),
     enabled: Boolean(routineId && !title),
   });
-  const frameTitle = title ?? routine?.title ?? "Routine";
+  const frameTitle = title ?? routine?.title ?? t("routine");
 
   return (
     <ContextualSidebarFrame
@@ -87,7 +88,7 @@ export function RoutineContextualSidebar({
       showHeader={false}
       className="border-r border-border bg-background"
     >
-      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-2" aria-label="Routine navigation">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-2" aria-label={t("routine_navigation")}>
         <div className="flex flex-col gap-0.5">
           {ROUTINE_CONTEXTUAL_NAV_ITEMS.map((item) => (
             <SidebarNavItem
@@ -100,18 +101,16 @@ export function RoutineContextualSidebar({
           ))}
         </div>
 
-        <p className="px-4 pb-1 pt-5 text-(length:--text-nano) font-mono font-medium uppercase tracking-widest text-muted-foreground/60">
-          Operate
-        </p>
+        <p className="px-4 pb-1 pt-5 text-(length:--text-nano) font-mono font-medium uppercase tracking-widest text-muted-foreground/60">{t("operate")}</p>
         <div className="flex flex-col gap-0.5">
           <SidebarNavItem
             to={routineDetailHref(routineId, "runs")}
-            label="Runs"
+            label={t("runs")}
             icon={Play}
           />
           <SidebarNavItem
             to={routineDetailHref(routineId, "activity")}
-            label="Activity"
+            label={t("activity")}
             icon={Activity}
           />
         </div>

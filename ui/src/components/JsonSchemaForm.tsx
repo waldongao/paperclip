@@ -1,3 +1,4 @@
+import { t, useTranslation } from "@/i18n";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -185,7 +186,7 @@ export function validateField(
 
   // Required check
   if (isRequired && (value === undefined || value === null || value === "")) {
-    return "This field is required";
+    return t("this_field_is_required");
   }
 
   // Skip further validation if empty and not required
@@ -195,7 +196,7 @@ export function validateField(
     return null;
   }
   if (type === "secret-ref" && typeof value === "object") {
-    return "Invalid secret reference";
+    return t("invalid_secret_reference");
   }
   if (type === "object" && (typeof value !== "object" || Array.isArray(value))) {
     return "Enter a valid JSON object";
@@ -386,7 +387,7 @@ const FieldWrapper = React.memo(({
   );
 });
 
-FieldWrapper.displayName = "FieldWrapper";
+FieldWrapper.displayName = t("fieldwrapper");
 
 interface FormFieldProps {
   propSchema: JsonSchemaNode;
@@ -449,7 +450,7 @@ const BooleanField = React.memo(({
   </div>
 ));
 
-BooleanField.displayName = "BooleanField";
+BooleanField.displayName = t("booleanfield");
 
 /**
  * Sentinel value for the "not configured" row of an optional enum select.
@@ -528,12 +529,12 @@ const EnumField = React.memo(({
         disabled={disabled}
       >
         <SelectTrigger className="w-full" aria-label={label} aria-required={isRequired}>
-          <SelectValue placeholder="Select an option" />
+          <SelectValue placeholder={t("select_an_option")} />
         </SelectTrigger>
         <SelectContent>
           {showUnsetOption && (
             <SelectItem value={ENUM_UNSET_VALUE} textValue="None">
-              <span className="text-muted-foreground">None</span>
+              <span className="text-muted-foreground">{t("none")}</span>
             </SelectItem>
           )}
           {options.map((option) => (
@@ -547,7 +548,7 @@ const EnumField = React.memo(({
   );
 });
 
-EnumField.displayName = "EnumField";
+EnumField.displayName = t("enumfield");
 
 /**
  * Specialized field for secret-ref values. Renders a picker for existing
@@ -643,7 +644,7 @@ const SecretField = React.memo(({
           value={
             stringValue.length === 0
               ? ""
-              : `Sensitive — ${stringValue.length} characters hidden. Click the eye to reveal.`
+              : t("zhComponents.message_5b71d0823f", { value1: stringValue.length })
           }
           readOnly
           placeholder={String(defaultValue ?? "")}
@@ -666,7 +667,7 @@ const SecretField = React.memo(({
           <Eye className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="sr-only">
-          {isVisible ? "Hide secret" : "Show secret"}
+          {isVisible ? t("hide_secret") : t("show_secret")}
         </span>
       </Button>
     </div>
@@ -697,7 +698,7 @@ const SecretField = React.memo(({
           <Eye className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="sr-only">
-          {isVisible ? "Hide secret" : "Show secret"}
+          {isVisible ? t("hide_secret") : t("show_secret")}
         </span>
       </Button>
     </div>
@@ -708,7 +709,7 @@ const SecretField = React.memo(({
       label={label}
       description={
         description ||
-        "Pick an existing organization secret, or paste a raw value (Paperclip will store it as a secret on save)."
+        t("pick_an_existing_organization_secret_or_paste_a")
       }
       required={isRequired}
       error={error}
@@ -719,9 +720,9 @@ const SecretField = React.memo(({
           value={bindingValue}
           onChange={handlePickerChange}
           label=""
-          placeholder="Select an existing secret"
+          placeholder={t("select_an_existing_secret")}
           allowVersionSelector={false}
-          emptyHint="No active secrets yet. Create one or paste a raw value below."
+          emptyHint={t("no_active_secrets_yet_create_one_or_paste_a_raw")}
           disabled={disabled}
         />
         {!isBoundToSecret ? (
@@ -738,7 +739,7 @@ const SecretField = React.memo(({
                   }}
                   disabled={disabled}
                 >
-                  Hide raw value input
+                  {t("hide_raw_value_input")}
                 </button>
               ) : null}
             </div>
@@ -749,7 +750,7 @@ const SecretField = React.memo(({
               onClick={() => setShowRawInput(true)}
               disabled={disabled}
             >
-              Or paste a raw value
+              {t("or_paste_a_raw_value")}
             </button>
           )
         ) : null}
@@ -758,7 +759,7 @@ const SecretField = React.memo(({
   );
 });
 
-SecretField.displayName = "SecretField";
+SecretField.displayName = t("secretfield");
 
 /**
  * Specialized field for numeric (number/integer) values.
@@ -832,7 +833,7 @@ const NumberField = React.memo(({
   );
 });
 
-NumberField.displayName = "NumberField";
+NumberField.displayName = t("numberfield");
 
 /**
  * Specialized field for string values, rendering either an Input or Textarea based on length or format.
@@ -896,7 +897,7 @@ const StringField = React.memo(({
   );
 });
 
-StringField.displayName = "StringField";
+StringField.displayName = t("stringfield");
 
 /**
  * Specialized field for array values, handling dynamic addition and removal of items.
@@ -950,7 +951,7 @@ const ArrayField = React.memo(({
           }}
         >
           <Plus className="mr-2 h-4 w-4" />
-          {isComplex ? "Add item" : "Add"}
+          {isComplex ? t("add_item") : t("add")}
         </Button>
       </div>
 
@@ -962,7 +963,7 @@ const ArrayField = React.memo(({
           >
             <div className="flex-1">
               <div className="mb-2 text-xs font-medium text-muted-foreground">
-                Item {index + 1}
+                {t("item")} {index + 1}
               </div>
               <FormField
                 propSchema={itemSchema}
@@ -995,13 +996,13 @@ const ArrayField = React.memo(({
               }}
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Remove item</span>
+              <span className="sr-only">{t("remove_item")}</span>
             </Button>
           </div>
         ))}
         {items.length === 0 && (
           <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-            No items added yet.
+            {t("no_items_added_yet")}
           </div>
         )}
       </div>
@@ -1012,7 +1013,7 @@ const ArrayField = React.memo(({
   );
 });
 
-ArrayField.displayName = "ArrayField";
+ArrayField.displayName = t("arrayfield");
 
 /** MCP execution tools often accept an arbitrary object rather than fixed fields. */
 function JsonObjectField({ value, onChange, disabled, label, error }: {
@@ -1037,7 +1038,7 @@ function JsonObjectField({ value, onChange, disabled, label, error }: {
   };
   return <div className="space-y-2">
     <Textarea aria-label={`${label} JSON`} aria-invalid={!!error} value={text} onChange={(event) => change(event.target.value)} disabled={disabled} rows={5} className="font-mono text-sm" />
-    <p className="text-xs text-muted-foreground">Enter a JSON object using the action's argument names.</p>
+    <p className="text-xs text-muted-foreground">{t("stability.ab7f07a94f9b", { defaultValue: "Enter a JSON object using the action's argument names." })}</p>
     {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
   </div>;
 }
@@ -1112,7 +1113,7 @@ const ObjectField = React.memo(({
   );
 });
 
-ObjectField.displayName = "ObjectField";
+ObjectField.displayName = t("objectfield");
 
 /**
  * Orchestrator component that selects and renders the appropriate field type based on the schema node.
@@ -1240,7 +1241,7 @@ const FormField = React.memo(({
   }
 });
 
-FormField.displayName = "FormField";
+FormField.displayName = t("formfield");
 
 // ---------------------------------------------------------------------------
 // Main Component
@@ -1258,8 +1259,9 @@ export function JsonSchemaForm({
   errors = {},
   disabled,
   className,
-  advancedLabel = "Advanced options",
+  advancedLabel = t("advanced_options"),
 }: JsonSchemaFormProps) {
+  const { t } = useTranslation();
   const type = resolveType(schema);
 
   const handleRootScalarChange = useCallback((newVal: unknown) => {
@@ -1304,7 +1306,7 @@ export function JsonSchemaForm({
     const groupOrder: string[] = [];
     const groups = new Map<string, Array<[string, JsonSchemaNode]>>();
     const advancedKeys = new Set<string>();
-    const DEFAULT_GROUP = "More options";
+    const DEFAULT_GROUP = t("more_options");
 
     for (const entry of Object.entries(properties)) {
       const [key, propSchema] = entry;
@@ -1364,7 +1366,7 @@ export function JsonSchemaForm({
           className,
         )}
       >
-        No configuration options available.
+        {t("no_configuration_options_available")}
       </div>
     );
   }

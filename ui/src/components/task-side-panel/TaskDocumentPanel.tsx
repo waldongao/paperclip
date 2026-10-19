@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+import { t } from "@/i18n";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { IssueDocument } from "@paperclipai/shared";
@@ -9,6 +11,7 @@ import { MarkdownBody } from "@/components/MarkdownBody";
 import { queryKeys } from "@/lib/queryKeys";
 import { documentDisplayTitle } from "@/lib/issue-artifacts";
 import { useLocation } from "@/lib/router";
+import { useTranslation } from "@/i18n";
 
 export function TaskDocumentPanel({
   issueId,
@@ -19,6 +22,7 @@ export function TaskDocumentPanel({
   documentKey: string;
   initialDocument?: IssueDocument;
 }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const [annotationPanelOpen, setAnnotationPanelOpen] = useState(false);
   const query = useQuery<IssueDocument | null>({
@@ -38,14 +42,14 @@ export function TaskDocumentPanel({
     return (
       <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground" role="status">
         <Loader2 className="size-4 animate-spin" aria-hidden />
-        Loading document…
+        {t("loading_document_622054")}
       </div>
     );
   }
   if (query.isError) {
     return (
       <div className="py-8 text-sm text-muted-foreground" role="alert">
-        The document could not be loaded. Retry from the tab launcher or refresh the task.
+        {t("the_document_could_not_be_loaded_retry_from_the")}
       </div>
     );
   }
@@ -55,9 +59,9 @@ export function TaskDocumentPanel({
       <div className="flex items-start gap-3 py-8 text-sm" role="status">
         <FileQuestion className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
         <div className="space-y-1">
-          <p className="font-medium">Document no longer available</p>
+          <p className="font-medium">{t("document_no_longer_available")}</p>
           <p className="text-muted-foreground">
-            This tab is preserved so the missing resource is explicit. Close it or choose another document.
+            {t("this_tab_is_preserved_so_the_missing_resource_is")}
           </p>
         </div>
       </div>
@@ -69,9 +73,9 @@ export function TaskDocumentPanel({
       <header className="space-y-1">
         <h2 className="text-lg font-semibold">{documentDisplayTitle(document)}</h2>
         <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-          <span>{`Revision ${document.latestRevisionNumber ?? 1}`}</span>
+          <span>{t("zhComponents.message_1b55d0ee9f", { value1: document.latestRevisionNumber ?? 1 })}</span>
           <span aria-hidden>·</span>
-          <span>{`Updated ${new Date(document.updatedAt).toLocaleString()}`}</span>
+          <span>{t("zhComponents.message_3f3f2c90e4", { value1: new Date(document.updatedAt).toLocaleString(i18n.resolvedLanguage ?? i18n.language) })}</span>
           <DocumentAnnotationsCountChip
             issueId={issueId}
             docKey={document.key}
@@ -96,7 +100,7 @@ export function TaskDocumentPanel({
           <MarkdownBody>{document.body}</MarkdownBody>
         </IssueDocumentAnnotations>
       ) : (
-        <p className="text-sm text-muted-foreground">Document is empty.</p>
+        <p className="text-sm text-muted-foreground">{t("document_is_empty")}</p>
       )}
     </article>
   );

@@ -1,7 +1,9 @@
+import { t } from "@/i18n";
 import { UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "../lib/utils";
+import { useTranslation } from "@/i18n";
 
 /**
  * "for {user}" chip on an agent comment posted to a task the agent does not own
@@ -23,8 +25,8 @@ import { cn } from "../lib/utils";
  */
 export function commentAttributionTooltip(agentName: string, userName: string): string {
   return (
-    `${agentName} posted this on behalf of ${userName}. ${agentName} is not assigned to ` +
-    `this task — its authority to write here comes from ${userName}, and never exceeds it.`
+    t("zhComponents.message_632618c4d5", { value1: agentName, value2: userName }) +
+    t("zhComponents.message_e8aedb11ff", { value1: userName })
   );
 }
 
@@ -39,9 +41,10 @@ export function CommentAttributionChip({
   userName?: string | null;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const user = userName?.trim();
   if (!user) return null;
-  const agent = agentName?.trim() || "This agent";
+  const agent = agentName?.trim() || t("this_agent");
 
   return (
     <Tooltip>
@@ -49,7 +52,7 @@ export function CommentAttributionChip({
         <Badge
           variant="outline"
           data-testid="comment-attribution-chip"
-          aria-label={`Posted on behalf of ${user}`}
+          aria-label={t("zhComponents.message_6a4a83a7da", { value1: user })}
           // `Badge` renders a span, which is not focusable — without this a
           // sighted keyboard user can never open the explanation. Radix opens
           // the tooltip on focus as well as hover.
@@ -61,7 +64,7 @@ export function CommentAttributionChip({
           )}
         >
           <UserCheck className="h-3 w-3 shrink-0" aria-hidden="true" />
-          <span className="truncate">for {user}</span>
+          <span className="truncate">{t("zhComponents.text_43eef9a62a")} {user}</span>
         </Badge>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs text-xs">

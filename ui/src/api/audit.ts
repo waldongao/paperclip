@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 import { tenantSessionRecovery } from "@/lib/tenant-session-recovery";
 import { api } from "./client";
 
@@ -113,8 +115,8 @@ export const auditApi = {
       const body = await res.json().catch(() => null);
       const recovery = tenantSessionRecovery.recoverIfNeeded(res.status, body);
       if (recovery) return recovery;
-      const message = (body as { error?: string } | null)?.error ?? `Export failed: ${res.status}`;
-      throw new Error(message);
+      const message = (body as { error?: string } | null)?.error ?? t("zhSupport.exportFailed", { status: res.status });
+      throw new Error(translateDisplayMessage(message));
     }
     return res.blob();
   },

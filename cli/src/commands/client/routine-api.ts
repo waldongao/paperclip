@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import {
   addCommonClientOptions,
@@ -19,13 +20,13 @@ interface JsonOptions extends CompanyOptions {
 }
 
 export function registerRoutineApiCommands(program: Command): void {
-  const routine = program.command("routine").description("Routine API operations");
+  const routine = program.command("routine").description(tCli("Routine API operations"));
   addCommonClientOptions(
     routine
       .command("list")
-      .description("List routines")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--project-id <id>", "Filter by project ID")
+      .description(tCli("List routines"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--project-id <id>", tCli("Filter by project ID"))
       .action(async (opts: CompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -37,16 +38,16 @@ export function registerRoutineApiCommands(program: Command): void {
       }),
     { includeCompany: false },
   );
-  addCompanyPost(routine, "create", "Create a routine", "routines");
-  addIdGet(routine, "get", "Get a routine", "routines");
-  addIdPatch(routine, "update", "Update a routine", "routines");
-  addIdGet(routine, "revisions", "List routine revisions", "routines", "revisions");
+  addCompanyPost(routine, "create", tCli("Create a routine"), "routines");
+  addIdGet(routine, "get", tCli("Get a routine"), "routines");
+  addIdPatch(routine, "update", tCli("Update a routine"), "routines");
+  addIdGet(routine, "revisions", tCli("List routine revisions"), "routines", "revisions");
   addCommonClientOptions(
     routine
       .command("revision:restore")
-      .description("Restore a routine revision")
-      .argument("<routineId>", "Routine ID")
-      .argument("<revisionId>", "Revision ID")
+      .description(tCli("Restore a routine revision"))
+      .argument("<routineId>", tCli("Routine ID"))
+      .argument("<revisionId>", tCli("Revision ID"))
       .action(async (routineId: string, revisionId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -59,9 +60,9 @@ export function registerRoutineApiCommands(program: Command): void {
   addCommonClientOptions(
     routine
       .command("runs")
-      .description("List routine runs")
-      .argument("<routineId>", "Routine ID")
-      .option("--limit <n>", "Maximum runs to return")
+      .description(tCli("List routine runs"))
+      .argument("<routineId>", tCli("Routine ID"))
+      .option("--limit <n>", tCli("Maximum runs to return"))
       .action(async (routineId: string, opts: JsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -72,17 +73,17 @@ export function registerRoutineApiCommands(program: Command): void {
         }
       }),
   );
-  addIdPost(routine, "run", "Run a routine", "routines", "run");
-  addIdPost(routine, "trigger:create", "Create a routine trigger", "routines", "triggers");
-  addIdPatch(routine, "trigger:update", "Update a routine trigger", "routine-triggers");
-  addIdDelete(routine, "trigger:delete", "Delete a routine trigger", "routine-triggers");
-  addIdPost(routine, "trigger:rotate-secret", "Rotate a routine trigger secret", "routine-triggers", "rotate-secret");
+  addIdPost(routine, "run", tCli("Run a routine"), "routines", "run");
+  addIdPost(routine, "trigger:create", tCli("Create a routine trigger"), "routines", "triggers");
+  addIdPatch(routine, "trigger:update", tCli("Update a routine trigger"), "routine-triggers");
+  addIdDelete(routine, "trigger:delete", tCli("Delete a routine trigger"), "routine-triggers");
+  addIdPost(routine, "trigger:rotate-secret", tCli("Rotate a routine trigger secret"), "routine-triggers", "rotate-secret");
   addCommonClientOptions(
     routine
       .command("trigger:fire")
-      .description("Fire a public routine trigger")
-      .argument("<publicId>", "Public trigger ID")
-      .option("--payload-json <json>", "Public trigger payload", "{}")
+      .description(tCli("Fire a public routine trigger"))
+      .argument("<publicId>", tCli("Public trigger ID"))
+      .option("--payload-json <json>", tCli("Public trigger payload"), "{}")
       .action(async (publicId: string, opts: JsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -95,7 +96,7 @@ export function registerRoutineApiCommands(program: Command): void {
 }
 
 function addCompanyPost(parent: Command, name: string, description: string, path: string): void {
-  addCommonClientOptions(parent.command(name).description(description).option("-C, --company-id <id>", "Company ID").requiredOption("--payload-json <json>", "JSON payload").action(async (opts: JsonOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).option("-C, --company-id <id>", tCli("Company ID")).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (opts: JsonOptions) => {
     try {
       const ctx = resolveCommandContext(opts, { requireCompany: true });
       printOutput(await ctx.api.post(`${apiPath`/api/companies/${ctx.companyId}`}/${path}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -106,7 +107,7 @@ function addCompanyPost(parent: Command, name: string, description: string, path
 }
 
 function addIdGet(parent: Command, name: string, description: string, resource: string, suffix?: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<id>", "ID").action(async (id: string, opts: BaseClientOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<id>", tCli("ID")).action(async (id: string, opts: BaseClientOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.get(`/api/${resource}/${encodeURIComponent(id)}${suffix ? `/${suffix}` : ""}`), { json: ctx.json });
@@ -117,7 +118,7 @@ function addIdGet(parent: Command, name: string, description: string, resource: 
 }
 
 function addIdPatch(parent: Command, name: string, description: string, resource: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<id>", "ID").requiredOption("--payload-json <json>", "JSON payload").action(async (id: string, opts: JsonOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<id>", tCli("ID")).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (id: string, opts: JsonOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.patch(`/api/${resource}/${encodeURIComponent(id)}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -128,7 +129,7 @@ function addIdPatch(parent: Command, name: string, description: string, resource
 }
 
 function addIdPost(parent: Command, name: string, description: string, resource: string, suffix: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<id>", "ID").option("--payload-json <json>", "JSON payload", "{}").action(async (id: string, opts: JsonOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<id>", tCli("ID")).option("--payload-json <json>", tCli("JSON payload"), "{}").action(async (id: string, opts: JsonOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.post(`/api/${resource}/${encodeURIComponent(id)}/${suffix}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -139,7 +140,7 @@ function addIdPost(parent: Command, name: string, description: string, resource:
 }
 
 function addIdDelete(parent: Command, name: string, description: string, resource: string): void {
-  addCommonClientOptions(parent.command(name).description(description).argument("<id>", "ID").action(async (id: string, opts: BaseClientOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).argument("<id>", tCli("ID")).action(async (id: string, opts: BaseClientOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.delete(`/api/${resource}/${encodeURIComponent(id)}`), { json: ctx.json });

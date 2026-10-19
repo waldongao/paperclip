@@ -21680,8 +21680,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       );
     expect(pendingIntent.status).toBe("preparing");
     // Generic stranded-task recovery cannot bypass the not-yet-accepted input.
+    // Exercise admission independently of the host worktree's scheduling gate.
     await expect(
-      heartbeatService(db).wakeup(fixture.assignedAgentId, {
+      heartbeatService(db, { runtimeEnv: {} }).wakeup(fixture.assignedAgentId, {
         source: "assignment",
         triggerDetail: "system",
         reason: "issue_assigned",
@@ -25709,7 +25710,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       }),
     });
 
-    const heartbeat = heartbeatService(db);
+    // This fixture runs its fake adapter even when the checkout is a preview
+    // worktree whose real run engine is suppressed.
+    const heartbeat = heartbeatService(db, { runtimeEnv: {} });
     try {
       await db
         .update(companies)

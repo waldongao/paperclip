@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { Building2, UserRound } from "lucide-react";
 import { AppLogo } from "@/pages/apps/AppLogo";
 import {
@@ -28,8 +29,8 @@ export function AiConnectionIdentity({
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Icon aria-hidden className="size-3" />
           {connection.ownership === "shared"
-            ? "Company shared"
-            : `Personal · ${connection.ownerName ?? "Account owner"}`}
+            ? t("stability.47e5dc161731", { defaultValue: "Company shared" })
+            : `Personal · ${connection.ownerName ?? t("stability.801ba134b137", { defaultValue: "Account owner" })}`}
         </span>
       </div>
     </div>

@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { i18n } from "@/i18n";
+const initialLanguage = i18n.language;
+afterEach(async () => { await i18n.changeLanguage(initialLanguage); });
 import {
   connectionNameForCredentialPolicy,
   connectionNameForGrantKind,
@@ -52,6 +55,12 @@ describe("connectionNameForGrantKind", () => {
 });
 
 describe("connectionNameForCredentialPolicy", () => {
+  it.each(["en", "zh-CN"])("keeps ownership decisions independent of display labels in %s", async (locale) => {
+    await i18n.changeLanguage(locale);
+    expect(connectionNameForCredentialPolicy("Slack", "shared")).toBe("Slack for the organization");
+    expect(connectionNameForCredentialPolicy("Slack", "per_user")).toBe("Slack");
+    expect(connectionNameForCredentialPolicy("Slack", "per_agent")).toBe("Slack");
+  });
   it("suffixes a shared credential and leaves a personal one alone", () => {
     expect(connectionNameForCredentialPolicy("Notion", "shared")).toBe("Notion for the organization");
     expect(connectionNameForCredentialPolicy("Notion", "per_user")).toBe("Notion");

@@ -1,4 +1,6 @@
 import type { PipelineCaseLiveness } from "@paperclipai/shared";
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 /**
  * Visual tone for a pipeline item liveness banner. Each tone maps to a palette
@@ -40,7 +42,7 @@ export interface LivenessBannerView {
 }
 
 const AUTO_RETRY_NOTE =
-  "Paperclip retries automatically once the blocker clears — you don't need to move the item by hand.";
+  t("paperclip_retries_automatically_once_the_blocker");
 
 /**
  * Prosumer-voice body for the `no_action_path` "stuck" banner. The server's
@@ -49,8 +51,8 @@ const AUTO_RETRY_NOTE =
  * the PAP-11245 voice rule forbids, so we translate it here. See PAP-11259.
  */
 const NO_ACTION_PATH_BODY =
-  "Paperclip can't see anything to work on next here — no automation, retry, blocker, or review. " +
-  "Re-run the stage to nudge it, or use the ⋯ menu to move it by hand.";
+  t("paperclip_cant_see_anything_to_work_on_next_here") +
+  t("re_run_the_stage_to_nudge_it_or_use_the_menu_to");
 
 /**
  * The `pipelines:write` permission key is the only permission the Phase 2
@@ -106,8 +108,8 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "blocked",
-        title: "Automation paused — waiting on a blocker",
-        body: liveness.message,
+        title: t("automation_paused_waiting_on_a_blocker"),
+        body: translateDisplayMessage(liveness.message),
         blockerLink: blockerLinkFromLiveness(liveness),
         automationLink: automationLinkFromLiveness(liveness),
         permissionKey: null,
@@ -121,8 +123,8 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "blocked",
-        title: "Automation paused — waiting on a blocker",
-        body: liveness.message,
+        title: t("automation_paused_waiting_on_a_blocker"),
+        body: translateDisplayMessage(liveness.message),
         blockerLink: blockerLinkFromLiveness(liveness),
         automationLink: automationLinkFromLiveness(liveness),
         permissionKey: null,
@@ -136,8 +138,8 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "permission",
-        title: "Permission needed before this can run",
-        body: liveness.message,
+        title: t("permission_needed_before_this_can_run"),
+        body: translateDisplayMessage(liveness.message),
         blockerLink: null,
         automationLink: automationLinkFromLiveness(liveness),
         permissionKey: permissionKeyFromFingerprint(liveness.automation?.fingerprint) ?? "pipelines:write",
@@ -145,7 +147,7 @@ export function derivePipelineLivenessBanner(
         retryKind: null,
         retryLabel: "",
         helperNote:
-          "Grant the access above to the configured responsible, then Paperclip retries automatically.",
+          t("grant_the_access_above_to_the_configured_respons"),
       };
 
     case "automation_failed": {
@@ -157,14 +159,14 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: recovered ? "retry" : "attention",
-        title: recovered ? "Blocker resolved — ready to retry" : "Automation failed",
-        body: liveness.message,
+        title: recovered ? t("blocker_resolved_ready_to_retry") : t("automation_failed"),
+        body: translateDisplayMessage(liveness.message),
         blockerLink: null,
         automationLink: automationLinkFromLiveness(liveness),
         permissionKey: null,
         showRetry: true,
         retryKind: automationId ? "automation" : "stage",
-        retryLabel: "Retry now",
+        retryLabel: t("retry_now"),
         helperNote: recovered ? AUTO_RETRY_NOTE : null,
       };
     }
@@ -173,14 +175,14 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "attention",
-        title: "Waiting on breakdown evidence",
-        body: liveness.message,
+        title: t("waiting_on_breakdown_evidence"),
+        body: translateDisplayMessage(liveness.message),
         blockerLink: null,
         automationLink: null,
         permissionKey: null,
         showRetry: true,
         retryKind: "stage",
-        retryLabel: "Re-run stage automation",
+        retryLabel: t("re_run_stage_automation"),
         helperNote: null,
       };
 
@@ -188,14 +190,14 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "blocked",
-        title: "Breakdown is incomplete",
+        title: t("breakdown_is_incomplete"),
         body: missingPiecesBody(liveness),
         blockerLink: null,
         automationLink: null,
         permissionKey: null,
         showRetry: true,
         retryKind: "stage",
-        retryLabel: "Re-run stage automation",
+        retryLabel: t("re_run_stage_automation"),
         helperNote: null,
       };
 
@@ -203,14 +205,14 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "attention",
-        title: "This item is stuck",
+        title: t("this_item_is_stuck"),
         body: NO_ACTION_PATH_BODY,
         blockerLink: null,
         automationLink: null,
         permissionKey: null,
         showRetry: true,
         retryKind: "stage",
-        retryLabel: "Re-run stage automation",
+        retryLabel: t("re_run_stage_automation"),
         helperNote: null,
       };
 
@@ -222,9 +224,9 @@ export function derivePipelineLivenessBanner(
 function missingPiecesBody(liveness: PipelineCaseLiveness): string {
   const missing = liveness.breakdown?.missingRequestKeys?.length ?? 0;
   if (missing > 0) {
-    return `${liveness.message} ${missing} expected ${missing === 1 ? "piece is" : "pieces are"} still missing.`;
+    return t("zhSupport.missingPieces", { message: translateDisplayMessage(liveness.message), count: missing });
   }
-  return liveness.message;
+  return translateDisplayMessage(liveness.message);
 }
 
 /** True when the PAP-11238 "Re-run stage automation" menu item must be disabled. */

@@ -1,3 +1,4 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { useMemo } from "react";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import {
@@ -8,6 +9,8 @@ import {
   type ReusableWorkspaceOption,
 } from "@/lib/reusable-execution-workspaces";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 const COMPACT_TRIGGER_CLASS = "h-8 px-2 py-1.5 text-xs font-normal";
 
@@ -28,7 +31,7 @@ export function ReusableExecutionWorkspaceSelect<TWorkspace extends ReusableExec
   value,
   workspaces,
   onValueChange,
-  placeholder = "Choose an existing workspace",
+  placeholder = t("choose_an_existing_workspace"),
   loading = false,
   error = false,
   disabled = false,
@@ -36,6 +39,7 @@ export function ReusableExecutionWorkspaceSelect<TWorkspace extends ReusableExec
   triggerClassName,
   disablePortal,
 }: ReusableExecutionWorkspaceSelectProps<TWorkspace>) {
+  const { t } = useTranslation();
   const groups = useMemo(() => buildReusableExecutionWorkspaceOptionGroups(workspaces), [workspaces]);
 
   return (
@@ -44,9 +48,9 @@ export function ReusableExecutionWorkspaceSelect<TWorkspace extends ReusableExec
       groups={groups}
       onValueChange={onValueChange}
       placeholder={placeholder}
-      searchPlaceholder="Search workspaces..."
-      emptyMessage={error ? "Workspaces failed to load." : "No matching workspaces."}
-      loadingMessage="Loading workspaces..."
+      searchPlaceholder={t("search_workspaces")}
+      emptyMessage={error ? t("workspaces_failed_to_load") : t("no_matching_workspaces")}
+      loadingMessage={t("loading_workspaces")}
       loading={loading}
       disabled={disabled}
       className={className}
@@ -58,7 +62,7 @@ export function ReusableExecutionWorkspaceSelect<TWorkspace extends ReusableExec
         <span className="flex min-w-0 flex-col">
           <span className={cn("truncate", selected && "font-medium")}>{option.label}</span>
           <span className="truncate text-(length:--text-micro) text-muted-foreground">
-            {option.workspace.status ? `${option.workspace.status} - ` : ""}
+            {option.workspace.status ? `${getDisplayLabel(option.workspace.status, "raw")} - ` : ""}
             {option.description}
           </span>
         </span>

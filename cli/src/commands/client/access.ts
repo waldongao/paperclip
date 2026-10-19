@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import {
   addCommonClientOptions,
@@ -28,7 +29,7 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     program
       .command("health")
-      .description("Check API health")
+      .description(tCli("Check API health"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -39,13 +40,13 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const access = program.command("access").description("Access and auth inspection operations");
+  const access = program.command("access").description(tCli("Access and auth inspection operations"));
   addWhoamiCommand(access);
 
   addCommonClientOptions(
     program
       .command("openapi")
-      .description("Print the OpenAPI document")
+      .description(tCli("Print the OpenAPI document"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -56,16 +57,16 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const profile = program.command("profile").description("Current user profile operations");
-  addSimpleGet(profile, "session", "Get auth session", "/api/auth/get-session");
-  addSimpleGet(profile, "get", "Get current auth profile", "/api/auth/profile");
-  addJsonPatch(profile, "update", "Update current auth profile", "/api/auth/profile");
+  const profile = program.command("profile").description(tCli("Current user profile operations"));
+  addSimpleGet(profile, "session", tCli("Get auth session"), "/api/auth/get-session");
+  addSimpleGet(profile, "get", tCli("Get current auth profile"), "/api/auth/profile");
+  addJsonPatch(profile, "update", tCli("Update current auth profile"), "/api/auth/profile");
   addCommonClientOptions(
     profile
       .command("company-user")
-      .description("Get a user profile within a company")
-      .argument("<userSlug>", "User slug")
-      .option("-C, --company-id <id>", "Company ID")
+      .description(tCli("Get a user profile within a company"))
+      .argument("<userSlug>", tCli("User slug"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (userSlug: string, opts: CompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -77,14 +78,14 @@ export function registerAccessCommands(program: Command): void {
     { includeCompany: false },
   );
 
-  const invite = program.command("invite").description("Invite operations");
-  addCompanyList(invite, "list", "List company invites", "invites");
-  addCompanyPost(invite, "create", "Create an invite", "invites");
+  const invite = program.command("invite").description(tCli("Invite operations"));
+  addCompanyList(invite, "list", tCli("List company invites"), "invites");
+  addCompanyPost(invite, "create", tCli("Create an invite"), "invites");
   addCommonClientOptions(
     invite
       .command("revoke")
-      .description("Revoke an invite")
-      .argument("<inviteId>", "Invite ID")
+      .description(tCli("Revoke an invite"))
+      .argument("<inviteId>", tCli("Invite ID"))
       .action(async (inviteId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -104,8 +105,8 @@ export function registerAccessCommands(program: Command): void {
     addCommonClientOptions(
       invite
         .command(name)
-        .description(`Get invite ${name}`)
-        .argument("<token>", "Invite token")
+        .description(tCli("Get invite {{name}}", { name: tCli(name) }))
+        .argument("<token>", tCli("Invite token"))
         .action(async (token: string, opts: BaseClientOptions) => {
           try {
             const ctx = resolveCommandContext(opts);
@@ -120,9 +121,9 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     invite
       .command("test-resolution")
-      .description("Test invite URL resolution")
-      .argument("<token>", "Invite token")
-      .requiredOption("--url <url>", "URL to test")
+      .description(tCli("Test invite URL resolution"))
+      .argument("<token>", tCli("Invite token"))
+      .requiredOption("--url <url>", tCli("URL to test"))
       .action(async (token: string, opts: QueryOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -136,9 +137,9 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     invite
       .command("skill")
-      .description("Get invite skill markdown")
-      .argument("<token>", "Invite token")
-      .argument("<skillName>", "Skill name")
+      .description(tCli("Get invite skill markdown"))
+      .argument("<token>", tCli("Invite token"))
+      .argument("<skillName>", tCli("Skill name"))
       .action(async (token: string, skillName: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -151,9 +152,9 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     invite
       .command("accept")
-      .description("Accept an invite")
-      .argument("<token>", "Invite token")
-      .option("--payload-json <json>", "Invite accept JSON payload", "{}")
+      .description(tCli("Accept an invite"))
+      .argument("<token>", tCli("Invite token"))
+      .option("--payload-json <json>", tCli("Invite accept JSON payload"), "{}")
       .action(async (token: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -164,14 +165,14 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const join = program.command("join").description("Join request operations");
+  const join = program.command("join").description(tCli("Join request operations"));
   addCommonClientOptions(
     join
       .command("list")
-      .description("List join requests")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--status <status>", "Filter by status (pending_approval, approved, rejected; pending alias accepted)")
-      .option("--request-type <type>", "Filter by request type")
+      .description(tCli("List join requests"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--status <status>", tCli("Filter by status (pending_approval, approved, rejected; pending alias accepted)"))
+      .option("--request-type <type>", tCli("Filter by request type"))
       .action(async (opts: QueryOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -192,9 +193,9 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     join
       .command("claim-key")
-      .description("Claim an agent API key for an approved join request")
-      .argument("<requestId>", "Join request ID")
-      .requiredOption("--claim-secret <secret>", "Claim secret")
+      .description(tCli("Claim an agent API key for an approved join request"))
+      .argument("<requestId>", tCli("Join request ID"))
+      .requiredOption("--claim-secret <secret>", tCli("Claim secret"))
       .action(async (requestId: string, opts: BaseClientOptions & { claimSecret: string }) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -205,21 +206,21 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const member = program.command("member").description("Company member operations");
-  addCompanyList(member, "list", "List company members", "members");
-  addCompanyList(member, "user-directory", "List company user directory", "user-directory");
+  const member = program.command("member").description(tCli("Company member operations"));
+  addCompanyList(member, "list", tCli("List company members"), "members");
+  addCompanyList(member, "user-directory", tCli("List company user directory"), "user-directory");
   addMemberPatch(member, "update", "members");
   addMemberPatch(member, "role-and-grants", "members", "role-and-grants");
   addMemberPatch(member, "permissions", "members", "permissions");
   addMemberPost(member, "archive", "members", "archive");
 
-  const admin = program.command("admin").description("Instance admin operations");
-  const user = admin.command("user").description("Admin user operations");
+  const admin = program.command("admin").description(tCli("Instance admin operations"));
+  const user = admin.command("user").description(tCli("Admin user operations"));
   addCommonClientOptions(
     user
       .command("list")
-      .description("List users")
-      .option("--query <text>", "Search query")
+      .description(tCli("List users"))
+      .option("--query <text>", tCli("Search query"))
       .action(async (opts: QueryOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -235,8 +236,8 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     user
       .command("company-access")
-      .description("Get user company access")
-      .argument("<userId>", "User ID")
+      .description(tCli("Get user company access"))
+      .argument("<userId>", tCli("User ID"))
       .action(async (userId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -249,9 +250,9 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     user
       .command("company-access:update")
-      .description("Update user company access")
-      .argument("<userId>", "User ID")
-      .requiredOption("--payload-json <json>", "UpdateUserCompanyAccess JSON payload")
+      .description(tCli("Update user company access"))
+      .argument("<userId>", tCli("User ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateUserCompanyAccess JSON payload"))
       .action(async (userId: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -262,16 +263,16 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const instance = program.command("instance").description("Instance operations");
-  addSimpleGet(instance, "scheduler-heartbeats", "List scheduler heartbeat agents", "/api/instance/scheduler-heartbeats");
-  addSimpleGet(instance, "settings:general", "Get general instance settings", "/api/instance/settings/general");
-  addJsonPatch(instance, "settings:general:update", "Update general instance settings", "/api/instance/settings/general");
-  addSimpleGet(instance, "settings:experimental", "Get experimental instance settings", "/api/instance/settings/experimental");
-  addJsonPatch(instance, "settings:experimental:update", "Update experimental instance settings", "/api/instance/settings/experimental");
+  const instance = program.command("instance").description(tCli("Instance operations"));
+  addSimpleGet(instance, "scheduler-heartbeats", tCli("List scheduler heartbeat agents"), "/api/instance/scheduler-heartbeats");
+  addSimpleGet(instance, "settings:general", tCli("Get general instance settings"), "/api/instance/settings/general");
+  addJsonPatch(instance, "settings:general:update", tCli("Update general instance settings"), "/api/instance/settings/general");
+  addSimpleGet(instance, "settings:experimental", tCli("Get experimental instance settings"), "/api/instance/settings/experimental");
+  addJsonPatch(instance, "settings:experimental:update", tCli("Update experimental instance settings"), "/api/instance/settings/experimental");
   addCommonClientOptions(
     instance
       .command("database-backup")
-      .description("Create a database backup")
+      .description(tCli("Create a database backup"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -282,23 +283,23 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const sidebar = program.command("sidebar").description("Sidebar preference and badge operations");
-  addSimpleGet(sidebar, "preferences", "Get current sidebar preferences", "/api/sidebar-preferences/me");
-  addJsonPut(sidebar, "preferences:update", "Update current sidebar preferences", "/api/sidebar-preferences/me");
-  addCompanyList(sidebar, "project-preferences", "Get current project sidebar preferences", "sidebar-preferences/me");
-  addCompanyPut(sidebar, "project-preferences:update", "Update current project sidebar preferences", "sidebar-preferences/me");
-  addCompanyList(sidebar, "badges", "Get sidebar badges", "sidebar-badges");
+  const sidebar = program.command("sidebar").description(tCli("Sidebar preference and badge operations"));
+  addSimpleGet(sidebar, "preferences", tCli("Get current sidebar preferences"), "/api/sidebar-preferences/me");
+  addJsonPut(sidebar, "preferences:update", tCli("Update current sidebar preferences"), "/api/sidebar-preferences/me");
+  addCompanyList(sidebar, "project-preferences", tCli("Get current project sidebar preferences"), "sidebar-preferences/me");
+  addCompanyPut(sidebar, "project-preferences:update", tCli("Update current project sidebar preferences"), "sidebar-preferences/me");
+  addCompanyList(sidebar, "badges", tCli("Get sidebar badges"), "sidebar-badges");
 
-  const inbox = program.command("inbox").description("Board inbox operations");
-  addCompanyList(inbox, "dismissals", "List dismissed inbox items", "inbox-dismissals");
-  addCompanyPost(inbox, "dismiss", "Dismiss an inbox item", "inbox-dismissals");
+  const inbox = program.command("inbox").description(tCli("Board inbox operations"));
+  addCompanyList(inbox, "dismissals", tCli("List dismissed inbox items"), "inbox-dismissals");
+  addCompanyPost(inbox, "dismiss", tCli("Dismiss an inbox item"), "inbox-dismissals");
 
-  const boardClaim = program.command("board-claim").description("Board claim token operations");
+  const boardClaim = program.command("board-claim").description(tCli("Board claim token operations"));
   addCommonClientOptions(
     boardClaim
       .command("show")
-      .description("Inspect a board claim token")
-      .argument("<token>", "Claim token")
+      .description(tCli("Inspect a board claim token"))
+      .argument("<token>", tCli("Claim token"))
       .action(async (token: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -311,9 +312,9 @@ export function registerAccessCommands(program: Command): void {
   addCommonClientOptions(
     boardClaim
       .command("claim")
-      .description("Claim a board claim token")
-      .argument("<token>", "Claim token")
-      .option("--payload-json <json>", "Claim JSON payload", "{}")
+      .description(tCli("Claim a board claim token"))
+      .argument("<token>", tCli("Claim token"))
+      .option("--payload-json <json>", tCli("Claim JSON payload"), "{}")
       .action(async (token: string, opts: JsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -324,17 +325,17 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const openclaw = program.command("openclaw").description("OpenClaw integration helpers");
-  addCompanyPost(openclaw, "invite-prompt", "Create an OpenClaw invite prompt", "openclaw/invite-prompt");
+  const openclaw = program.command("openclaw").description(tCli("OpenClaw integration helpers"));
+  addCompanyPost(openclaw, "invite-prompt", tCli("Create an OpenClaw invite prompt"), "openclaw/invite-prompt");
 
-  const publicSkills = program.command("available-skill").description("Public skill catalog operations");
-  addSimpleGet(publicSkills, "list", "List available skills", "/api/skills/available");
-  addSimpleGet(publicSkills, "index", "Get available skill index", "/api/skills/index");
+  const publicSkills = program.command("available-skill").description(tCli("Public skill catalog operations"));
+  addSimpleGet(publicSkills, "list", tCli("List available skills"), "/api/skills/available");
+  addSimpleGet(publicSkills, "index", tCli("Get available skill index"), "/api/skills/index");
   addCommonClientOptions(
     publicSkills
       .command("get")
-      .description("Get available skill markdown")
-      .argument("<skillName>", "Skill name")
+      .description(tCli("Get available skill markdown"))
+      .argument("<skillName>", tCli("Skill name"))
       .action(async (skillName: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -345,14 +346,14 @@ export function registerAccessCommands(program: Command): void {
       }),
   );
 
-  const llm = program.command("llm").description("LLM prompt documentation");
-  addSimpleGet(llm, "agent-configuration", "Get agent configuration prompt docs", "/api/llms/agent-configuration.txt");
-  addSimpleGet(llm, "agent-icons", "Get agent icon prompt docs", "/api/llms/agent-icons.txt");
+  const llm = program.command("llm").description(tCli("LLM prompt documentation"));
+  addSimpleGet(llm, "agent-configuration", tCli("Get agent configuration prompt docs"), "/api/llms/agent-configuration.txt");
+  addSimpleGet(llm, "agent-icons", tCli("Get agent icon prompt docs"), "/api/llms/agent-icons.txt");
   addCommonClientOptions(
     llm
       .command("agent-configuration:adapter")
-      .description("Get adapter-specific agent configuration prompt docs")
-      .argument("<adapterType>", "Adapter type")
+      .description(tCli("Get adapter-specific agent configuration prompt docs"))
+      .argument("<adapterType>", tCli("Adapter type"))
       .action(async (adapterType: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -368,7 +369,7 @@ function addWhoamiCommand(parent: Command): void {
   addCommonClientOptions(
     parent
       .command("whoami")
-      .description("Show current CLI auth identity")
+      .description(tCli("Show current CLI auth identity"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -397,7 +398,7 @@ function addSimpleGet(parent: Command, name: string, description: string, path: 
 }
 
 function addJsonPatch(parent: Command, name: string, description: string, path: string): void {
-  addCommonClientOptions(parent.command(name).description(description).requiredOption("--payload-json <json>", "JSON payload").action(async (opts: JsonPayloadOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (opts: JsonPayloadOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.patch(path, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -408,7 +409,7 @@ function addJsonPatch(parent: Command, name: string, description: string, path: 
 }
 
 function addJsonPut(parent: Command, name: string, description: string, path: string): void {
-  addCommonClientOptions(parent.command(name).description(description).requiredOption("--payload-json <json>", "JSON payload").action(async (opts: JsonPayloadOptions) => {
+  addCommonClientOptions(parent.command(name).description(description).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (opts: JsonPayloadOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.put(path, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -420,7 +421,7 @@ function addJsonPut(parent: Command, name: string, description: string, path: st
 
 function addCompanyList(parent: Command, name: string, description: string, path: string): void {
   addCommonClientOptions(
-    parent.command(name).description(description).option("-C, --company-id <id>", "Company ID").action(async (opts: CompanyOptions) => {
+    parent.command(name).description(description).option("-C, --company-id <id>", tCli("Company ID")).action(async (opts: CompanyOptions) => {
       try {
         const ctx = resolveCommandContext(opts, { requireCompany: true });
         printOutput(await ctx.api.get(`${apiPath`/api/companies/${ctx.companyId}`}/${path}`), { json: ctx.json });
@@ -434,7 +435,7 @@ function addCompanyList(parent: Command, name: string, description: string, path
 
 function addCompanyPut(parent: Command, name: string, description: string, path: string): void {
   addCommonClientOptions(
-    parent.command(name).description(description).option("-C, --company-id <id>", "Company ID").requiredOption("--payload-json <json>", "JSON payload").action(async (opts: JsonPayloadOptions) => {
+    parent.command(name).description(description).option("-C, --company-id <id>", tCli("Company ID")).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (opts: JsonPayloadOptions) => {
       try {
         const ctx = resolveCommandContext(opts, { requireCompany: true });
         printOutput(await ctx.api.put(`${apiPath`/api/companies/${ctx.companyId}`}/${path}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -448,7 +449,7 @@ function addCompanyPut(parent: Command, name: string, description: string, path:
 
 function addCompanyPost(parent: Command, name: string, description: string, path: string): void {
   addCommonClientOptions(
-    parent.command(name).description(description).option("-C, --company-id <id>", "Company ID").requiredOption("--payload-json <json>", "JSON payload").action(async (opts: JsonPayloadOptions) => {
+    parent.command(name).description(description).option("-C, --company-id <id>", tCli("Company ID")).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (opts: JsonPayloadOptions) => {
       try {
         const ctx = resolveCommandContext(opts, { requireCompany: true });
         printOutput(await ctx.api.post(`${apiPath`/api/companies/${ctx.companyId}`}/${path}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -462,7 +463,7 @@ function addCompanyPost(parent: Command, name: string, description: string, path
 
 function addJoinAction(parent: Command, action: "approve" | "reject"): void {
   addCommonClientOptions(
-    parent.command(action).description(`${action} a join request`).argument("<requestId>", "Join request ID").option("-C, --company-id <id>", "Company ID").action(async (requestId: string, opts: CompanyOptions) => {
+    parent.command(action).description(tCli("{{action}} a join request", { action: tCli(action) })).argument("<requestId>", tCli("Join request ID")).option("-C, --company-id <id>", tCli("Company ID")).action(async (requestId: string, opts: CompanyOptions) => {
       try {
         const ctx = resolveCommandContext(opts, { requireCompany: true });
         printOutput(await ctx.api.post(`${apiPath`/api/companies/${ctx.companyId}/join-requests/${requestId}`}/${action}`, {}), { json: ctx.json });
@@ -476,7 +477,7 @@ function addJoinAction(parent: Command, action: "approve" | "reject"): void {
 
 function addMemberPatch(parent: Command, name: string, path: string, suffix?: string): void {
   addCommonClientOptions(
-    parent.command(name).description(`${name} a member`).argument("<memberId>", "Member ID").option("-C, --company-id <id>", "Company ID").requiredOption("--payload-json <json>", "JSON payload").action(async (memberId: string, opts: JsonPayloadOptions) => {
+    parent.command(name).description(tCli("{{name}} a member", { name: tCli(name) })).argument("<memberId>", tCli("Member ID")).option("-C, --company-id <id>", tCli("Company ID")).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (memberId: string, opts: JsonPayloadOptions) => {
       try {
         const ctx = resolveCommandContext(opts, { requireCompany: true });
         const route = `${apiPath`/api/companies/${ctx.companyId}`}/${path}/${encodeURIComponent(memberId)}${suffix ? `/${suffix}` : ""}`;
@@ -491,7 +492,7 @@ function addMemberPatch(parent: Command, name: string, path: string, suffix?: st
 
 function addMemberPost(parent: Command, name: string, path: string, suffix: string): void {
   addCommonClientOptions(
-    parent.command(name).description(`${name} a member`).argument("<memberId>", "Member ID").option("-C, --company-id <id>", "Company ID").option("--payload-json <json>", "JSON payload", "{}").action(async (memberId: string, opts: JsonPayloadOptions) => {
+    parent.command(name).description(tCli("{{name}} a member", { name: tCli(name) })).argument("<memberId>", tCli("Member ID")).option("-C, --company-id <id>", tCli("Company ID")).option("--payload-json <json>", tCli("JSON payload"), "{}").action(async (memberId: string, opts: JsonPayloadOptions) => {
       try {
         const ctx = resolveCommandContext(opts, { requireCompany: true });
         printOutput(await ctx.api.post(`${apiPath`/api/companies/${ctx.companyId}`}/${path}/${encodeURIComponent(memberId)}/${suffix}`, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -504,7 +505,7 @@ function addMemberPost(parent: Command, name: string, path: string, suffix: stri
 }
 
 function addAdminUserPost(parent: Command, name: string, suffix: string): void {
-  addCommonClientOptions(parent.command(name).description(`${name} instance admin`).argument("<userId>", "User ID").action(async (userId: string, opts: BaseClientOptions) => {
+  addCommonClientOptions(parent.command(name).description(tCli("{{name}} instance admin", { name: tCli(name) })).argument("<userId>", tCli("User ID")).action(async (userId: string, opts: BaseClientOptions) => {
     try {
       const ctx = resolveCommandContext(opts);
       printOutput(await ctx.api.post(`${apiPath`/api/admin/users/${userId}`}/${suffix}`, {}), { json: ctx.json });

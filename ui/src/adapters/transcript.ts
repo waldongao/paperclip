@@ -1,5 +1,7 @@
 import { redactHomePathUserSegments, redactTranscriptEntryPaths } from "@paperclipai/adapter-utils";
 import type { TranscriptEntry, StdoutLineParser, TranscriptParserSource } from "./types";
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 export type RunLogChunk = { ts: string; stream: "stdout" | "stderr" | "system"; chunk: string; seq?: number };
 type TranscriptBuildOptions = { censorUsernameInLogs?: boolean };
@@ -60,13 +62,13 @@ function createTranscriptParseErrorEntry(
   error: unknown,
   redactionOptions: RedactionOptions,
 ): TranscriptEntry {
-  const errorText = formatTranscriptParserError(error) || "unknown parser error";
+  const errorText = formatTranscriptParserError(error) || t("unknown_parser_error");
   const preview = truncateTranscriptLine(line);
   return {
     kind: "result",
     ts,
     text: redactHomePathUserSegments(
-      `Chat transcript error: ${errorText}. Falling back for line: ${preview}`,
+      t("zhSupport.finalTranscriptParseError", { message: translateDisplayMessage(errorText), line: preview }),
       redactionOptions,
     ),
     inputTokens: 0,
@@ -115,7 +117,7 @@ export function buildTranscript(
       continue;
     }
     if (chunk.stream === "system") {
-      entries.push({ kind: "system", ts: chunk.ts, text: redactHomePathUserSegments(chunk.chunk, redactionOptions) });
+      entries.push({ kind: "system", ts: chunk.ts, text: redactHomePathUserSegments(translateDisplayMessage(chunk.chunk), redactionOptions) });
       continue;
     }
 

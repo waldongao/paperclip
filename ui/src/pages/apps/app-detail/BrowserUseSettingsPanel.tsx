@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useId, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
@@ -48,36 +49,27 @@ function CredentialSettings({
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label htmlFor={`${id}-limit`}>
-          Maximum cost per browser run (USD)
-        </Label>
+        <Label htmlFor={`${id}-limit`}>{t("stability.b822c9653c2c", { defaultValue: "Maximum cost per browser run (USD)" })}</Label>
         <Input
           id={`${id}-limit`}
           type="number"
           min="0"
           step="0.01"
           value={limit}
-          placeholder="Use the remaining Paperclip budget"
+          placeholder={t("stability.40c92fd20348", { defaultValue: "Use the remaining Paperclip budget" })}
           onChange={(e) => setLimit(e.target.value)}
         />
-        <p className="text-sm text-muted-foreground">
-          The agent can choose a lower limit. Paperclip also applies any
-          remaining hard budget limit.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("stability.9063e2474b9e", { defaultValue: "The agent can choose a lower limit. Paperclip also applies any remaining hard budget limit." })}</p>
       </div>
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Allowed saved profiles</legend>
-        <p className="text-sm text-muted-foreground">
-          Fresh browsers are the default. Selected profiles let agents use their
-          saved website logins. Manage profiles in{" "}
+        <legend className="text-sm font-medium">{t("stability.f8d4da6e87cf", { defaultValue: "Allowed saved profiles" })}</legend>
+        <p className="text-sm text-muted-foreground">{t("stability.f2318fddc8cc", { defaultValue: "Fresh browsers are the default. Selected profiles let agents use their saved website logins. Manage profiles in" })}{" "}
           <a
             href="https://cloud.browser-use.com"
             target="_blank"
             rel="noreferrer"
             className="underline"
-          >
-            Browser Use Cloud
-          </a>
+          >{t("stability.276bc60ffa6d", { defaultValue: "Browser Use Cloud" })}</a>
           .
         </p>
         {profiles.data?.map((p) => (
@@ -96,34 +88,26 @@ function CredentialSettings({
           </Label>
         ))}
         {profiles.data?.length === 0 && (
-          <p className="text-sm text-muted-foreground">No saved profiles.</p>
+          <p className="text-sm text-muted-foreground">{t("stability.700c6320e5df", { defaultValue: "No saved profiles." })}</p>
         )}
         {profiles.isLoading && (
-          <p className="text-sm text-muted-foreground">Loading profiles…</p>
+          <p className="text-sm text-muted-foreground">{t("loading_profiles")}</p>
         )}
         {profiles.isError && (
-          <p role="alert" className="text-sm text-destructive">
-            Could not load profiles.{" "}
+          <p role="alert" className="text-sm text-destructive">{t("stability.a6c9d7f863b2", { defaultValue: "Could not load profiles." })}{" "}
             <Button
               size="sm"
               variant="ghost"
               onClick={() => void profiles.refetch()}
-            >
-              Retry
-            </Button>
+            >{t("common.retry")}</Button>
           </p>
         )}
       </fieldset>
       {saved.isError || save.isError ? (
-        <p role="alert" className="text-sm text-destructive">
-          Could not save or load browser settings. Check your credential access
-          and try again.
-        </p>
+        <p role="alert" className="text-sm text-destructive">{t("stability.45cef7caec95", { defaultValue: "Could not save or load browser settings. Check your credential access and try again." })}</p>
       ) : null}
       {save.isSuccess && (
-        <p role="status" className="text-sm text-muted-foreground">
-          Browser settings saved.
-        </p>
+        <p role="status" className="text-sm text-muted-foreground">{t("stability.6543378b5101", { defaultValue: "Browser settings saved." })}</p>
       )}
       <div className="flex justify-end">
         <Button
@@ -136,9 +120,7 @@ function CredentialSettings({
             )
           }
           onClick={() => save.mutate()}
-        >
-          Save browser settings
-        </Button>
+        >{t("stability.554278e7d8cd", { defaultValue: "Save browser settings" })}</Button>
       </div>
     </div>
   );
@@ -162,18 +144,16 @@ export function BrowserUseSettingsPanel({
   const grantId = selected || eligible[0]?.id;
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold">Browser settings</h2>
+      <h2 className="text-lg font-semibold">{t("stability.29435093ce3d", { defaultValue: "Browser settings" })}</h2>
       {eligible.length > 1 && (
-        <Label className="flex flex-col gap-2">
-          Credential
-          <select
+        <Label className="flex flex-col gap-2">{t("stability.b1c42b3ce118", { defaultValue: "Credential" })}<select
             value={grantId}
             onChange={(e) => setSelected(e.target.value)}
             className="rounded-md border bg-background p-2"
           >
             {eligible.map((g, i) => (
               <option key={g.id} value={g.id}>
-                {g.kind === "user" ? "Personal" : "Shared"} credential {i + 1}
+                {g.kind === "user" ? t("personal") : t("zhSupport.labels.common.shared")}{" "}{t("stability.e265b6f56460", { defaultValue: "credential" })}{" "}{i + 1}
               </option>
             ))}
           </select>
@@ -186,10 +166,7 @@ export function BrowserUseSettingsPanel({
           grantId={grantId}
         />
       ) : (
-        <p className="text-sm text-muted-foreground">
-          The credential owner or a shared connection manager can configure
-          saved profiles and cost limits.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("stability.54287ed2b072", { defaultValue: "The credential owner or a shared connection manager can configure saved profiles and cost limits." })}</p>
       )}
     </section>
   );

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   ResourceMembershipResourceType,
@@ -7,6 +8,7 @@ import type {
 import { resourceMembershipsApi } from "../api/resourceMemberships";
 import { useToastActions } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
+import { useTranslation } from "@/i18n";
 
 type MutationVariables = {
   resourceType: JoinableResourceType;
@@ -145,13 +147,14 @@ export function useResourceMemberships(companyId: string | null | undefined) {
 }
 
 export function useResourceMembershipMutation(companyId: string | null | undefined) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
   const queryKey = queryKeys.resourceMemberships.mine(companyId ?? "__none__");
 
   return useMutation({
     mutationFn: (variables: MutationVariables) => {
-      if (!companyId) throw new Error("Select an organization first.");
+      if (!companyId) throw new Error(t("select_an_organization_first"));
       const body = { state: variables.state, starred: variables.starred };
       return variables.resourceType === "project"
         ? resourceMembershipsApi.updateProject(companyId, variables.resourceId, body)
@@ -177,8 +180,8 @@ export function useResourceMembershipMutation(companyId: string | null | undefin
         ? variables.starred ? "star" : "unstar"
         : variables.state === "left" ? "leave" : "join";
       pushToast({
-        title: `Couldn't ${verb} ${variables.resourceName}.`,
-        body: error instanceof Error ? error.message : "Try again.",
+        title: t("zhSupport.membershipFailed", { action: t(`zhSupport.membershipAction.${verb}`), resource: variables.resourceName }),
+        body: error instanceof Error ? error.message : t("try_again_624fb2"),
         tone: "error",
       });
     },

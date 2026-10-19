@@ -1,3 +1,4 @@
+import { getDisplayLabel } from "./display-labels";
 import type { IssueAttachment, IssueDocumentSummary, IssueWorkProduct } from "@paperclipai/shared";
 import { getAttachmentArtifactWorkProductMetadata } from "@paperclipai/shared";
 
@@ -77,5 +78,5 @@ export function documentDisplayTitle(
 ): string {
   if (doc.title?.trim()) return doc.title;
   const words = doc.key.replace(/[-_]+/g, " ").trim();
-  return words.charAt(0).toUpperCase() + words.slice(1);
+  return getDisplayLabel(words.charAt(0).toUpperCase() + words.slice(1), "raw");
 }

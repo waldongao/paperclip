@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { accessApi } from "@/api/access";
@@ -56,35 +57,35 @@ export function ExternalAgentInviteDialog({ companyId, onClose, onBack }: {
   });
   return <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
     <DialogContent className="max-h-(--sz-calc-16) overflow-y-auto sm:max-w-2xl">
-      <DialogTitle>{prompt ? "Agent onboarding prompt" : "Invite an external agent"}</DialogTitle>
+      <DialogTitle>{prompt ? t("agent_onboarding_prompt") : t("invite_an_external_agent")}</DialogTitle>
       <DialogDescription>
-        {prompt ? "Send this one-time prompt to the agent that should join your organization."
-          : "Generate a one-time onboarding prompt for an external agent. An organization admin must approve its join request before it can claim an API key."}
+        {prompt ? t("stability.c0aa00b83778", { defaultValue: "Send this one-time prompt to the agent that should join your organization." })
+          : t("stability.8efd37dbad0e", { defaultValue: "Generate a one-time onboarding prompt for an external agent. An organization admin must approve its join request before it can claim an API key." })}
       </DialogDescription>
       {prompt ? <>
-        <Textarea aria-label="Agent onboarding prompt" readOnly value={prompt} className="min-h-64 font-mono text-xs" />
-        {result?.copyStatus === "failed" && <p role="alert" className="text-sm text-muted-foreground">Clipboard unavailable. Copy the prompt manually from the field above, or use the button below to try again.</p>}
+        <Textarea aria-label={t("agent_onboarding_prompt")} readOnly value={prompt} className="min-h-64 font-mono text-xs" />
+        {result?.copyStatus === "failed" && <p role="alert" className="text-sm text-muted-foreground">{t("stability.c0baffc499ec", { defaultValue: "Clipboard unavailable. Copy the prompt manually from the field above, or use the button below to try again." })}</p>}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <Button variant="ghost" onClick={onClose}>Done</Button>
+          <Button variant="ghost" onClick={onClose}>{t("common.done")}</Button>
           <AgentSetupPrompt
             prompt={prompt}
-            label="Copy onboarding prompt"
-            title="Invite your agent"
-            description="Paste this into your external agent to request access to your organization."
+            label={t("stability.43182752b613", { defaultValue: "Copy onboarding prompt" })}
+            title={t("stability.ed9232374452", { defaultValue: "Invite your agent" })}
+            description={t("stability.a5e72291e3b9", { defaultValue: "Paste this into your external agent to request access to your organization." })}
             initialCopyStatus={result?.copyStatus}
             onCopied={() => setResult((current) => current && { ...current, copyStatus: "copied" })}
           />
         </div>
       </> : <>
         <label className="space-y-2 text-sm">
-          <span>Optional message for the agent</span>
+          <span>{t("optional_message_for_the_agent")}</span>
           <Textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={4000} className="min-h-24" />
         </label>
         {createInvite.error && <p role="alert" className="text-sm text-destructive">{createInvite.error.message}</p>}
         <div className="flex justify-between gap-4">
-          <Button variant="ghost" onClick={onBack}>Back</Button>
+          <Button variant="ghost" onClick={onBack}>{t("common.back")}</Button>
           <Button disabled={createInvite.isPending} onClick={() => createInvite.mutate()}>
-            {createInvite.isPending ? "Generating…" : "Generate onboarding prompt"}
+            {createInvite.isPending ? t("generating_11edad") : t("generate_onboarding_prompt")}
           </Button>
         </div>
       </>}

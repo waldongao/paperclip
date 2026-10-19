@@ -3,22 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { nextCronFires, parseCronExpression } from "../lib/cron-fires";
+import { i18n, t, useTranslation } from "@/i18n";
 
 export type SchedulePreset = "every_minute" | "every_hour" | "every_day" | "weekdays" | "weekly" | "monthly" | "custom";
 
 const PRESETS: { value: SchedulePreset; label: string }[] = [
-  { value: "every_minute", label: "Every minute" },
-  { value: "every_hour", label: "Every hour" },
-  { value: "every_day", label: "Every day" },
-  { value: "weekdays", label: "Weekdays" },
-  { value: "weekly", label: "Weekly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "custom", label: "Custom (cron)" },
+  { value: "every_minute", label: t("every_minute") },
+  { value: "every_hour", label: t("every_hour") },
+  { value: "every_day", label: t("every_day") },
+  { value: "weekdays", label: t("weekdays") },
+  { value: "weekly", label: t("weekly") },
+  { value: "monthly", label: t("monthly") },
+  { value: "custom", label: t("custom_cron") },
 ];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => ({
   value: String(i),
-  label: i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`,
+  label: i === 0 ? t("12_am") : i < 12 ? t("zhComponents.message_73db5c4a18", { value1: i }) : i === 12 ? t("12_pm") : t("zhComponents.message_457280a6ff", { value1: i - 12 }),
 }));
 
 const MINUTES = Array.from({ length: 12 }, (_, i) => ({
@@ -27,13 +28,13 @@ const MINUTES = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 const DAYS_OF_WEEK = [
-  { value: "1", label: "Mon" },
-  { value: "2", label: "Tue" },
-  { value: "3", label: "Wed" },
-  { value: "4", label: "Thu" },
-  { value: "5", label: "Fri" },
-  { value: "6", label: "Sat" },
-  { value: "0", label: "Sun" },
+  { value: "1", label: t("mon") },
+  { value: "2", label: t("tue") },
+  { value: "3", label: t("wed") },
+  { value: "4", label: t("thu") },
+  { value: "5", label: t("fri") },
+  { value: "6", label: t("sat") },
+  { value: "0", label: t("sun") },
 ];
 
 const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => ({
@@ -122,25 +123,27 @@ export function buildCron(preset: SchedulePreset, hour: string, minute: string, 
 function describeSchedule(cron: string): string {
   const { preset, hour, minute, dayOfWeek, dayOfMonth } = parseCronToPreset(cron);
   const hourLabel = HOURS.find((h) => h.value === hour)?.label ?? `${hour}`;
-  const timeStr = `${hourLabel.replace(/ (AM|PM)$/, "")}:${minute.padStart(2, "0")} ${hourLabel.match(/(AM|PM)$/)?.[0] ?? ""}`;
+  const timeStr = (i18n.resolvedLanguage ?? i18n.language).startsWith("zh")
+    ? `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`
+    : `${hourLabel.replace(/ (AM|PM)$/, "")}:${minute.padStart(2, "0")} ${hourLabel.match(/(AM|PM)$/)?.[0] ?? ""}`;
 
   switch (preset) {
     case "every_minute":
-      return "Every minute";
+      return t("every_minute");
     case "every_hour":
-      return `Every hour at :${minute.padStart(2, "0")}`;
+      return t("zhComponents.message_f814ee074a", { value1: minute.padStart(2, "0") });
     case "every_day":
-      return `Every day at ${timeStr}`;
+      return t("zhComponents.message_09919eb412", { value1: timeStr });
     case "weekdays":
-      return `Weekdays at ${timeStr}`;
+      return t("zhComponents.message_9fab56f569", { value1: timeStr });
     case "weekly": {
       const day = DAYS_OF_WEEK.find((d) => d.value === dayOfWeek)?.label ?? dayOfWeek;
-      return `Every ${day} at ${timeStr}`;
+      return t("zhComponents.message_2ea8137bb8", { value1: day, value2: timeStr });
     }
     case "monthly":
-      return `Monthly on the ${dayOfMonth}${ordinalSuffix(Number(dayOfMonth))} at ${timeStr}`;
+      return t("zhComponents.message_8b8576ef36", { value1: dayOfMonth, value3: timeStr });
     case "custom":
-      return cron || "No schedule set";
+      return cron || t("no_schedule_set");
   }
 }
 
@@ -161,7 +164,7 @@ export function getScheduleCronValidation(cron: string): {
   if (!trimmed) {
     return {
       valid: false,
-      message: "Enter a 5-field cron expression.",
+      message: t("enter_a_5_field_cron_expression"),
       nextFires: [],
     };
   }
@@ -170,7 +173,7 @@ export function getScheduleCronValidation(cron: string): {
   if (fields.length !== 5) {
     return {
       valid: false,
-      message: `Use exactly 5 fields; this has ${fields.length}.`,
+      message: t("zhComponents.message_79dc0b0e81", { value1: fields.length }),
       nextFires: [],
     };
   }
@@ -178,7 +181,7 @@ export function getScheduleCronValidation(cron: string): {
   if (!parseCronExpression(trimmed)) {
     return {
       valid: false,
-      message: "Cron fields must use valid numbers, ranges, lists, wildcards, or steps.",
+      message: t("cron_fields_must_use_valid_numbers_ranges_lists"),
       nextFires: [],
     };
   }
@@ -186,7 +189,7 @@ export function getScheduleCronValidation(cron: string): {
   const nextFires = nextCronFires(trimmed, 3, { timeZone: "UTC" });
   return {
     valid: true,
-    message: nextFires.length > 0 ? "Valid cron." : "Valid cron, but no upcoming fires were found.",
+    message: nextFires.length > 0 ? t("valid_cron") : t("valid_cron_but_no_upcoming_fires_were_found"),
     nextFires,
   };
 }
@@ -200,6 +203,7 @@ export function ScheduleEditor({
   onChange: (cron: string) => void;
   onValidityChange?: (valid: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const parsed = useMemo(() => parseCronToPreset(value), [value]);
   const [preset, setPreset] = useState<SchedulePreset>(parsed.preset);
   const [hour, setHour] = useState(parsed.hour);
@@ -247,8 +251,8 @@ export function ScheduleEditor({
   return (
     <div className="space-y-3">
       <Select value={preset} onValueChange={(v) => handlePresetChange(v as SchedulePreset)}>
-        <SelectTrigger className="w-full" aria-label="Schedule frequency">
-          <SelectValue placeholder="Choose frequency..." />
+        <SelectTrigger className="w-full" aria-label={t("schedule_frequency")}>
+          <SelectValue placeholder={t("choose_frequency")} />
         </SelectTrigger>
         <SelectContent>
           {PRESETS.map((p) => (
@@ -277,12 +281,12 @@ export function ScheduleEditor({
               }
             }}
             placeholder="0 10 * * *"
-            aria-label="Cron expression"
+            aria-label={t("cron_expression")}
             aria-invalid={!customValidation.valid}
             className="font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Five fields: minute hour day-of-month month day-of-week
+            {t("five_fields_minute_hour_day_of_month_month_day_o")}
           </p>
           <p
             className={customValidation.valid ? "text-xs text-muted-foreground" : "text-xs text-destructive"}
@@ -290,7 +294,7 @@ export function ScheduleEditor({
           >
             {customValidation.message}
             {customValidation.valid && customValidation.nextFires.length > 0
-              ? ` Next: ${customValidation.nextFires.map((fire) => fire.toLocaleString()).join(", ")}.`
+              ? t("zhComponents.message_6e6739b311", { value1: customValidation.nextFires.map((fire) => fire.toLocaleString(i18n.resolvedLanguage ?? i18n.language)).join(", ") })
               : null}
           </p>
         </div>
@@ -298,7 +302,7 @@ export function ScheduleEditor({
         <div className="flex flex-wrap items-center gap-2">
           {preset !== "every_minute" && preset !== "every_hour" && (
             <>
-              <span className="text-sm text-muted-foreground">at</span>
+              <span className="text-sm text-muted-foreground">{t("zhComponents.text_27e90dfa57")}</span>
               <Select
                 value={hour}
                 onValueChange={(h) => {
@@ -341,7 +345,7 @@ export function ScheduleEditor({
 
           {preset === "every_hour" && (
             <>
-              <span className="text-sm text-muted-foreground">at minute</span>
+              <span className="text-sm text-muted-foreground">{t("at_minute")}</span>
               <Select
                 value={minute}
                 onValueChange={(m) => {
@@ -365,7 +369,7 @@ export function ScheduleEditor({
 
           {preset === "weekly" && (
             <>
-              <span className="text-sm text-muted-foreground">on</span>
+              <span className="text-sm text-muted-foreground">{t("zhComponents.text_db3d405b10")}</span>
               <div className="flex gap-1">
                 {DAYS_OF_WEEK.map((d) => (
                   <Button
@@ -389,7 +393,7 @@ export function ScheduleEditor({
 
           {preset === "monthly" && (
             <>
-              <span className="text-sm text-muted-foreground">on day</span>
+              <span className="text-sm text-muted-foreground">{t("on_day")}</span>
               <Select
                 value={dayOfMonth}
                 onValueChange={(dom) => {

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useId, useState } from "react";
 import { completedActivitySummary } from "./completed-activity-summary";
 import {
@@ -229,7 +230,7 @@ function ActivityDetails({ item }: { item: Activity }) {
           {item.detail}
         </pre>
       ) : null}
-      {item.decision ? <p>Permission {item.decision}</p> : null}
+      {item.decision ? <p>{t("stability.229efc8f5263", { defaultValue: "Permission" })}{" "}{item.decision}</p> : null}
       {item.diff ? (
         <p className="break-all font-mono">
           {item.diff.path} · +{item.diff.added} −{item.diff.removed}
@@ -350,7 +351,7 @@ export function TaskChatRunnerActivityGroup({
             onClick={() => setExpanded(!expanded)}
             aria-expanded={expanded}
             aria-controls={expanded ? historyId : undefined}
-            aria-label={`${expanded ? "Collapse" : "Expand"} ${item.active ? countLabel : `${summary.fullLabel.toLowerCase()} (${countLabel})`}`}
+            aria-label={`${expanded ? t("collapse") : t("expand")} ${item.active ? countLabel : `${summary.fullLabel.toLowerCase()} (${countLabel})`}`}
           >
             {!item.active ? (
               <span
@@ -386,7 +387,7 @@ export function TaskChatRunnerActivityGroup({
             <ol
               id={historyId}
               className="flex min-w-0 flex-col gap-1"
-              aria-label="Activity history"
+              aria-label={t("stability.e46875181b6e", { defaultValue: "Activity history" })}
               data-testid="task-chat-runner-activity-list"
             >
               {activities.map((activity, index) => (

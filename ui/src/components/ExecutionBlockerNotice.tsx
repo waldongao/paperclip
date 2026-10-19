@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ExecutionBlocker } from "@paperclipai/shared";
 import { agentsApi } from "../api/agents";
@@ -33,24 +34,24 @@ export function ExecutionBlockerNotice({ companyId, issueId, blocker, onRetried 
     },
   });
   return (
-    <div role="status" aria-label="Task recovery" className="mx-(--sz-execution-blocker-inline) my-(--sz-execution-blocker-block) flex flex-wrap items-center justify-between execution-blocker-notice border border-border bg-muted text-foreground">
+    <div role="status" aria-label={t("stability.4646b234c653", { defaultValue: "Task recovery" })} className="mx-(--sz-execution-blocker-inline) my-(--sz-execution-blocker-block) flex flex-wrap items-center justify-between execution-blocker-notice border border-border bg-muted text-foreground">
       <div className="min-w-0 flex-1 break-words">
-        <p>{modelRejected ? "Model unavailable." : "Recovery needed."}{blocker.runError ? ` ${blocker.runError}` : ""}</p>
-        {modelRejected && <p>Choose a supported model or clear the task's model override, then retry.</p>}
+        <p>{modelRejected ? t("stability.50ae38fdac38", { defaultValue: "Model unavailable." }) : t("stability.f09cfd26e79a", { defaultValue: "Recovery needed." })}{blocker.runError ? ` ${blocker.runError}` : ""}</p>
+        {modelRejected && <p>{t("stability.3ac0e2f682af", { defaultValue: "Choose a supported model or clear the task's model override, then retry." })}</p>}
         <p>{blocker.nextAction}</p>
         {Boolean(blocker.savedMessageCount) && (
-          <p>{blocker.savedMessageCount} saved {blocker.savedMessageCount === 1 ? "message is" : "messages are"} waiting for recovery.</p>
+          <p>{blocker.savedMessageCount}{" "}{t("stability.d81c55f49c5b", { defaultValue: "saved" })}{" "}{blocker.savedMessageCount === 1 ? t("stability.cb767266abc5", { defaultValue: "message is" }) : t("stability.0bdfff6b77f6", { defaultValue: "messages are" })}{" "}{t("stability.f1b938908789", { defaultValue: "waiting for recovery." })}</p>
         )}
       </div>
       {blocker.agentId && blocker.runId && (
         <Button variant="outline" size="sm" asChild>
-          <Link to={`/agents/${blocker.agentId}/runs/${blocker.runId}`}>Inspect run</Link>
+          <Link to={`/agents/${blocker.agentId}/runs/${blocker.runId}`}>{t("inspect_run")}</Link>
         </Button>
       )}
       {(!requiresInspection || blocker.canRetry) && blocker.agentId && blocker.runId &&
         ((blocker.cause === "legacy_execution_requires_reconciliation" && failedRun) || blocker.canContinue || blocker.canRetry) && (
         <Button variant="outline" size="sm" disabled={retry.isPending} onClick={() => retry.mutate()}>
-          {retry.isPending ? "Starting…" : blocker.canContinue ? "Continue" : "Retry"}
+          {retry.isPending ? t("starting") : blocker.canContinue ? t("continue") : t("common.retry")}
         </Button>
       )}
       {retry.isError && (

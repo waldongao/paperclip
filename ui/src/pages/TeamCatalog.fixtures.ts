@@ -3,6 +3,7 @@ import type {
   CatalogTeamSkillPreparation,
   InstalledCatalogTeam,
 } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Shared Team Catalog fixtures.
@@ -17,9 +18,9 @@ export const sampleTeam: CatalogTeam = {
   kind: "bundled",
   category: "company-defaults",
   slug: "core-exec-team",
-  name: "Core Exec Team",
+  name: t("core_exec_team"),
   description:
-    "A starter executive team: a CEO who manages a CTO and a CMO, plus a launch project and a weekly standup routine. Installs ready-to-run agents you can customize.",
+    t("a_starter_executive_team_a_ceo_who_manages_a_cto"),
   path: "catalog/bundled/company-defaults/core-exec-team",
   entrypoint: "TEAM.md",
   schema: "agentcompanies/v1",
@@ -72,8 +73,8 @@ export const optionalTeam: CatalogTeam = {
   kind: "optional",
   category: "software-development",
   slug: "platform-pod",
-  name: "Platform Engineering Pod",
-  description: "An optional platform pod with a tech lead and two engineers.",
+  name: t("platform_engineering_pod"),
+  description: t("an_optional_platform_pod_with_a_tech_lead_and_tw"),
   recommendedForCompanyTypes: [],
   counts: { ...sampleTeam.counts, agents: 4, routines: 2 },
   rootAgentSlugs: ["tech-lead"],
@@ -86,7 +87,7 @@ export const warnTeam: CatalogTeam = {
   ...sampleTeam,
   id: "paperclipai:optional:research:lab-with-local-source",
   slug: "lab-with-local-source",
-  name: "Research Lab (local source)",
+  name: t("research_lab_local_source"),
   kind: "optional",
   category: "research",
   trustLevel: "scripts_executables",
@@ -117,7 +118,7 @@ export const currentInstalledState: InstalledCatalogTeam = {
 
 export const sampleSkillPreparations: CatalogTeamSkillPreparation[] = [
   { type: "catalog", ref: "engineering/code-review", agentSlugs: ["cto"], action: "already_in_package", catalogSkillId: "skill-1", catalogSkillKey: "engineering/code-review", sourceLocator: null, sourceRef: null, reason: null },
-  { type: "github", ref: "acme/growth-playbook@v1.2.0", agentSlugs: ["cmo"], action: "external_import_required", catalogSkillId: null, catalogSkillKey: null, sourceLocator: "github.com/acme/growth-playbook", sourceRef: "v1.2.0", reason: "Resolved from GitHub at install time" },
+  { type: "github", ref: "acme/growth-playbook@v1.2.0", agentSlugs: ["cmo"], action: "external_import_required", catalogSkillId: null, catalogSkillKey: null, sourceLocator: "github.com/acme/growth-playbook", sourceRef: "v1.2.0", reason: t("resolved_from_github_at_install_time") },
 ];
 
 // Onboarding "Pick a starter team" grid (design §6): `defaultInstall` bundled
@@ -136,9 +137,9 @@ export const onboardingTeams: CatalogTeam[] = [
     id: "paperclipai:bundled:company-defaults:growth-pod",
     key: "paperclipai/bundled/company-defaults/growth-pod",
     slug: "growth-pod",
-    name: "Growth Pod",
+    name: t("growth_pod"),
     description:
-      "A lean growth squad: a head of growth managing a content marketer and a data analyst, wired to a launch project and a weekly metrics routine.",
+      t("a_lean_growth_squad_a_head_of_growth_managing_a"),
     tags: ["growth", "marketing", "starter"],
     counts: { agents: 3, projects: 1, tasks: 0, routines: 1, localSkills: 0, catalogSkills: 0, externalSkillSources: 0 },
     rootAgentSlugs: ["head-of-growth"],
@@ -152,8 +153,8 @@ export const onboardingTeams: CatalogTeam[] = [
     id: "paperclipai:bundled:company-defaults:support-pod",
     key: "paperclipai/bundled/company-defaults/support-pod",
     slug: "support-pod",
-    name: "Support Pod",
-    description: "A two-person support desk with a lead and an agent, plus a triage routine.",
+    name: t("support_pod"),
+    description: t("a_two_person_support_desk_with_a_lead_and_an_age"),
     tags: ["support", "ops"],
     counts: { agents: 2, projects: 0, tasks: 0, routines: 1, localSkills: 0, catalogSkills: 0, externalSkillSources: 0 },
     rootAgentSlugs: ["support-lead"],

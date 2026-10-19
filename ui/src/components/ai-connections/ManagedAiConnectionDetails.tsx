@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { heartbeatsApi } from "@/api/heartbeats";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,8 +26,8 @@ export function ManagedAiConnectionRow({
     <p className="text-xs text-muted-foreground">
       {aiMethodLabel(metadata.provider, metadata.method)} ·{" "}
       {connection.credentialPolicy === "per_user"
-        ? "Personal"
-        : "Company shared"}
+        ? t("personal")
+        : t("stability.47e5dc161731", { defaultValue: "Company shared" })}
     </p>
   );
 }
@@ -84,8 +85,8 @@ export function ManagedAiConnectionDetails({
     return (
       <p role="status" className="text-sm text-muted-foreground">
         {accounts.isPending || grants.isPending
-          ? "Loading AI account…"
-          : "This account is not available to you."}
+          ? t("stability.91a8f47709a5", { defaultValue: "Loading AI account…" })
+          : t("stability.407f13fa09d3", { defaultValue: "This account is not available to you." })}
       </p>
     );
   return (
@@ -99,9 +100,7 @@ export function ManagedAiConnectionDetails({
         revocationDetails={
           <div className="space-y-2">
             {runs.error && (
-              <p role="alert">
-                Could not load active runs. Retry before revoking.
-              </p>
+              <p role="alert">{t("stability.2404295f0356", { defaultValue: "Could not load active runs. Retry before revoking." })}</p>
             )}
             {runs.data?.map((run) => (
               <div
@@ -116,9 +115,7 @@ export function ManagedAiConnectionDetails({
                   size="sm"
                   disabled={stop.isPending}
                   onClick={() => stop.mutate(run.id)}
-                >
-                  Stop run
-                </Button>
+                >{t("stop_run")}</Button>
               </div>
             ))}
           </div>

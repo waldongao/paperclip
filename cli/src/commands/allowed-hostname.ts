@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { normalizeHostnameInput } from "../config/hostnames.js";
@@ -8,7 +9,7 @@ export async function addAllowedHostname(host: string, opts: { config?: string }
   const config = readConfig(opts.config);
 
   if (!config) {
-    p.log.error(`No config found at ${configPath}. Run ${pc.cyan("paperclip onboard")} first.`);
+    p.log.error(tCli("No config found at {{value1}}. Run {{value2}} first.", { value1: String(configPath), value2: String(pc.cyan("paperclip onboard")) }));
     return;
   }
 
@@ -23,17 +24,17 @@ export async function addAllowedHostname(host: string, opts: { config?: string }
   writeConfig(config, opts.config);
 
   if (existed) {
-    p.log.info(`Hostname ${pc.cyan(normalized)} is already allowed.`);
+    p.log.info(tCli("Hostname {{value1}} is already allowed.", { value1: String(pc.cyan(normalized)) }));
   } else {
-    p.log.success(`Added allowed hostname: ${pc.cyan(normalized)}`);
+    p.log.success(tCli("Added allowed hostname: {{value1}}", { value1: String(pc.cyan(normalized)) }));
     p.log.message(
-      pc.dim("Restart the Paperclip server for this change to take effect."),
+      pc.dim(tCli("Restart the Paperclip server for this change to take effect.")),
     );
   }
 
   if (!(config.server.deploymentMode === "authenticated" && config.server.exposure === "private")) {
     p.log.message(
-      pc.dim("Note: allowed hostnames are enforced only in authenticated/private mode."),
+      pc.dim(tCli("Note: allowed hostnames are enforced only in authenticated/private mode.")),
     );
   }
 }

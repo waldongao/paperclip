@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { aggregatorContinuationInstruction, type Agent, type ToolConnection } from "@paperclipai/shared";
 import type { AggregatorAppRoute } from "@paperclipai/shared/aggregator-app-catalog";
 import { isAgentTaskTarget } from "./company-members";
@@ -47,6 +48,6 @@ export function aggregatorAppSetupTask(appName: string, route: AggregatorAppRout
     navigateOnCreate: true,
     ...(agent ? { assigneeAgentId: agent.id } : {}),
     title: `Connect ${appName} through ${providerName}`,
-    description: `Help me connect ${appName} through ${providerName}, using my existing ${providerName} gateway.${accountInstruction} The provider toolkit is ${route.toolkit}. Do not switch providers or create another gateway.\n\nHandle this connection setup directly. Do not hire agents or delegate the setup. If a human needs to sign in or authorize access, provide the browser link and wait for them.\n\n${permissionInstruction}\n\n${aggregatorContinuationInstruction(route.provider, appName)}`,
+    description: t("stability.a23864fc15a6", { value1: appName, value2: providerName, value3: providerName, value4: accountInstruction, value5: route.toolkit, value6: permissionInstruction, value7: aggregatorContinuationInstruction(route.provider, appName), defaultValue: "Help me connect {{value1}} through {{value2}}, using my existing {{value3}} gateway.{{value4}} The provider toolkit is {{value5}}. Do not switch providers or create another gateway.\n\nHandle this connection setup directly. Do not hire agents or delegate the setup. If a human needs to sign in or authorize access, provide the browser link and wait for them.\n\n{{value6}}\n\n{{value7}}" }),
   };
 }

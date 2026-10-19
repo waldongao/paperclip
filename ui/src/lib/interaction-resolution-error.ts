@@ -13,6 +13,8 @@
  */
 
 import type { InteractionAudienceDescription } from "./interaction-audience";
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 /**
  * Denials that mean "you are outside this card's resolver audience". Mirrors the
@@ -76,7 +78,7 @@ function serverReason(error: unknown): string | null {
   const body = record(record(error)?.body);
   const fromBody = typeof body?.error === "string" ? body.error.trim() : "";
   const fromError = error instanceof Error ? error.message.trim() : "";
-  const reason = fromBody || fromError;
+  const reason = translateDisplayMessage(fromBody || fromError);
   if (!reason) return null;
   // The API writes reasons as bare clauses ("This interaction is human-only").
   return /[.!?]$/.test(reason) ? reason : `${reason}.`;
@@ -130,8 +132,8 @@ export function describeInteractionResolutionFailure(
       message: [
         reason
           ?? (coded
-            ? "You are not in this card's resolver audience."
-            : "You do not have permission to respond to this card."),
+            ? t("you_are_not_in_this_cards_resolver_audience")
+            : t("you_do_not_have_permission_to_respond_to_this_ca")),
         responder,
       ]
         .filter(Boolean)
@@ -143,14 +145,14 @@ export function describeInteractionResolutionFailure(
     return {
       kind: "settled",
       code,
-      message: reason ?? "This request is no longer waiting for a decision.",
+      message: reason ?? t("this_request_is_no_longer_waiting_for_a_decision"),
     };
   }
 
   return {
     kind: "transient",
     code,
-    message: reason ? `${reason} Try again.` : "Couldn't submit. Try again.",
+    message: reason ? t("zhSupport.reasonTryAgain", { reason }) : t("couldnt_submit_try_again"),
   };
 }
 

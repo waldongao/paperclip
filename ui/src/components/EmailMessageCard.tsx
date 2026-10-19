@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { createContext, useContext, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Mail, Paperclip } from "lucide-react";
@@ -55,14 +56,14 @@ export function EmailMessageCard({
   return (
     <article
       aria-label={
-        message.direction === "inbound" ? "Email received" : "Email sent"
+        message.direction === "inbound" ? t("stability.1bd1d0b5dea7", { defaultValue: "Email received" }) : t("stability.a5e14a58d737", { defaultValue: "Email sent" })
       }
       className="space-y-4 rounded-xl border border-border bg-card p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2 text-sm font-semibold">
           <Mail className="size-4" />
-          {message.direction === "inbound" ? "Email received" : "Email sent"}
+          {message.direction === "inbound" ? t("stability.1bd1d0b5dea7", { defaultValue: "Email received" }) : t("stability.a5e14a58d737", { defaultValue: "Email sent" })}
         </span>
         <span className="text-xs text-muted-foreground">
           {new Date(message.timestamp).toLocaleString()}
@@ -72,23 +73,19 @@ export function EmailMessageCard({
         <p className="text-sm font-medium">
           {message.from}
           {message.direction === "inbound" && (
-            <span className="ml-2 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-              External
-            </span>
+            <span className="ml-2 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">{t("external")}</span>
           )}
         </p>
-        <p className="break-words text-xs text-muted-foreground">
-          To: {message.to.join(", ")}
+        <p className="break-words text-xs text-muted-foreground">{t("stability.2b5fc5c94f64", { defaultValue: "To:" })}{" "}{message.to.join(", ")}
         </p>
         {!!message.cc?.length && (
-          <p className="break-words text-xs text-muted-foreground">
-            Cc: {message.cc.join(", ")}
+          <p className="break-words text-xs text-muted-foreground">{t("stability.321f0b40dde9", { defaultValue: "Cc:" })}{" "}{message.cc.join(", ")}
           </p>
         )}
         <p className="text-sm font-semibold">{message.subject}</p>
       </div>
       <div className="whitespace-pre-wrap break-words text-sm">
-        {message.text || "(No text body)"}
+        {message.text || t("stability.b47872fc10ec", { defaultValue: "(No text body)" })}
       </div>
       {!!message.attachmentIds.length && (
         <div className="flex flex-wrap gap-2">
@@ -103,17 +100,17 @@ export function EmailMessageCard({
                 className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs"
               >
                 <Paperclip className="size-3.5" />
-                {attachment?.originalFilename ?? "Open attachment"}
+                {attachment?.originalFilename ?? t("stability.9aeeab931bf5", { defaultValue: "Open attachment" })}
               </a>
             );
           })}
         </div>
       )}
       <details className="text-xs text-muted-foreground">
-        <summary className="cursor-pointer">Email details</summary>
+        <summary className="cursor-pointer">{t("stability.2f33e40a3c96", { defaultValue: "Email details" })}</summary>
         <div className="space-y-2 pt-3">
-          {!!message.bcc?.length && <p>Bcc: {message.bcc.join(", ")}</p>}
-          <p className="break-all">Message ID: {message.providerMessageId}</p>
+          {!!message.bcc?.length && <p>{t("stability.943269c21b32", { defaultValue: "Bcc:" })}{" "}{message.bcc.join(", ")}</p>}
+          <p className="break-all">{t("stability.5edb6aa29164", { defaultValue: "Message ID:" })}{" "}{message.providerMessageId}</p>
           {message.fullText !== message.text && (
             <div className="whitespace-pre-wrap break-words">
               {message.fullText}
@@ -124,21 +121,19 @@ export function EmailMessageCard({
       {publication && (
         <p className="border-t border-border pt-3 text-xs text-muted-foreground">
           {publication.outcome === "delivered"
-            ? "Delivered"
+            ? t("stability.906115657390", { defaultValue: "Delivered" })
             : publication.outcome === "failed"
-              ? "Delivery failed"
+              ? t("stability.b486522010d5", { defaultValue: "Delivery failed" })
               : publication.outcome === "uncertain"
-                ? "Delivery uncertain"
+                ? t("stability.0308cc74ba61", { defaultValue: "Delivery uncertain" })
                 : publication.outcome === "queued"
-                  ? "Queued"
-                  : "Sent"}
+                  ? t("queued")
+                  : t("stability.c16bc82bf1f0", { defaultValue: "Sent" })}
           {publication.error ? ` · ${publication.error}` : ""}
         </p>
       )}
       {attachments.error && (
-        <p role="alert" className="text-xs text-destructive">
-          Attachments could not be loaded.
-        </p>
+        <p role="alert" className="text-xs text-destructive">{t("stability.0d3fe6270045", { defaultValue: "Attachments could not be loaded." })}</p>
       )}
     </article>
   );

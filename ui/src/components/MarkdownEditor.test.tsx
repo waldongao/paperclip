@@ -18,6 +18,7 @@ import {
   shouldAcceptAutocompleteKey,
 } from "./MarkdownEditor";
 import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
+import { i18n } from "@/i18n";
 
 const mdxEditorMockState = vi.hoisted(() => ({
   emitMountEmptyReset: false,
@@ -862,6 +863,30 @@ describe("MarkdownEditor", () => {
     await act(async () => {
       root.unmount();
     });
+  });
+
+  it.each(["en", "zh-CN"])("leaves file clipboard payloads to the attachment handler in %s", async (locale) => {
+    const previousLocale = i18n.language;
+    await i18n.changeLanguage(locale);
+    const root = createRoot(container);
+    try {
+      await act(async () => {
+        root.render(<MarkdownEditor value="Intro." onChange={() => {}} placeholder="Markdown body" />);
+      });
+      await flush();
+      const scope = container.querySelector('[data-testid="mdx-editor"]')?.parentElement;
+      expect(scope).toBeTruthy();
+      const event = new Event("paste", { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "clipboardData", {
+        value: { types: ["Files", "text/plain"], getData: () => "## File caption\n\n- Attached image" },
+      });
+      await act(async () => { scope?.dispatchEvent(event); });
+      expect(event.defaultPrevented).toBe(false);
+      expect(mdxEditorMockState.insertedMarkdownValues).toEqual([]);
+    } finally {
+      await act(async () => { root.unmount(); });
+      await i18n.changeLanguage(previousLocale);
+    }
   });
 
   it("escapes angle brackets in pasted markdown", async () => {

@@ -5,6 +5,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { IssueDocument } from "@paperclipai/shared";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { i18n, t } from "@/i18n";
+const initialLanguage = i18n.language;
 import {
   planPreviewContent,
   TaskChatPlanPreviewCard,
@@ -62,9 +64,16 @@ describe("TaskChatPlanPreviewCard", () => {
     root = createRoot(container);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     act(() => root.unmount());
     container.remove();
+    await i18n.changeLanguage(initialLanguage);
+  });
+
+  it.each(["en", "zh-CN"])("keeps live plan revisions available while displaying localized copy in %s", async (locale) => {
+    await i18n.changeLanguage(locale);
+    act(() => root.render(<ThemeProvider><TaskChatPlanPreviewCard source={{ kind: "live", activity: livePlan([]) }} /></ThemeProvider>));
+    expect(container.textContent).toContain(t("zhComponents.message_68d765c874", { value1: 5 }));
   });
 
   it("extracts the Markdown H1 and the first three meaningful plan lines", () => {

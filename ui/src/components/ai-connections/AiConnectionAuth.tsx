@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,21 +64,19 @@ function AuthAttempt({
   };
   return (
     <section
-      aria-label={`Connect ${info.name}`}
+      aria-label={t("zhServerExtra.components117", { value1: info.name })}
       className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold">Connect {info.name}</h3>
+        <h3 className="text-sm font-semibold">{t("connect")}{" "}{info.name}</h3>
         <p className="text-xs text-muted-foreground">
           {aiMethodLabel(provider, method)}
         </p>
       </div>
       {state.phase === "connected" ? (
         <>
-          <p role="status" className="text-sm">
-            Connected. This account is saved in Connections and can be reused.
-          </p>
-          <Button onClick={onDone}>Use connection</Button>
+          <p role="status" className="text-sm">{t("stability.95a419a808a6", { defaultValue: "Connected. This account is saved in Connections and can be reused." })}</p>
+          <Button onClick={onDone}>{t("stability.bcb76497501b", { defaultValue: "Use connection" })}</Button>
         </>
       ) : (
         <>
@@ -85,7 +84,7 @@ function AuthAttempt({
             <p role="status" className="text-sm text-muted-foreground">
               {state.phase === "unsupported"
                 ? state.message
-                : "This provider does not offer a subscription connection."}
+                : t("stability.0c38d4709916", { defaultValue: "This provider does not offer a subscription connection." })}
             </p>
           ) : (
             <>
@@ -95,9 +94,7 @@ function AuthAttempt({
                 </p>
               )}
               {state.phase === "cancelled" && (
-                <p role="status" className="text-sm text-muted-foreground">
-                  Sign-in cancelled. No connection was created.
-                </p>
+                <p role="status" className="text-sm text-muted-foreground">{t("stability.66a4f12626a7", { defaultValue: "Sign-in cancelled. No connection was created." })}</p>
               )}
               {method === "api_key" ? (
                 <ProviderApiKeyCard
@@ -105,7 +102,7 @@ function AuthAttempt({
                   value={value}
                   onChange={setValue}
                   onSubmit={submit}
-                  placeholder="Enter API key here"
+                  placeholder={t("stability.c80c3ac9799d", { defaultValue: "Enter API key here" })}
                   disabled={busy}
                   autoFocus
                 />
@@ -142,8 +139,7 @@ function AuthAttempt({
                   )}
                 </ProviderSubscriptionCard>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Sign in with your {info.subscriptionName}.
+                <p className="text-sm text-muted-foreground">{t("stability.9a32efccdc06", { defaultValue: "Sign in with your" })}{" "}{info.subscriptionName}.
                 </p>
               )}
             </>
@@ -155,31 +151,25 @@ function AuthAttempt({
                 setValue("");
                 onCancel();
               }}
-            >
-              Cancel
-            </Button>
+            >{t("common.cancel")}</Button>
             {!unsupported &&
               (method === "api_key" ? (
                 <Button disabled={busy || !value.trim()} onClick={submit}>
-                  {busy ? "Connecting…" : "Connect"}
+                  {busy ? t("stability.72021eb70e91", { defaultValue: "Connecting…" }) : t("connect")}
                 </Button>
               ) : state.phase === "waiting" ? (
                 provider === "anthropic" ? (
-                  <Button disabled={!value.trim()} onClick={submit}>
-                    Submit code
-                  </Button>
+                  <Button disabled={!value.trim()} onClick={submit}>{t("stability.833a3a4cefd5", { defaultValue: "Submit code" })}</Button>
                 ) : (
-                  <span role="status" className="text-sm text-muted-foreground">
-                    Waiting for sign-in…
-                  </span>
+                  <span role="status" className="text-sm text-muted-foreground">{t("stability.20ff194db325", { defaultValue: "Waiting for sign-in…" })}</span>
                 )
               ) : (
                 <Button disabled={busy} onClick={onStart}>
                   {busy
-                    ? "Preparing sign-in…"
+                    ? t("stability.cdca9524ec00", { defaultValue: "Preparing sign-in…" })
                     : state.phase === "idle"
-                      ? "Sign in"
-                      : "Try again"}
+                      ? t("sign_in")
+                      : t("try_again")}
                 </Button>
               ))}
           </div>

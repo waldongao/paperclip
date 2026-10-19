@@ -1,3 +1,5 @@
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
 import type { Issue } from "@paperclipai/shared";
@@ -99,26 +101,26 @@ export function buildMonitorSurfaceCopy(
   switch (derived.state) {
     case "scheduled":
     case "retrying":
-      bannerTitle = isScheduledRetryOnly ? `Agent resumes ${eta}` : `Waiting on monitor — resumes ${eta}`;
-      stripTitle = `Resumes ${eta}`;
+      bannerTitle = isScheduledRetryOnly ? t("zhComponents.message_48991cc07b", { value1: eta }) : t("zhComponents.message_d29e54d667", { value1: eta });
+      stripTitle = t("zhComponents.message_2303f34295", { value1: eta });
       break;
     case "due-now":
-      bannerTitle = isScheduledRetryOnly ? "Agent retry due now" : "Waiting on monitor — due now";
-      stripTitle = "Due now";
-      statusHint = "Checking momentarily…";
+      bannerTitle = isScheduledRetryOnly ? t("agent_retry_due_now") : t("waiting_on_monitor_due_now");
+      stripTitle = t("due_now_ffec2f");
+      statusHint = t("checking_momentarily");
       break;
     case "overdue":
     default:
-      bannerTitle = isScheduledRetryOnly ? `Agent retry ${eta}` : `Waiting on monitor — ${eta}`;
+      bannerTitle = isScheduledRetryOnly ? t("zhComponents.message_22adaa687c", { value1: eta }) : t("zhComponents.message_1f5f18949d", { value1: eta });
       stripTitle = capitalize(eta);
-      statusHint = "Fires on next tick";
+      statusHint = t("fires_on_next_tick");
       break;
   }
 
-  const attemptLabel = derived.attemptCount >= 1 ? `Attempt ${derived.attemptCount}` : null;
-  const serviceLabel = derived.serviceName ? `Watching: ${derived.serviceName}` : null;
+  const attemptLabel = derived.attemptCount >= 1 ? t("zhComponents.message_1c12c27bb1", { value1: derived.attemptCount }) : null;
+  const serviceLabel = derived.serviceName ? t("zhComponents.message_1a8156bdcb", { value1: derived.serviceName }) : null;
 
-  const bannerMeta = [statusHint, `${absolute} (your time)`, attemptLabel, serviceLabel].filter(
+  const bannerMeta = [statusHint, t("zhComponents.message_43f09b52e6", { value1: absolute }), attemptLabel, serviceLabel].filter(
     (piece): piece is string => Boolean(piece),
   );
   const stripMeta = [statusHint, absolute, attemptLabel, serviceLabel].filter(
@@ -150,6 +152,7 @@ function CheckNowButton({
   onCheckNow: () => void;
   checkingNow: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <Button
       type="button"
@@ -159,7 +162,7 @@ function CheckNowButton({
       onClick={onCheckNow}
       disabled={checkingNow}
     >
-      {checkingNow ? "Checking…" : "Check now"}
+      {checkingNow ? t("checking") : t("check_now")}
     </Button>
   );
 }
@@ -228,8 +231,8 @@ export function IssueMonitorComposerStrip({
       </div>
       <p className="mt-1.5 text-xs text-muted-foreground">
         {copy.workspaceWait
-          ? "You can keep sending instructions while the agent waits."
-          : "Sending a reply wakes the agent now — before the scheduled check."}
+          ? t("stability.863825ba3057", { defaultValue: "You can keep sending instructions while the agent waits." })
+          : t("sending_a_reply_wakes_the_agent_now_before_the_s")}
       </p>
     </div>
   );

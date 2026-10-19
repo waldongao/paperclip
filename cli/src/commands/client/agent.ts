@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import {
   agentSkillSyncSchema,
@@ -162,10 +163,10 @@ async function installSkillsForTarget(
               name: entry.name,
               error:
                 err instanceof Error && linkErr instanceof Error
-                  ? `${err.message}; then ${linkErr.message}`
+                  ? tCli("{{value0}}; then {{value1}}", { value0: err.message, value1: linkErr.message })
                   : err instanceof Error
                     ? err.message
-                    : `Failed to recover broken symlink: ${String(err)}`,
+                    : tCli("Failed to recover broken symlink: {{value0}}", { value0: String(err) }),
             });
             continue;
           }
@@ -221,12 +222,12 @@ function buildAgentEnvExports(input: {
 }
 
 export function registerAgentCommands(program: Command): void {
-  const agent = program.command("agent").description("Agent operations");
+  const agent = program.command("agent").description(tCli("Agent operations"));
 
   addCommonClientOptions(
     agent
       .command("me")
-      .description("Show the current agent identity")
+      .description(tCli("Show the current agent identity"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -241,7 +242,7 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("inbox")
-      .description("List current agent assigned inbox items")
+      .description(tCli("List current agent assigned inbox items"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -270,9 +271,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("inbox-mine")
-      .description("List current agent inbox items touched or archived by a board user")
-      .requiredOption("--user-id <id>", "Board user ID")
-      .option("--status <csv>", "Comma-separated issue statuses")
+      .description(tCli("List current agent inbox items touched or archived by a board user"))
+      .requiredOption("--user-id <id>", tCli("Board user ID"))
+      .option("--status <csv>", tCli("Comma-separated issue statuses"))
       .action(async (opts: AgentInboxMineOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -289,8 +290,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("list")
-      .description("List agents for a company")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .description(tCli("List agents for a company"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: AgentListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -329,8 +330,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("get")
-      .description("Get one agent")
-      .argument("<agentId>", "Agent ID")
+      .description(tCli("Get one agent"))
+      .argument("<agentId>", tCli("Agent ID"))
       .action(async (agentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -345,9 +346,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("create")
-      .description("Create an agent from a JSON payload")
-      .option("-C, --company-id <id>", "Company ID")
-      .requiredOption("--payload-json <json>", "CreateAgent JSON payload")
+      .description(tCli("Create an agent from a JSON payload"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("CreateAgent JSON payload"))
       .action(async (opts: AgentJsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -364,9 +365,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("hire")
-      .description("Create an agent hire request")
-      .option("-C, --company-id <id>", "Company ID")
-      .requiredOption("--payload-json <json>", "CreateAgentHire JSON payload")
+      .description(tCli("Create an agent hire request"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("CreateAgentHire JSON payload"))
       .action(async (opts: AgentJsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -382,9 +383,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("update")
-      .description("Update an agent from a JSON payload")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--payload-json <json>", "UpdateAgent JSON payload")
+      .description(tCli("Update an agent from a JSON payload"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateAgent JSON payload"))
       .action(async (agentId: string, opts: AgentJsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -400,12 +401,12 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("delete")
-      .description("Delete an agent")
-      .argument("<agentId>", "Agent ID")
-      .option("--yes", "Confirm deletion")
+      .description(tCli("Delete an agent"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .option("--yes", tCli("Confirm deletion"))
       .action(async (agentId: string, opts: AgentDeleteOptions) => {
         try {
-          if (!opts.yes) throw new Error("Refusing to delete without --yes");
+          if (!opts.yes) throw new Error(tCli("Refusing to delete without --yes"));
           const ctx = resolveCommandContext(opts);
           const result = await ctx.api.delete(apiPath`/api/agents/${agentId}`);
           printOutput(result, { json: ctx.json });
@@ -416,18 +417,18 @@ export function registerAgentCommands(program: Command): void {
   );
 
   for (const [name, path, description] of [
-    ["pause", "pause", "Pause an agent"],
-    ["resume", "resume", "Resume an agent"],
-    ["approve", "approve", "Approve a pending agent"],
-    ["terminate", "terminate", "Terminate an agent"],
-    ["heartbeat:invoke", "heartbeat/invoke", "Invoke an agent heartbeat"],
-    ["claude-login", "claude-login", "Trigger Claude login for an agent"],
+    ["pause", "pause", tCli("Pause an agent")],
+    ["resume", "resume", tCli("Resume an agent")],
+    ["approve", "approve", tCli("Approve a pending agent")],
+    ["terminate", "terminate", tCli("Terminate an agent")],
+    ["heartbeat:invoke", "heartbeat/invoke", tCli("Invoke an agent heartbeat")],
+    ["claude-login", "claude-login", tCli("Trigger Claude login for an agent")],
   ] as const) {
     addCommonClientOptions(
       agent
         .command(name)
         .description(description)
-        .argument("<agentId>", "Agent ID")
+        .argument("<agentId>", tCli("Agent ID"))
         .action(async (agentId: string, opts: BaseClientOptions) => {
           try {
             const ctx = resolveCommandContext(opts);
@@ -443,9 +444,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("permissions:update")
-      .description("Update agent permissions")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--payload-json <json>", "UpdateAgentPermissions JSON payload")
+      .description(tCli("Update agent permissions"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateAgentPermissions JSON payload"))
       .action(async (agentId: string, opts: AgentJsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -461,8 +462,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("configuration")
-      .description("Get redacted agent configuration")
-      .argument("<agentId>", "Agent ID")
+      .description(tCli("Get redacted agent configuration"))
+      .argument("<agentId>", tCli("Agent ID"))
       .action(async (agentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -477,8 +478,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("config-revisions")
-      .description("List agent config revisions")
-      .argument("<agentId>", "Agent ID")
+      .description(tCli("List agent config revisions"))
+      .argument("<agentId>", tCli("Agent ID"))
       .action(async (agentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -493,9 +494,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("config-revision:get")
-      .description("Get one agent config revision")
-      .argument("<agentId>", "Agent ID")
-      .argument("<revisionId>", "Revision ID")
+      .description(tCli("Get one agent config revision"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .argument("<revisionId>", tCli("Revision ID"))
       .action(async (agentId: string, revisionId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -510,9 +511,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("config-revision:rollback")
-      .description("Roll an agent back to a config revision")
-      .argument("<agentId>", "Agent ID")
-      .argument("<revisionId>", "Revision ID")
+      .description(tCli("Roll an agent back to a config revision"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .argument("<revisionId>", tCli("Revision ID"))
       .action(async (agentId: string, revisionId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -527,8 +528,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("runtime-state")
-      .description("Get agent runtime state")
-      .argument("<agentId>", "Agent ID")
+      .description(tCli("Get agent runtime state"))
+      .argument("<agentId>", tCli("Agent ID"))
       .action(async (agentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -543,9 +544,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("runtime-state:reset-session")
-      .description("Reset an agent runtime session")
-      .argument("<agentId>", "Agent ID")
-      .option("--task-key <key>", "Specific task session key")
+      .description(tCli("Reset an agent runtime session"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .option("--task-key <key>", tCli("Specific task session key"))
       .action(async (agentId: string, opts: AgentResetSessionOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -561,8 +562,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("task-sessions")
-      .description("List agent task sessions")
-      .argument("<agentId>", "Agent ID")
+      .description(tCli("List agent task sessions"))
+      .argument("<agentId>", tCli("Agent ID"))
       .action(async (agentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -577,8 +578,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("skills")
-      .description("List agent skills")
-      .argument("<agentId>", "Agent ID")
+      .description(tCli("List agent skills"))
+      .argument("<agentId>", tCli("Agent ID"))
       .action(async (agentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -593,12 +594,12 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("skills:sync")
-      .description("Sync desired skills onto an agent")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--desired-skills <csv>", "Desired skill names")
+      .description(tCli("Sync desired skills onto an agent"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--desired-skills <csv>", tCli("Desired skill names"))
       .requiredOption(
         "--mode <mode>",
-        "Merge mode: add keeps other skills; remove deletes only named skills; replace destructively overwrites the complete set",
+        tCli("Merge mode: add keeps other skills; remove deletes only named skills; replace destructively overwrites the complete set"),
       )
       .action(async (agentId: string, opts: AgentSkillsSyncOptions) => {
         try {
@@ -618,9 +619,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("instructions-path:update")
-      .description("Update an agent instructions path. Process adapters require adapterConfigKey and relative paths require adapterConfig.cwd.")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--payload-json <json>", "UpdateAgentInstructionsPath JSON payload, for example {\"path\":\"/tmp/AGENTS.md\",\"adapterConfigKey\":\"instructionsFilePath\"}")
+      .description(tCli("Update an agent instructions path. Process adapters require adapterConfigKey and relative paths require adapterConfig.cwd."))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateAgentInstructionsPath JSON payload, for example {\"path\":\"/tmp/AGENTS.md\",\"adapterConfigKey\":\"instructionsFilePath\"}"))
       .action(async (agentId: string, opts: AgentJsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -636,8 +637,8 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("instructions-bundle")
-      .description("Get an agent instructions bundle")
-      .argument("<agentId>", "Agent ID")
+      .description(tCli("Get an agent instructions bundle"))
+      .argument("<agentId>", tCli("Agent ID"))
       .action(async (agentId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -652,9 +653,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("instructions-bundle:update")
-      .description("Update an agent instructions bundle")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--payload-json <json>", "UpdateAgentInstructionsBundle JSON payload")
+      .description(tCli("Update an agent instructions bundle"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateAgentInstructionsBundle JSON payload"))
       .action(async (agentId: string, opts: AgentJsonPayloadOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -670,9 +671,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("instructions-file:get")
-      .description("Get an agent instructions file")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--path <path>", "Bundle-relative file path")
+      .description(tCli("Get an agent instructions file"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--path <path>", tCli("Bundle-relative file path"))
       .action(async (agentId: string, opts: AgentInstructionsFileOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -688,12 +689,12 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("instructions-file:put")
-      .description("Create or update an agent instructions file")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--path <path>", "Bundle-relative file path")
-      .option("--content <text>", "File content")
-      .option("--content-file <path>", "Read file content from disk")
-      .option("--clear-legacy-prompt-template", "Clear legacy prompt template")
+      .description(tCli("Create or update an agent instructions file"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--path <path>", tCli("Bundle-relative file path"))
+      .option("--content <text>", tCli("File content"))
+      .option("--content-file <path>", tCli("Read file content from disk"))
+      .option("--clear-legacy-prompt-template", tCli("Clear legacy prompt template"))
       .action(async (agentId: string, opts: AgentInstructionsFilePutOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -714,9 +715,9 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("instructions-file:delete")
-      .description("Delete an agent instructions file")
-      .argument("<agentId>", "Agent ID")
-      .requiredOption("--path <path>", "Bundle-relative file path")
+      .description(tCli("Delete an agent instructions file"))
+      .argument("<agentId>", tCli("Agent ID"))
+      .requiredOption("--path <path>", tCli("Bundle-relative file path"))
       .action(async (agentId: string, opts: AgentInstructionsFileOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -732,22 +733,22 @@ export function registerAgentCommands(program: Command): void {
   addCommonClientOptions(
     agent
       .command("wake")
-      .description("Request a heartbeat wakeup for an agent")
-      .argument("<agentRef>", "Agent ID or shortname/url-key")
-      .option("-C, --company-id <id>", "Company ID for shortname/url-key lookup")
-      .option("--source <source>", "Invocation source (timer, assignment, on_demand, automation)", "on_demand")
-      .option("--trigger <trigger>", "Trigger detail (manual, ping, callback, system)", "manual")
-      .option("--reason <text>", "Wakeup reason")
-      .option("--payload <json>", "JSON object payload")
-      .option("--idempotency-key <key>", "Wakeup idempotency key")
-      .option("--force-fresh-session", "Request a fresh adapter session")
+      .description(tCli("Request a heartbeat wakeup for an agent"))
+      .argument("<agentRef>", tCli("Agent ID or shortname/url-key"))
+      .option("-C, --company-id <id>", tCli("Company ID for shortname/url-key lookup"))
+      .option("--source <source>", tCli("Invocation source (timer, assignment, on_demand, automation)"), "on_demand")
+      .option("--trigger <trigger>", tCli("Trigger detail (manual, ping, callback, system)"), "manual")
+      .option("--reason <text>", tCli("Wakeup reason"))
+      .option("--payload <json>", tCli("JSON object payload"))
+      .option("--idempotency-key <key>", tCli("Wakeup idempotency key"))
+      .option("--force-fresh-session", tCli("Request a fresh adapter session"))
       .action(async (agentRef: string, opts: AgentWakeOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
           const query = opts.companyId ? `?${new URLSearchParams({ companyId: opts.companyId }).toString()}` : "";
           const agentRow = await ctx.api.get<Agent>(`${apiPath`/api/agents/${agentRef}`}${query}`);
           if (!agentRow) {
-            throw new Error(`Agent not found: ${agentRef}`);
+            throw new Error(tCli("Agent not found: {{agentRef}}", { agentRef: agentRef }));
           }
           const payload = wakeAgentSchema.parse({
             source: opts.source,
@@ -770,14 +771,14 @@ export function registerAgentCommands(program: Command): void {
     agent
       .command("local-cli")
       .description(
-        "Create an agent API key, install local Paperclip skills for Codex/Claude, and print shell exports",
+        tCli("Create an agent API key, install local Paperclip skills for Codex/Claude, and print shell exports"),
       )
-      .argument("<agentRef>", "Agent ID or shortname/url-key")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--key-name <name>", "API key label", "local-cli")
+      .argument("<agentRef>", tCli("Agent ID or shortname/url-key"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--key-name <name>", tCli("API key label"), "local-cli")
       .option(
         "--no-install-skills",
-        "Skip installing Paperclip skills into ~/.codex/skills, ~/.claude/skills, and ~/.kimi-code/skills",
+        tCli("Skip installing Paperclip skills into ~/.codex/skills, ~/.claude/skills, and ~/.kimi-code/skills"),
       )
       .action(async (agentRef: string, opts: AgentLocalCliOptions) => {
         try {
@@ -787,14 +788,14 @@ export function registerAgentCommands(program: Command): void {
             `${apiPath`/api/agents/${agentRef}`}?${query.toString()}`,
           );
           if (!agentRow) {
-            throw new Error(`Agent not found: ${agentRef}`);
+            throw new Error(tCli("Agent not found: {{agentRef}}", { agentRef: agentRef }));
           }
 
           const now = new Date().toISOString().replaceAll(":", "-");
           const keyName = opts.keyName?.trim() ? opts.keyName.trim() : `local-cli-${now}`;
           const key = await ctx.api.post<CreatedAgentKey>(apiPath`/api/agents/${agentRow.id}/keys`, { name: keyName });
           if (!key) {
-            throw new Error("Failed to create API key");
+            throw new Error(tCli("Failed to create API key"));
           }
 
           const installSummaries: SkillsInstallSummary[] = [];
@@ -802,7 +803,7 @@ export function registerAgentCommands(program: Command): void {
             const skillsDir = await resolvePaperclipSkillsDir(__moduleDir, [path.resolve(process.cwd(), "skills")]);
             if (!skillsDir) {
               throw new Error(
-                "Could not locate local Paperclip skills directory. Expected ./skills in the repo checkout.",
+                tCli("Could not locate local Paperclip skills directory. Expected ./skills in the repo checkout."),
               );
             }
 
@@ -843,20 +844,20 @@ export function registerAgentCommands(program: Command): void {
             return;
           }
 
-          console.log(`Agent: ${agentRow.name} (${agentRow.id})`);
-          console.log(`API key created: ${key.name} (${key.id})`);
+          console.log(tCli("Agent: {{name}} ({{id}})", { name: agentRow.name, id: agentRow.id }));
+          console.log(tCli("API key created: {{name}} ({{id}})", { name: key.name, id: key.id }));
           if (installSummaries.length > 0) {
             for (const summary of installSummaries) {
               console.log(
-                `${summary.tool}: linked=${summary.linked.length} removed=${summary.removed.length} skipped=${summary.skipped.length} failed=${summary.failed.length} target=${summary.target}`,
+                tCli("{{tool}}: linked={{count}} removed={{count2}} skipped={{count3}} failed={{count4}} target={{target}}", { tool: summary.tool, count: summary.linked.length, count2: summary.removed.length, count3: summary.skipped.length, count4: summary.failed.length, target: summary.target }),
               );
               for (const failed of summary.failed) {
-                console.log(`  failed ${failed.name}: ${failed.error}`);
+                console.log(tCli("  failed {{name}}: {{error}}", { name: failed.name, error: failed.error }));
               }
             }
           }
           console.log("");
-          console.log("# Run this in your shell before launching codex/claude:");
+          console.log(tCli("# Run this in your shell before launching codex/claude:"));
           console.log(exportsText);
         } catch (err) {
           handleCommandError(err);
@@ -870,7 +871,7 @@ function parseJsonObject(value: string | undefined): Record<string, unknown> | u
   if (value === undefined) return undefined;
   const parsed = JSON.parse(value) as unknown;
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new Error("--payload must be a JSON object");
+    throw new Error(tCli("--payload must be a JSON object"));
   }
   return parsed as Record<string, unknown>;
 }

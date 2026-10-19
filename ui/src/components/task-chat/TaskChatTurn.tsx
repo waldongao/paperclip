@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useStreamlinedTaskChatPresentation } from "./presentation-mode";
@@ -35,7 +36,7 @@ export function turnSummaryMetrics(
   if (summary.durationLabel) parts.push(summary.durationLabel);
   if (summary.toolCount > 0)
     parts.push(
-      `${summary.toolCount} tool${summary.toolCount === 1 ? "" : "s"}`,
+      t("zhComponents.message_844eb2a3d9", { count: summary.toolCount, value1: summary.toolCount }),
     );
   if (summary.added > 0 || summary.removed > 0)
     parts.push(`+${summary.added} −${summary.removed}`);
@@ -46,7 +47,7 @@ export function turnSummaryMetrics(
 /** "✓ Worked · 38s · 3 tools · +34 −3 · 12.3k tokens" (parts omitted when unknown). */
 export function turnSummaryText(summary: TaskChatTurnItem["summary"]): string {
   const metrics = turnSummaryMetrics(summary);
-  const label = summary.failed ? "Stopped" : "Worked";
+  const label = summary.failed ? t("stopped") : t("worked");
   return metrics ? `${label} · ${metrics}` : label;
 }
 
@@ -100,12 +101,12 @@ export function TaskChatTurn({
             />
           ) : null}
           {!item.historical ? <span className="min-w-0 truncate">
-            {item.continuedAfterSteering ? "Continued after steering · " : ""}
+            {item.continuedAfterSteering ? t("stability.9d15c1341d57", { defaultValue: "Continued after steering · " }) : ""}
             {item.summary.durationLabel
-              ? `${item.summary.failed ? "Stopped" : "Worked"} for ${item.summary.durationLabel}`
+              ? `${item.summary.failed ? t("stopped") : t("worked")} for ${item.summary.durationLabel}`
               : item.summary.failed
-                ? "Stopped"
-                : "Worked"}
+                ? t("stopped")
+                : t("worked")}
           </span> : null}
         </div> : null}
         {item.items.length > 0 ? (
@@ -206,11 +207,11 @@ export function TaskChatTurn({
         <SummaryIcon className="h-3.5 w-3.5 shrink-0" />
       ) : null}
       <span>
-        {item.historical ? "Activity" : item.standaloneHeader && item.summary.durationLabel
-          ? `${item.summary.failed ? "Stopped" : "Worked"} for ${item.summary.durationLabel}`
+        {item.historical ? t("nav.activity") : item.standaloneHeader && item.summary.durationLabel
+          ? `${item.summary.failed ? t("stopped") : t("worked")} for ${item.summary.durationLabel}`
           : item.summary.failed
-            ? "Stopped"
-            : "Worked"}
+            ? t("stopped")
+            : t("worked")}
       </span>
       {!item.standaloneHeader && turnSummaryMetrics(item.summary) ? (
         // Time/tools/tokens is demoted, not deleted (PAP-502): it stays in the

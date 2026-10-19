@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ExecutionProjection } from "@paperclipai/shared";
 import { Loader2 } from "lucide-react";
 import type { TranscriptEntry } from "../../adapters";
@@ -29,8 +30,8 @@ export function toolCountSummaryFromEntries(entries: readonly TranscriptEntry[])
     else other += 1;
   }
   const parts: string[] = [];
-  if (commands > 0) parts.push(`ran ${commands} command${commands === 1 ? "" : "s"}`);
-  if (other > 0) parts.push(`called ${other} tool${other === 1 ? "" : "s"}`);
+  if (commands > 0) parts.push(t("ran_n_commands_inline", { count: commands }));
+  if (other > 0) parts.push(t("called_n_tools_inline", { count: other }));
   return parts.length > 0 ? parts.join(", ") : null;
 }
 
@@ -68,8 +69,8 @@ export function TaskChatLiveRunPill({
     ? formatDurationWords(elapsedMs)
     : null;
   const failed = ["failed", "timed_out", "cancelled", "interrupted"].includes(status);
-  const verb = active ? "Working" : failed ? "Stopped" : "Worked";
-  const suffix = elapsed ? `for ${elapsed}` : null;
+  const verb = active ? t("working_3b4dfc") : failed ? "Stopped" : "Worked";
+  const suffix = elapsed ? t("for_elapsed", { elapsed }) : null;
 
   return (
     <div

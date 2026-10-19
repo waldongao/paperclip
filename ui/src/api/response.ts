@@ -1,7 +1,8 @@
+import { t } from "@/i18n";
 /** A proxy or restarting server answered an API request without usable JSON. */
 export class ApiUnavailableError extends Error {
   constructor(public readonly status: number) {
-    super("Paperclip is temporarily unavailable. Please try again in a moment.");
+    super(t("stability.f317fafe9113", { defaultValue: "Paperclip is temporarily unavailable. Please try again in a moment." }));
     this.name = "ApiUnavailableError";
   }
 }

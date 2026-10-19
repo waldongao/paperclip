@@ -42,6 +42,7 @@ import type {
 } from "@paperclipai/shared";
 import { api } from "./client";
 
+
 export interface CatalogListQuery {
   kind?: CatalogSkillKind;
   category?: string;

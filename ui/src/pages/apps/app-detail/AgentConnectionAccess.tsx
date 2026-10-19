@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState } from "react";
 import type { Agent, ToolCatalogEntry, ToolPolicy, ToolProfileWithDetails } from "@paperclipai/shared";
 import { AgentAvatar } from "@/components/AgentAvatar";
@@ -39,8 +40,8 @@ export function AgentConnectionAccess({ connectionId, profiles, policies, catalo
 
   return <section className="space-y-4 border-t border-border pt-8">
     <div className="space-y-2">
-      <h2 className="text-sm font-semibold">Additional agent access</h2>
-      <p className="text-sm text-muted-foreground">These agents can use the listed actions in addition to the permissions above. Removing a grant restores their other permissions.</p>
+      <h2 className="text-sm font-semibold">{t("stability.40fcc4595f44", { defaultValue: "Additional agent access" })}</h2>
+      <p className="text-sm text-muted-foreground">{t("stability.51ff488f618d", { defaultValue: "These agents can use the listed actions in addition to the permissions above. Removing a grant restores their other permissions." })}</p>
     </div>
     {grants.map(profile => {
       const agentId = profile.metadata!.agentId as string;
@@ -50,10 +51,10 @@ export function AgentConnectionAccess({ connectionId, profiles, policies, catalo
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <AgentAvatar agent={agent ?? { id: agentId, name: "Agent" }} size={32} />
-            <span className="text-sm font-medium">{agent?.name ?? "Agent"}</span>
+            <span className="text-sm font-medium">{agent?.name ?? t("agent_5ce2e6")}</span>
           </div>
           {canManage && <Button variant="outline" size="sm" disabled={pending !== null} onClick={() => void remove(profile.id)}>
-            {pending === profile.id ? "Removing…" : "Remove grant"}
+            {pending === profile.id ? t("removing") : t("stability.8c57bf6c5e14", { defaultValue: "Remove grant" })}
           </Button>}
         </div>
         <ul className="space-y-2">
@@ -64,7 +65,7 @@ export function AgentConnectionAccess({ connectionId, profiles, policies, catalo
               && policy.selectors?.catalogEntryId === tool.id);
             return <li key={tool.id} className="flex items-center justify-between gap-4 text-sm">
               <span className="min-w-0 break-all">{tool.title || tool.toolName}</span>
-              <span className="shrink-0 text-muted-foreground">{askFirst ? "Ask first" : "Allowed"}</span>
+              <span className="shrink-0 text-muted-foreground">{askFirst ? t("ask_first") : t("allowed")}</span>
             </li>;
           })}
         </ul>

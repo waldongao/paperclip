@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
@@ -45,28 +46,28 @@ export function ComposioAppSetup({ name, toolkit, connections, onClose, onBack, 
 
   return <div className="space-y-4">
     <div className="space-y-2">
-      <Label htmlFor="composio-app-account">Composio account</Label>
+      <Label htmlFor="composio-app-account">{t("stability.c7d01d2a55ff", { defaultValue: "Composio account" })}</Label>
       <select id="composio-app-account" value={connectionId} disabled={busy} onChange={event => {
         setConnectionId(event.target.value); setResult(null); setError(null);
       }} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         {connections.map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
-        <option value="__new__">Connect a new account…</option>
+        <option value="__new__">{t("stability.1e5517fb65e6", { defaultValue: "Connect a new account…" })}</option>
       </select>
     </div>
     {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
-    {result ? <p role="status" className="text-sm text-muted-foreground">Finish connecting {name} in Composio, then return here.</p> : null}
+    {result ? <p role="status" className="text-sm text-muted-foreground">{t("stability.802dfbb2c965", { defaultValue: "Finish connecting" })}{" "}{name}{" "}{t("stability.4e36417043fd", { defaultValue: "in Composio, then return here." })}</p> : null}
     {result?.authorizationUrl ? <Button asChild variant="outline" className="w-full">
-      <a href={result.authorizationUrl} target="_blank" rel="noopener noreferrer">Connect {name} in Composio<ExternalLink className="size-4" /></a>
+      <a href={result.authorizationUrl} target="_blank" rel="noopener noreferrer">{t("connect")}{" "}{name}{" "}{t("stability.9f5e935e4697", { defaultValue: "in Composio" })}<ExternalLink className="size-4" /></a>
     </Button> : null}
     <div className="flex items-center justify-between gap-2">
-      <Button variant="ghost" disabled={busy} onClick={onBack ?? onClose}>{onBack ? "Back" : "Cancel"}</Button>
+      <Button variant="ghost" disabled={busy} onClick={onBack ?? onClose}>{onBack ? t("common.back") : t("common.cancel")}</Button>
       <div className="flex items-center gap-2">
-      {result && result.status !== "connected" ? <Button variant="ghost" disabled={busy} onClick={() => void submit({ action: "start" })}>Get a new link</Button> : null}
+      {result && result.status !== "connected" ? <Button variant="ghost" disabled={busy} onClick={() => void submit({ action: "start" })}>{t("stability.a402dfe4818e", { defaultValue: "Get a new link" })}</Button> : null}
       <Button disabled={!settled || busy || (!connection && connectionId !== "__new__")} onClick={() => {
         if (connectionId === "__new__") onConnectNew();
         else void submit(result ? { action: "complete" } : { action: "start" });
       }}>
-        {busy ? "Checking…" : connectionId === "__new__" ? "Connect new account" : result ? "I’ve connected it" : "Continue"}
+        {busy ? t("checking") : connectionId === "__new__" ? t("stability.fcd079711c80", { defaultValue: "Connect new account" }) : result ? t("stability.d245c7b12eb6", { defaultValue: "I’ve connected it" }) : t("continue")}
       </Button>
       </div>
     </div>

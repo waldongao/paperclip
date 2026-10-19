@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -168,6 +169,7 @@ export async function prepareTestDriveEnvironment(
 ): Promise<{ dataDir: string; linkedWorktree: boolean }> {
   const sourceEnvName = options.apiKeyEnv?.trim();
   const preservedCredential = sourceEnvName ? process.env[sourceEnvName] : undefined;
+  const displayLocale = process.env.PAPERCLIP_LOCALE;
 
   for (const key of Object.keys(process.env)) {
     if (key.startsWith("PAPERCLIP_")) {
@@ -179,6 +181,9 @@ export async function prepareTestDriveEnvironment(
   }
   if (sourceEnvName && preservedCredential !== undefined) {
     process.env[sourceEnvName] = preservedCredential;
+  }
+  if (displayLocale !== undefined) {
+    process.env.PAPERCLIP_LOCALE = displayLocale;
   }
 
   const dataDir = resolveTestDriveDataDir(options.dataDir);
@@ -423,10 +428,10 @@ export async function testDriveCommand(
     bootstrapEnv[HARNESS_DEFINITIONS[options.harness ?? "claude"].credentialTarget],
   ];
 
-  p.log.message(pc.dim(`Data directory: ${dataDir}`));
-  p.log.message(pc.dim("The data directory is retained when Paperclip exits."));
+  p.log.message(pc.dim(tCli("Data directory: {{value1}}", { value1: dataDir })));
+  p.log.message(pc.dim(tCli("The data directory is retained when Paperclip exits.")));
   if (options.apiKey !== undefined) {
-    p.log.warn("A key passed with --api-key may be visible in process arguments and shell history.");
+    p.log.warn(tCli("A key passed with --api-key may be visible in process arguments and shell history."));
   }
 
   try {
@@ -450,27 +455,27 @@ export async function testDriveCommand(
         });
         if (result.reused) {
           p.log.message(
-            `Using existing data for ${pc.cyan(result.company.name)}; bootstrap flags were ignored.`,
+            tCli("Using existing data for {{value1}}; bootstrap flags were ignored.", { value1: pc.cyan(result.company.name) }),
           );
         } else {
           p.log.success(
-            `Created ${pc.cyan(result.company.name)} with agent ${pc.cyan(result.agent?.name ?? "CEO")}.`,
+            tCli("Created {{value1}} with agent {{value2}}.", { value1: pc.cyan(result.company.name), value2: pc.cyan(result.agent?.name ?? "CEO") }),
           );
         }
         if (linkedWorktree) {
-          p.log.success("Run tasks in this worktree is enabled for this instance.");
+          p.log.success(tCli("Run tasks in this worktree is enabled for this instance."));
         }
 
         const url = dashboardUrl(server);
         if (options.browser === false) {
-          p.log.success(`Paperclip is ready at ${pc.cyan(url)}.`);
+          p.log.success(tCli("Paperclip is ready at {{value1}}.", { value1: pc.cyan(url) }));
           return;
         }
         const opened = await dependencies.openBrowser(url);
         if (opened) {
-          p.log.success(`Paperclip is ready and opened at ${pc.cyan(url)}.`);
+          p.log.success(tCli("Paperclip is ready and opened at {{value1}}.", { value1: pc.cyan(url) }));
         } else {
-          p.log.warn(`Paperclip is ready, but the browser could not be opened. Visit ${url}.`);
+          p.log.warn(tCli("Paperclip is ready, but the browser could not be opened. Visit {{value1}}.", { value1: url }));
         }
       },
     });
@@ -482,25 +487,25 @@ export async function testDriveCommand(
 export function registerTestDriveCommand(program: Command): void {
   program
     .command("test-drive")
-    .description("Start an isolated, initialized Paperclip instance for manual testing")
-    .option("-d, --data-dir <path>", "Paperclip data directory to create or reuse")
-    .option("--company-name <name>", "Initial company name", "Test Company")
-    .option("--agent-name <name>", "Initial CEO agent name", "CEO")
+    .description(tCli("Start an isolated, initialized Paperclip instance for manual testing"))
+    .option("-d, --data-dir <path>", tCli("Paperclip data directory to create or reuse"))
+    .option("--company-name <name>", tCli("Initial company name"), "Test Company")
+    .option("--agent-name <name>", tCli("Initial CEO agent name"), "CEO")
     .addOption(
-      new Option("--harness <harness>", "Initial agent harness")
+      new Option("--harness <harness>", tCli("Initial agent harness"))
         .choices(TEST_DRIVE_HARNESSES)
         .default("claude"),
     )
-    .option("--model <model-id>", "Initial agent model")
+    .option("--model <model-id>", tCli("Initial agent model"))
     .addOption(
-      new Option("--api-key-env <variable>", "Read the provider key from an environment variable")
+      new Option("--api-key-env <variable>", tCli("Read the provider key from an environment variable"))
         .conflicts("apiKey"),
     )
     .addOption(
-      new Option("--api-key <value>", "Provider API key")
+      new Option("--api-key <value>", tCli("Provider API key"))
         .conflicts("apiKeyEnv"),
     )
-    .option("--no-browser", "Do not open the initialized instance in a browser")
+    .option("--no-browser", tCli("Do not open the initialized instance in a browser"))
     .action(async (options: TestDriveOptions) => {
       await testDriveCommand(options);
     });

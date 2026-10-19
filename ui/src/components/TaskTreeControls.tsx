@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { PauseCircle, PlayCircle, Repeat, XCircle } from "lucide-react";
@@ -42,13 +43,13 @@ export function TaskTreeControlMenuItems({
       {canPause ? (
         <button disabled={pending} className={itemClass} onClick={onPause}>
           <PauseCircle className="h-3 w-3" />
-          {scope === "leaf" ? "Pause work" : "Pause subtree"}
+          {scope === "leaf" ? t("pause_work") : t("pause_subtree_3e3657")}
         </button>
       ) : null}
       {canResume ? (
         <button disabled={pending} className={itemClass} onClick={onResume}>
           <PlayCircle className="h-3 w-3" />
-          {scope === "leaf" ? "Resume work" : "Resume subtree"}
+          {scope === "leaf" ? t("resume_work") : t("resume_subtree")}
         </button>
       ) : null}
       {canCancel ? (
@@ -57,15 +58,11 @@ export function TaskTreeControlMenuItems({
           className={`${itemClass} text-destructive`}
           onClick={onCancel}
         >
-          <XCircle className="h-3 w-3" />
-          Cancel subtree...
-        </button>
+          <XCircle className="h-3 w-3" />{t("cancel_subtree")}</button>
       ) : null}
       {canRestore ? (
         <button disabled={pending} className={itemClass} onClick={onRestore}>
-          <Repeat className="h-3 w-3" />
-          Restore subtree...
-        </button>
+          <Repeat className="h-3 w-3" />{t("restore_subtree")}</button>
       ) : null}
     </>
   );
@@ -126,10 +123,10 @@ export function TaskTreeControlDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             {loading
-              ? "Loading…"
+              ? t("loading")
               : cancel
                 ? `${tasks} will be cancelled.`
-                : `${tasks} will ${mode === "restore" ? "be restored" : "resume"}.`}
+                : `${tasks} will ${mode === "restore" ? t("stability.9ce9b29f3888", { defaultValue: "be restored" }) : t("stability.a83a31320d92", { defaultValue: "resume" })}.`}
           </DialogDescription>
         </DialogHeader>
         {error ? (
@@ -142,9 +139,7 @@ export function TaskTreeControlDialog({
               variant="outline"
               disabled={pending}
               onClick={onRetry}
-            >
-              Retry preview
-            </Button>
+            >{t("retry_preview")}</Button>
           </div>
         ) : null}
         {!cancel ? (
@@ -154,8 +149,7 @@ export function TaskTreeControlDialog({
               checked={wakeAgents}
               disabled={pending || loading || affectedAgentCount === 0}
               onChange={(event) => onWakeAgentsChange(event.target.checked)}
-            />
-            Wake affected agents ({affectedAgentCount})
+            />{t("wake_affected_agents")}{affectedAgentCount})
           </label>
         ) : null}
         <DialogFooter>
@@ -164,7 +158,7 @@ export function TaskTreeControlDialog({
             disabled={pending}
             onClick={() => onOpenChange(false)}
           >
-            {cancel ? "Keep tasks" : "Close"}
+            {cancel ? t("stability.8d7bd1de3300", { defaultValue: "Keep tasks" }) : t("common.close")}
           </Button>
           <Button
             variant={cancel ? "destructive" : "default"}
@@ -172,7 +166,7 @@ export function TaskTreeControlDialog({
             onClick={onApply}
           >
             {pending
-              ? "Applying…"
+              ? t("applying_e578c2")
               : cancel
                 ? `Cancel ${tasks}`
                 : mode === "restore"
@@ -208,7 +202,7 @@ export function TaskPauseNotice({
       )}
     >
       <span>
-        {scope === "subtree" ? "Subtree is paused." : "Task is paused."}
+        {scope === "subtree" ? t("stability.f9ebf72d55c3", { defaultValue: "Subtree is paused." }) : t("stability.fb9c04c93b5e", { defaultValue: "Task is paused." })}
       </span>
       {resumeLink ??
         (onResume ? (
@@ -218,7 +212,7 @@ export function TaskPauseNotice({
             disabled={pending}
             onClick={onResume}
           >
-            {scope === "subtree" ? "Resume subtree" : "Resume work"}
+            {scope === "subtree" ? t("resume_subtree") : t("resume_work")}
           </Button>
         ) : null)}
     </div>

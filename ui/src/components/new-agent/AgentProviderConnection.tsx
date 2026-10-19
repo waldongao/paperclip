@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { healthApi } from "@/api/health";
 import { aiConnectionsApi } from "@/api/ai-connections";
 import { useLocalAiLogin } from "../ai-connections/useLocalAiLogin";
@@ -232,7 +233,7 @@ export function AgentProviderConnection({
   return (
     <div className="min-w-0 max-w-full">
       <ModelSourceTiles
-        label="Connect your model provider"
+        label={t("stability.763f7fb688ff", { defaultValue: "Connect your model provider" })}
         sources={[
           {
             id: adapterType,
@@ -263,8 +264,8 @@ export function AgentProviderConnection({
       )}
       {!opened && savedKeys.options.length > 0 && (
         <p className="mt-2 text-sm text-muted-foreground">
-          {savedKeys.options.length} saved API{" "}
-          {savedKeys.options.length === 1 ? "key available" : "keys available"}.
+          {savedKeys.options.length}{" "}{t("stability.b9bbaf3befbd", { defaultValue: "saved API" })}{" "}
+          {savedKeys.options.length === 1 ? t("stability.39a65ba3f1ca", { defaultValue: "key available" }) : t("stability.2f1061052827", { defaultValue: "keys available" })}.
         </p>
       )}
       {method === "subscription" &&
@@ -308,14 +309,14 @@ export function AgentProviderConnection({
                 />
                 {!selectedKey && (
                   <OnboardingCardField
-                    label="API key"
+                    label={t("api_key")}
                     masked
                     autoFocus
                     value={apiKey}
                     placeholder={
                       storedConnection
-                        ? "Key entered. Retry the connection."
-                        : "Enter API key here"
+                        ? t("stability.43912a0d7bab", { defaultValue: "Key entered. Retry the connection." })
+                        : t("stability.c80c3ac9799d", { defaultValue: "Enter API key here" })
                     }
                     onChange={(value) => {
                       setSelectedKeyId("");
@@ -371,19 +372,17 @@ export function AgentProviderConnection({
             ) : (
               <p className="text-sm text-muted-foreground">
                 {storedLogin.data
-                  ? "Use your saved Claude subscription for this agent."
+                  ? t("stability.bb2c110688d8", { defaultValue: "Use your saved Claude subscription for this agent." })
                   : canLogin
-                    ? "Use the existing provider connection for this environment."
-                    : "This environment does not support browser sign-in. Choose a sign-in environment or connect with an API key."}
+                    ? t("stability.c910c4a898f0", { defaultValue: "Use the existing provider connection for this environment." })
+                    : t("stability.b62e1e2f4b59", { defaultValue: "This environment does not support browser sign-in. Choose a sign-in environment or connect with an API key." })}
               </p>
             )}
           </div>
         )}
       </motion.div>
       {method === "subscription" && storedLogin.isError && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          Could not check your saved Claude subscription. Try again.
-        </p>
+        <p role="alert" className="mt-4 text-sm text-destructive">{t("stability.c8c6c2beb441", { defaultValue: "Could not check your saved Claude subscription. Try again." })}</p>
       )}
       {error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
@@ -391,7 +390,7 @@ export function AgentProviderConnection({
         </p>
       )}
       {localEnvironment && health.isError && (
-        <p role="alert" className="mt-4 text-sm text-destructive">Could not prepare sign-in. Reload this page to try again.</p>
+        <p role="alert" className="mt-4 text-sm text-destructive">{t("stability.f89460cd3045", { defaultValue: "Could not prepare sign-in. Reload this page to try again." })}</p>
       )}
       <FooterNav
         onBack={() => {

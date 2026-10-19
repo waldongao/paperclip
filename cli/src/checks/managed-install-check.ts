@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import fs from "node:fs";
 import path from "node:path";
 import {
@@ -35,12 +36,12 @@ function hasManagedArtifacts(paths: InstallStorePaths): boolean {
 
 export function nodeRuntimeCheck(): CheckResult {
   return isSupportedNodeVersion(process.versions.node)
-    ? { name: "Node.js runtime", status: "pass", message: `Node.js ${process.versions.node}` }
+    ? { name: tCli("Node.js runtime"), status: "pass", message: tCli("Node.js {{node}}", { node: String(process.versions.node) }) }
     : {
-        name: "Node.js runtime",
+        name: tCli("Node.js runtime"),
         status: "fail",
-        message: `Node.js ${process.versions.node} is unsupported`,
-        repairHint: `Install Node.js ${MINIMUM_NODE_VERSION} or newer before installing or running Paperclip`,
+        message: tCli("Node.js {{node}} is unsupported", { node: String(process.versions.node) }),
+        repairHint: tCli("Install Node.js {{MINIMUM_NODE_VERSION}} or newer before installing or running Paperclip", { MINIMUM_NODE_VERSION: String(MINIMUM_NODE_VERSION) }),
       };
 }
 
@@ -50,9 +51,9 @@ export function managedInstallChecks(
   if (!hasManagedArtifacts(paths)) {
     return [
       {
-        name: "Managed install",
+        name: tCli("Managed install"),
         status: "pass",
-        message: "Not present (optional for npx, global npm, and source-checkout usage)",
+        message: tCli("Not present (optional for npx, global npm, and source-checkout usage)"),
       },
     ];
   }
@@ -63,10 +64,10 @@ export function managedInstallChecks(
   } catch (error) {
     return [
       {
-        name: "Managed install manifest",
+        name: tCli("Managed install manifest"),
         status: "fail",
-        message: error instanceof Error ? error.message : String(error),
-        repairHint: "Re-run `paperclipai install` to rebuild the managed install metadata",
+        message: translateCliDisplayMessage(error instanceof Error ? error.message : String(error)),
+        repairHint: tCli("Re-run `paperclipai install` to rebuild the managed install metadata"),
       },
     ];
   }
@@ -74,10 +75,10 @@ export function managedInstallChecks(
   if (!manifest) {
     return [
       {
-        name: "Managed install manifest",
+        name: tCli("Managed install manifest"),
         status: "fail",
-        message: `Managed install artifacts exist but ${paths.manifestPath} is missing`,
-        repairHint: "Re-run `paperclipai install`",
+        message: tCli("Managed install artifacts exist but {{manifestPath}} is missing", { manifestPath: String(paths.manifestPath) }),
+        repairHint: tCli("Re-run `paperclipai install`"),
       },
     ];
   }
@@ -98,17 +99,17 @@ export function managedInstallChecks(
   results.push(
     payloadExists && currentMatches
       ? {
-          name: "Managed install store",
+          name: tCli("Managed install store"),
           status: "pass",
-          message: `${manifest.source} ${manifest.version} is active`,
+          message: tCli("{{source}} {{version}} is active", { source: String(manifest.source), version: String(manifest.version) }),
         }
       : {
-          name: "Managed install store",
+          name: tCli("Managed install store"),
           status: "fail",
           message: !payloadExists
-            ? `Manifest payload is missing or outside the install store: ${manifest.payloadPath}`
-            : `Current link does not point to ${manifest.payloadPath}`,
-          repairHint: "Re-run `paperclipai install` or roll back to a retained payload",
+            ? tCli("Manifest payload is missing or outside the install store: {{payloadPath}}", { payloadPath: String(manifest.payloadPath) })
+            : tCli("Current link does not point to {{payloadPath}}", { payloadPath: String(manifest.payloadPath) }),
+          repairHint: tCli("Re-run `paperclipai install` or roll back to a retained payload"),
         },
   );
 
@@ -120,24 +121,24 @@ export function managedInstallChecks(
   }
   results.push(
     shimValid
-      ? { name: "Managed install shim", status: "pass", message: paths.shimPath }
+      ? { name: tCli("Managed install shim"), status: "pass", message: paths.shimPath }
       : {
-          name: "Managed install shim",
+          name: tCli("Managed install shim"),
           status: "fail",
-          message: `Missing or unrecognized shim at ${paths.shimPath}`,
-          repairHint: "Re-run `paperclipai install`",
+          message: tCli("Missing or unrecognized shim at {{shimPath}}", { shimPath: String(paths.shimPath) }),
+          repairHint: tCli("Re-run `paperclipai install`"),
         },
   );
 
   const shimDirectory = path.dirname(paths.shimPath);
   results.push(
     pathContains(shimDirectory)
-      ? { name: "Managed install PATH", status: "pass", message: `${shimDirectory} is on PATH` }
+      ? { name: tCli("Managed install PATH"), status: "pass", message: tCli("{{shimDirectory}} is on PATH", { shimDirectory: String(shimDirectory) }) }
       : {
-          name: "Managed install PATH",
+          name: tCli("Managed install PATH"),
           status: "warn",
-          message: `${shimDirectory} is not on PATH`,
-          repairHint: 'Run `export PATH="$HOME/.local/bin:$PATH"` and add it to your shell startup file',
+          message: tCli("{{shimDirectory}} is not on PATH", { shimDirectory: String(shimDirectory) }),
+          repairHint: tCli("Run `export PATH=\"$HOME/.local/bin:$PATH\"` and add it to your shell startup file"),
         },
   );
 
@@ -155,12 +156,12 @@ export function managedInstallChecks(
   }
   results.push(
     orphaned.length === 0
-      ? { name: "Managed install retention", status: "pass", message: "No orphaned payloads" }
+      ? { name: tCli("Managed install retention"), status: "pass", message: tCli("No orphaned payloads") }
       : {
-          name: "Managed install retention",
+          name: tCli("Managed install retention"),
           status: "warn",
-          message: `${orphaned.length} orphaned payload${orphaned.length === 1 ? "" : "s"} found`,
-          repairHint: "A successful `paperclipai update` prunes unretained payloads",
+          message: tCli(orphaned.length === 1 ? "{{count}} orphaned payload found" : "{{count}} orphaned payloads found", { count: orphaned.length }),
+          repairHint: tCli("A successful `paperclipai update` prunes unretained payloads"),
         },
   );
 

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Paperclip, Radio } from "lucide-react";
@@ -336,7 +337,7 @@ function ConnectedTaskComposer({
       pushToast({
         ...feedback,
         action: {
-          label: "View activity",
+          label: t("stability.4bf3f8ddd7bf", { defaultValue: "View activity" }),
           href: `/apps/chat/${binding!.endpointId}/activity`,
         },
       });
@@ -484,28 +485,26 @@ function ConnectedTaskComposer({
   const activityPath = `/apps/chat/${binding.endpointId}/activity`;
   return (
     <section
-      aria-label="External conversation"
+      aria-label={t("stability.051d5bb3be53", { defaultValue: "External conversation" })}
       className="space-y-3 rounded-lg border border-border bg-muted/40 p-3 text-sm"
     >
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex min-w-0 flex-1 basis-64 items-center gap-3">
           <Radio className="h-4 w-4 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1">
-            <p className="font-medium">
-              Connected to {providerNames[binding.provider]}
+            <p className="font-medium">{t("stability.34e3fb391050", { defaultValue: "Connected to" })}{" "}{providerNames[binding.provider]}
             </p>
             <p className="truncate text-xs text-muted-foreground">
               {binding.externalLabel} · {binding.provider === "slack"
-                ? "Messages you send here and agent replies are also posted to Slack."
-                : "Agent assignment is fixed for this external task."}
+                ? t("stability.900b0ca47924", { defaultValue: "Messages you send here and agent replies are also posted to Slack." })
+                : t("stability.74099745c3c8", { defaultValue: "Agent assignment is fixed for this external task." })}
             </p>
           </div>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {binding.externalUrl && (
             <Button asChild size="sm" variant="outline">
-              <a href={binding.externalUrl} target="_blank" rel="noreferrer">
-                Open {providerNames[binding.provider]} <ExternalLink />
+              <a href={binding.externalUrl} target="_blank" rel="noreferrer">{t("open")}{" "}{providerNames[binding.provider]} <ExternalLink />
               </a>
             </Button>
           )}
@@ -513,13 +512,9 @@ function ConnectedTaskComposer({
             size="sm"
             variant="outline"
             onClick={() => setComposing((value) => !value)}
-          >
-            Send to channel
-          </Button>
+          >{t("stability.dface7aaaa74", { defaultValue: "Send to channel" })}</Button>
           <Button asChild size="sm" variant="ghost">
-            <Link to={`/apps/chat/${binding.endpointId}/conversations`}>
-              Connection
-            </Link>
+            <Link to={`/apps/chat/${binding.endpointId}/conversations`}>{t("connection")}</Link>
           </Button>
         </div>
       </div>
@@ -528,9 +523,7 @@ function ConnectedTaskComposer({
           <label
             className="text-xs font-medium"
             htmlFor="external-board-update"
-          >
-            Board update
-          </label>
+          >{t("stability.6e1dcf6a784f", { defaultValue: "Board update" })}</label>
           <Textarea
             id="external-board-update"
             value={body}
@@ -547,19 +540,17 @@ function ConnectedTaskComposer({
               idempotencyKey.current = null;
               publish.reset();
             }}
-            placeholder="Write only what should be visible in the provider conversation."
+            placeholder={t("stability.c5a8ffd5cb40", { defaultValue: "Write only what should be visible in the provider conversation." })}
           />
           {selectedAttachmentIds.length > 0 && !body.trim() && (
-            <p className="text-xs text-muted-foreground">
-              Add a message to send with your files.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("stability.680f3ab6f7a0", { defaultValue: "Add a message to send with your files." })}</p>
           )}
           <div className="flex flex-wrap items-center gap-2">
             <input
               ref={fileInput}
               type="file"
               className="hidden"
-              aria-label="Attach file to channel update"
+              aria-label={t("stability.59a735f69578", { defaultValue: "Attach file to channel update" })}
               disabled={uploadDisabled}
               onChange={(event) => {
                 const file = event.target.files?.[0];
@@ -575,11 +566,9 @@ function ConnectedTaskComposer({
               onClick={() => fileInput.current?.click()}
             >
               <Paperclip />
-              {uploading ? "Uploading…" : "Attach file"}
+              {uploading ? t("uploading_d921a7") : t("attach_file")}
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Files stay on this task until you send them to the channel.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("stability.c68a82b03353", { defaultValue: "Files stay on this task until you send them to the channel." })}</p>
           </div>
           {uploadError && (
             <p role="alert" className="text-xs text-destructive">
@@ -587,11 +576,7 @@ function ConnectedTaskComposer({
             </p>
           )}
           {selectionNotice && (
-            <p role="status" className="text-xs text-muted-foreground">
-              A file already attached to another comment was removed from this
-              selection. Attach a new copy or share the task link; your message
-              is unchanged.
-            </p>
+            <p role="status" className="text-xs text-muted-foreground">{t("stability.15717288157c", { defaultValue: "A file already attached to another comment was removed from this selection. Attach a new copy or share the task link; your message is unchanged." })}</p>
           )}
           {visibleAttachments.length > 0 && (
             <fieldset
@@ -607,18 +592,18 @@ function ConnectedTaskComposer({
             >
               <legend className="px-1 text-xs font-medium">
                 {showingRetainedFiles
-                  ? "Files in this send"
-                  : "Include task files"}
+                  ? t("stability.7674c3b4a421", { defaultValue: "Files in this send" })
+                  : t("stability.47c29c1f5941", { defaultValue: "Include task files" })}
               </legend>
               <p className="text-xs text-muted-foreground">
                 {binding.provider === "github"
-                  ? "GitHub Apps cannot upload file bytes in comments. Checked files stay on the Paperclip task; GitHub receives an authenticated task link when this Board has a public URL, or a private-task notice otherwise."
+                  ? t("stability.82e71ca771cd", { defaultValue: "GitHub Apps cannot upload file bytes in comments. Checked files stay on the Paperclip task; GitHub receives an authenticated task link when this Board has a public URL, or a private-task notice otherwise." })
                   : binding.provider === "microsoft-teams" &&
                       !showingRetainedFiles
-                    ? "In personal Teams chats, recipients accept each file before upload. Channels and group chats receive supported images directly; other files stay on the task, with a task link or private-task notice."
+                    ? t("stability.53b1a2a804b0", { defaultValue: "In personal Teams chats, recipients accept each file before upload. Channels and group chats receive supported images directly; other files stay on the task, with a task link or private-task notice." })
                     : showingRetainedFiles
-                      ? "These are the files selected for this send. Selection is locked until delivery is resolved."
-                      : "Only checked files will be published to the external conversation."}
+                      ? t("stability.3b09f25686a5", { defaultValue: "These are the files selected for this send. Selection is locked until delivery is resolved." })
+                      : t("stability.53a7b5b74d6e", { defaultValue: "Only checked files will be published to the external conversation." })}
               </p>
               <div className="space-y-2">
                 {visibleAttachments.map((attachment) => {
@@ -660,12 +645,8 @@ function ConnectedTaskComposer({
               role="alert"
               className="space-y-1 rounded-md border border-border bg-background p-3 text-xs"
             >
-              <p className="font-medium">Update was not sent</p>
-              <p className="text-muted-foreground">
-                A selected file already belongs to another comment. This request
-                was rejected before any channel message was queued. Your exact
-                draft is kept.
-              </p>
+              <p className="font-medium">{t("stability.313813f30237", { defaultValue: "Update was not sent" })}</p>
+              <p className="text-muted-foreground">{t("stability.c22adf1551ec", { defaultValue: "A selected file already belongs to another comment. This request was rejected before any channel message was queued. Your exact draft is kept." })}</p>
               <Button
                 size="sm"
                 variant="outline"
@@ -698,9 +679,7 @@ function ConnectedTaskComposer({
                   setSelectionNotice(true);
                   publish.reset();
                 }}
-              >
-                Edit rejected send
-              </Button>
+              >{t("stability.c342fb93adc4", { defaultValue: "Edit rejected send" })}</Button>
             </div>
           )}
           {!rejection &&
@@ -711,18 +690,12 @@ function ConnectedTaskComposer({
                 role="alert"
                 className="space-y-1 rounded-md border border-border bg-background p-3 text-xs"
               >
-                <p className="font-medium">Delivery result not confirmed</p>
-                <p className="text-muted-foreground">
-                  Your exact draft and request identity are kept. Retry safely
-                  to learn the authoritative publication state without creating
-                  a duplicate.
-                </p>
+                <p className="font-medium">{t("stability.68d563e3850f", { defaultValue: "Delivery result not confirmed" })}</p>
+                <p className="text-muted-foreground">{t("stability.876c543e376c", { defaultValue: "Your exact draft and request identity are kept. Retry safely to learn the authoritative publication state without creating a duplicate." })}</p>
                 <Link
                   className="inline-block font-medium underline underline-offset-4"
                   to={activityPath}
-                >
-                  Open Activity
-                </Link>
+                >{t("stability.b2a9770667ad", { defaultValue: "Open Activity" })}</Link>
               </div>
             )}
           {publication && currentPublication && currentFeedback && (
@@ -762,7 +735,7 @@ function ConnectedTaskComposer({
               {batch?.parts?.some((part) => part.fileTransfer) && (
                 <ul
                   className="space-y-1 text-muted-foreground"
-                  aria-label="File delivery outcomes"
+                  aria-label={t("stability.e0229aa59efc", { defaultValue: "File delivery outcomes" })}
                 >
                   {batch.parts
                     .filter((part) => part.fileTransfer)
@@ -775,22 +748,16 @@ function ConnectedTaskComposer({
                 </ul>
               )}
               {publicationStatus.isError && (
-                <p role="alert" className="text-muted-foreground">
-                  Delivery status could not be refreshed. Your draft is kept;
-                  Paperclip will check again without sending another update.
-                </p>
+                <p role="alert" className="text-muted-foreground">{t("stability.2c58b83f06c8", { defaultValue: "Delivery status could not be refreshed. Your draft is kept; Paperclip will check again without sending another update." })}</p>
               )}
               {currentPublication.redactedError && (
-                <p className="text-muted-foreground">
-                  Provider detail: {currentPublication.redactedError}
+                <p className="text-muted-foreground">{t("stability.2c23fae4184b", { defaultValue: "Provider detail:" })}{" "}{currentPublication.redactedError}
                 </p>
               )}
               <Link
                 className="inline-block font-medium underline underline-offset-4"
                 to={activityPath}
-              >
-                Open Activity
-              </Link>
+              >{t("stability.b2a9770667ad", { defaultValue: "Open Activity" })}</Link>
               {dismissible && (
                 <Button
                   className="ml-3"
@@ -818,17 +785,15 @@ function ConnectedTaskComposer({
                     idempotencyKey.current = null;
                     publish.reset();
                   }}
-                >
-                  Dismiss delivery receipt
-                </Button>
+                >{t("stability.e6d60fbc843c", { defaultValue: "Dismiss delivery receipt" })}</Button>
               )}
             </div>
           )}
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
               {binding.provider === "slack"
-                ? "Your message is posted to Slack with your name and starts the agent."
-                : "Ordinary board comments remain Paperclip-only."}
+                ? t("stability.fe11e393ae9b", { defaultValue: "Your message is posted to Slack with your name and starts the agent." })
+                : t("stability.9add383460a6", { defaultValue: "Ordinary board comments remain Paperclip-only." })}
             </p>
             <Button
               size="sm"
@@ -881,10 +846,10 @@ function ConnectedTaskComposer({
               }}
             >
               {publish.isPending
-                ? "Sending…"
+                ? t("sending_cf7655")
                 : !rejection && (publish.isError || unconfirmedRequest)
-                  ? "Retry safely"
-                  : "Send to channel"}
+                  ? t("stability.aea7359da3eb", { defaultValue: "Retry safely" })
+                  : t("stability.dface7aaaa74", { defaultValue: "Send to channel" })}
             </Button>
           </div>
         </div>

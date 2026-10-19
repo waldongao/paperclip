@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../../i18n.js";
 import { Command } from "commander";
 import pc from "picocolors";
 import type {
@@ -122,7 +123,7 @@ export function parseSecretsInclude(input: string | undefined): CompanyPortabili
     skills: values.includes("skills"),
   };
   if (!Object.values(include).some(Boolean)) {
-    throw new Error("Invalid --include value. Use one or more of: company,agents,projects,issues,tasks,skills");
+    throw new Error(tCli("Invalid --include value. Use one or more of: company,agents,projects,issues,tasks,skills"));
   }
   return include;
 }
@@ -193,15 +194,15 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 
 function readValueFromOptions(opts: { value?: string; valueEnv?: string }): string {
   if (opts.value !== undefined && opts.valueEnv !== undefined) {
-    throw new Error("Use only one of --value or --value-env.");
+    throw new Error(tCli("Use only one of --value or --value-env."));
   }
   if (opts.valueEnv !== undefined) {
     const value = process.env[opts.valueEnv];
-    if (!value) throw new Error(`Environment variable ${opts.valueEnv} is empty or unset.`);
+    if (!value) throw new Error(tCli("Environment variable {{valueEnv}} is empty or unset.", { valueEnv: opts.valueEnv }));
     return value;
   }
   if (opts.value !== undefined) return opts.value;
-  throw new Error("Secret value is required. Pass --value or --value-env.");
+  throw new Error(tCli("Secret value is required. Pass --value or --value-env."));
 }
 
 function renderDeclaration(input: CompanyPortabilityEnvInput): Record<string, unknown> {
@@ -248,11 +249,11 @@ function printProviderHealth(rows: SecretProviderHealth[], json: boolean): void 
       formatInlineRecord({
         id: row.provider,
         status: row.status,
-        message: row.message,
+        message: row.message ? translateCliDisplayMessage(row.message) : row.message,
       }),
     );
     for (const warning of row.warnings ?? []) {
-      console.log(pc.yellow(`warning=${warning}`));
+      console.log(pc.yellow(tCli("warning={{warning}}", { warning: translateCliDisplayMessage(warning) })));
     }
     const missingConfig = asStringArray(row.details?.missingConfig);
     if (missingConfig.length > 0) {
@@ -269,7 +270,7 @@ function printProviderHealth(rows: SecretProviderHealth[], json: boolean): void 
       console.log(pc.dim(`detectedCredentialSources=${detectedCredentialSources.join(",")}`));
     }
     for (const guidance of row.backupGuidance ?? []) {
-      console.log(pc.dim(`backup=${guidance}`));
+      console.log(pc.dim(`backup=${translateCliDisplayMessage(guidance)}`));
     }
   }
 }
@@ -299,7 +300,7 @@ async function migrateInlineEnv(opts: SecretMigrateInlineEnvOptions): Promise<vo
       { json: ctx.json },
     );
     if (!ctx.json) {
-      console.log(pc.dim("Re-run with --apply to create/rotate secrets and update agent env bindings."));
+      console.log(pc.dim(tCli("Re-run with --apply to create/rotate secrets and update agent env bindings.")));
     }
     return;
   }
@@ -327,7 +328,7 @@ async function migrateInlineEnv(opts: SecretMigrateInlineEnvOptions): Promise<vo
       value,
       description: `Migrated from agent ${candidate.agentId} env ${candidate.envKey}`,
     });
-    if (!created) throw new Error(`Secret create returned no data for ${candidate.secretName}`);
+    if (!created) throw new Error(tCli("Secret create returned no data for {{secretName}}", { secretName: candidate.secretName }));
     createdOrRotated.set(`${candidate.agentId}:${candidate.envKey}`, created.id);
     createdSecrets += 1;
   }
@@ -365,13 +366,13 @@ async function migrateInlineEnv(opts: SecretMigrateInlineEnvOptions): Promise<vo
 }
 
 export function registerSecretCommands(program: Command): void {
-  const secrets = program.command("secrets").description("Secret declaration and provider operations");
+  const secrets = program.command("secrets").description(tCli("Secret declaration and provider operations"));
 
   addCommonClientOptions(
     secrets
       .command("list")
-      .description("List secret metadata for a company")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .description(tCli("List secret metadata for a company"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: SecretListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -386,16 +387,16 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("declarations")
-      .description("List portable env declarations emitted by company export")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--include <values>", "Comma-separated include set: company,agents,projects,issues,tasks,skills", "company,agents,projects")
-      .option("--kind <kind>", "Filter declarations: all | secret | plain", "all")
+      .description(tCli("List portable env declarations emitted by company export"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--include <values>", tCli("Comma-separated include set: company,agents,projects,issues,tasks,skills"), "company,agents,projects")
+      .option("--kind <kind>", tCli("Filter declarations: all | secret | plain"), "all")
       .action(async (opts: SecretDeclarationsOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           const kind = opts.kind ?? "all";
           if (!["all", "secret", "plain"].includes(kind)) {
-            throw new Error("Invalid --kind value. Use: all, secret, plain");
+            throw new Error(tCli("Invalid --kind value. Use: all, secret, plain"));
           }
           const preview = await ctx.api.post<CompanyPortabilityExportPreviewResult>(
             apiPath`/api/companies/${ctx.companyId}/exports/preview`,
@@ -413,14 +414,14 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("create")
-      .description("Create a Paperclip-managed secret")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--name <name>", "Secret display name")
-      .option("--key <key>", "Portable secret key")
-      .option("--provider <provider>", "Secret provider id")
-      .option("--value <value>", "Secret value")
-      .option("--value-env <name>", "Read secret value from an environment variable")
-      .option("--description <text>", "Description")
+      .description(tCli("Create a Paperclip-managed secret"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--name <name>", tCli("Secret display name"))
+      .option("--key <key>", tCli("Portable secret key"))
+      .option("--provider <provider>", tCli("Secret provider id"))
+      .option("--value <value>", tCli("Secret value"))
+      .option("--value-env <name>", tCli("Read secret value from an environment variable"))
+      .option("--description <text>", tCli("Description"))
       .action(async (opts: SecretCreateOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -441,14 +442,14 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("link")
-      .description("Link an external provider-owned secret without storing its value in Paperclip")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--name <name>", "Secret display name")
-      .requiredOption("--provider <provider>", "Secret provider id")
-      .requiredOption("--external-ref <ref>", "Provider secret ARN/name/path/reference")
-      .option("--key <key>", "Portable secret key")
-      .option("--provider-version-ref <ref>", "Provider version id or label")
-      .option("--description <text>", "Description")
+      .description(tCli("Link an external provider-owned secret without storing its value in Paperclip"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--name <name>", tCli("Secret display name"))
+      .requiredOption("--provider <provider>", tCli("Secret provider id"))
+      .requiredOption("--external-ref <ref>", tCli("Provider secret ARN/name/path/reference"))
+      .option("--key <key>", tCli("Portable secret key"))
+      .option("--provider-version-ref <ref>", tCli("Provider version id or label"))
+      .option("--description <text>", tCli("Description"))
       .action(async (opts: SecretLinkOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -471,9 +472,9 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("update")
-      .description("Update secret metadata")
-      .argument("<secretId>", "Secret ID")
-      .requiredOption("--payload-json <json>", "UpdateSecret JSON payload")
+      .description(tCli("Update secret metadata"))
+      .argument("<secretId>", tCli("Secret ID"))
+      .requiredOption("--payload-json <json>", tCli("UpdateSecret JSON payload"))
       .action(async (secretId: string, opts: SecretUpdateOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -487,10 +488,10 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("rotate")
-      .description("Rotate a Paperclip-managed secret value")
-      .argument("<secretId>", "Secret ID")
-      .option("--value <value>", "New secret value")
-      .option("--value-env <name>", "Read new secret value from an environment variable")
+      .description(tCli("Rotate a Paperclip-managed secret value"))
+      .argument("<secretId>", tCli("Secret ID"))
+      .option("--value <value>", tCli("New secret value"))
+      .option("--value-env <name>", tCli("Read new secret value from an environment variable"))
       .action(async (secretId: string, opts: SecretRotateOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -504,8 +505,8 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("usage")
-      .description("Show where a secret is referenced")
-      .argument("<secretId>", "Secret ID")
+      .description(tCli("Show where a secret is referenced"))
+      .argument("<secretId>", tCli("Secret ID"))
       .action(async (secretId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -519,8 +520,8 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("access-events")
-      .description("List secret access events")
-      .argument("<secretId>", "Secret ID")
+      .description(tCli("List secret access events"))
+      .argument("<secretId>", tCli("Secret ID"))
       .action(async (secretId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -534,15 +535,15 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("delete")
-      .description("Delete a secret")
-      .argument("<secretId>", "Secret ID")
-      .option("--yes", "Required safety flag to confirm destructive action", false)
-      .option("--confirm <secretId>", "Repeat the secret ID to confirm deletion")
+      .description(tCli("Delete a secret"))
+      .argument("<secretId>", tCli("Secret ID"))
+      .option("--yes", tCli("Required safety flag to confirm destructive action"), false)
+      .option("--confirm <secretId>", tCli("Repeat the secret ID to confirm deletion"))
       .action(async (secretId: string, opts: SecretDeleteOptions) => {
         try {
-          if (!opts.yes) throw new Error("Deletion requires --yes.");
+          if (!opts.yes) throw new Error(tCli("Deletion requires --yes."));
           if (opts.confirm !== secretId) {
-            throw new Error("Deletion requires --confirm <secretId> matching the secret ID.");
+            throw new Error(tCli("Deletion requires --confirm <secretId> matching the secret ID."));
           }
           const ctx = resolveCommandContext(opts);
           printOutput(await ctx.api.delete(apiPath`/api/secrets/${secretId}`), { json: ctx.json });
@@ -555,8 +556,8 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("doctor")
-      .description("Run secret provider health checks through the Paperclip API")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .description(tCli("Run secret provider health checks through the Paperclip API"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: SecretDoctorOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -573,8 +574,8 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("providers")
-      .description("List configured secret provider descriptors")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .description(tCli("List configured secret provider descriptors"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: SecretDoctorOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -591,8 +592,8 @@ export function registerSecretCommands(program: Command): void {
   addCommonClientOptions(
     secrets
       .command("provider-configs")
-      .description("List company secret provider vault configs")
-      .requiredOption("-C, --company-id <id>", "Company ID")
+      .description(tCli("List company secret provider vault configs"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: SecretDoctorOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -603,27 +604,27 @@ export function registerSecretCommands(program: Command): void {
       }),
   );
 
-  addCompanySecretJsonPost(secrets, "provider-config:create", "Create a secret provider vault config", "secret-provider-configs");
+  addCompanySecretJsonPost(secrets, "provider-config:create", tCli("Create a secret provider vault config"), "secret-provider-configs");
   addCompanySecretJsonPost(
     secrets,
     "provider-config:discovery-preview",
-    "Preview provider vault secret discovery",
+    tCli("Preview provider vault secret discovery"),
     "secret-provider-configs/discovery/preview",
   );
-  addSecretProviderConfigGet(secrets, "provider-config:get", "Get a secret provider vault config", "");
-  addSecretProviderConfigPatch(secrets, "provider-config:update", "Update a secret provider vault config", "");
-  addSecretProviderConfigPost(secrets, "provider-config:default", "Set the default provider vault config", "default");
-  addSecretProviderConfigPost(secrets, "provider-config:health", "Check provider vault health", "health");
-  addSecretProviderConfigDelete(secrets, "provider-config:delete", "Delete a secret provider vault config");
-  addCompanySecretJsonPost(secrets, "remote-import:preview", "Preview remote secret import", "secrets/remote-import/preview");
-  addCompanySecretJsonPost(secrets, "remote-import", "Import selected remote secrets", "secrets/remote-import");
+  addSecretProviderConfigGet(secrets, "provider-config:get", tCli("Get a secret provider vault config"), "");
+  addSecretProviderConfigPatch(secrets, "provider-config:update", tCli("Update a secret provider vault config"), "");
+  addSecretProviderConfigPost(secrets, "provider-config:default", tCli("Set the default provider vault config"), "default");
+  addSecretProviderConfigPost(secrets, "provider-config:health", tCli("Check provider vault health"), "health");
+  addSecretProviderConfigDelete(secrets, "provider-config:delete", tCli("Delete a secret provider vault config"));
+  addCompanySecretJsonPost(secrets, "remote-import:preview", tCli("Preview remote secret import"), "secrets/remote-import/preview");
+  addCompanySecretJsonPost(secrets, "remote-import", tCli("Import selected remote secrets"), "secrets/remote-import");
 
   addCommonClientOptions(
     secrets
       .command("migrate-inline-env")
-      .description("Migrate inline sensitive agent env values into secret references")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--apply", "Persist changes; default is a dry run", false)
+      .description(tCli("Migrate inline sensitive agent env values into secret references"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--apply", tCli("Persist changes; default is a dry run"), false)
       .action(async (opts: SecretMigrateInlineEnvOptions) => {
         try {
           await migrateInlineEnv(opts);
@@ -639,8 +640,8 @@ function addCompanySecretJsonPost(parent: Command, name: string, description: st
     parent
       .command(name)
       .description(description)
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--payload-json <json>", "JSON payload")
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--payload-json <json>", tCli("JSON payload"))
       .action(async (opts: SecretJsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -657,7 +658,7 @@ function addSecretProviderConfigGet(parent: Command, name: string, description: 
     parent
       .command(name)
       .description(description)
-      .argument("<configId>", "Provider config ID")
+      .argument("<configId>", tCli("Provider config ID"))
       .action(async (configId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -674,8 +675,8 @@ function addSecretProviderConfigPatch(parent: Command, name: string, description
     parent
       .command(name)
       .description(description)
-      .argument("<configId>", "Provider config ID")
-      .requiredOption("--payload-json <json>", "JSON payload")
+      .argument("<configId>", tCli("Provider config ID"))
+      .requiredOption("--payload-json <json>", tCli("JSON payload"))
       .action(async (configId: string, opts: SecretJsonOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -692,7 +693,7 @@ function addSecretProviderConfigPost(parent: Command, name: string, description:
     parent
       .command(name)
       .description(description)
-      .argument("<configId>", "Provider config ID")
+      .argument("<configId>", tCli("Provider config ID"))
       .action(async (configId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -709,7 +710,7 @@ function addSecretProviderConfigDelete(parent: Command, name: string, descriptio
     parent
       .command(name)
       .description(description)
-      .argument("<configId>", "Provider config ID")
+      .argument("<configId>", tCli("Provider config ID"))
       .action(async (configId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);

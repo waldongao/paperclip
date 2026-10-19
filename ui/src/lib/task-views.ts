@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { InboxTab } from "./inbox";
 
 /**
@@ -49,22 +50,22 @@ export interface TaskViewGroup {
 
 export const TASK_VIEW_GROUPS: TaskViewGroup[] = [
   {
-    label: "My work",
+    label: t("stability.b4b9c68509b9", { defaultValue: "My work" }),
     views: [
-      { key: "mine", label: "Mine", surface: "inbox", inboxTab: "mine", hint: "Assigned to you or waiting on you" },
-      { key: "unread", label: "Unread", surface: "inbox", inboxTab: "unread", hint: "Tasks you touched with new activity" },
-      { key: "blocked", label: "Blocked", surface: "inbox", inboxTab: "blocked", hint: "Blocked tasks, grouped by blocker" },
-      { key: "recent", label: "Recent", surface: "inbox", inboxTab: "recent", hint: "Everything you touched lately" },
-      { key: "everything", label: "Everything", surface: "inbox", inboxTab: "all", hint: "Tasks, approvals, failed runs and join requests" },
+      { key: "mine", label: t("mine"), surface: "inbox", inboxTab: "mine", hint: "Assigned to you or waiting on you" },
+      { key: "unread", label: t("unread"), surface: "inbox", inboxTab: "unread", hint: "Tasks you touched with new activity" },
+      { key: "blocked", label: t("blocked"), surface: "inbox", inboxTab: "blocked", hint: "Blocked tasks, grouped by blocker" },
+      { key: "recent", label: t("recent"), surface: "inbox", inboxTab: "recent", hint: "Everything you touched lately" },
+      { key: "everything", label: t("stability.75304cf77db0", { defaultValue: "Everything" }), surface: "inbox", inboxTab: "all", hint: "Tasks, approvals, failed runs and join requests" },
     ],
   },
   {
-    label: "Organization",
+    label: t("nav.sections.organization"),
     views: [
-      { key: "all", label: "All tasks", surface: "issues", statuses: [], hint: "Every task in the organization" },
-      { key: "active", label: "Active", surface: "issues", statuses: ["todo", "in_progress", "in_review", "blocked"], hint: "Open tasks, running or not" },
-      { key: "backlog", label: "Backlog", surface: "issues", statuses: ["backlog"], hint: "Not started yet" },
-      { key: "done", label: "Done", surface: "issues", statuses: ["done", "cancelled"], hint: "Completed and cancelled" },
+      { key: "all", label: t("stability.cb66482383df", { defaultValue: "All tasks" }), surface: "issues", statuses: [], hint: "Every task in the organization" },
+      { key: "active", label: t("active"), surface: "issues", statuses: ["todo", "in_progress", "in_review", "blocked"], hint: "Open tasks, running or not" },
+      { key: "backlog", label: t("backlog"), surface: "issues", statuses: ["backlog"], hint: "Not started yet" },
+      { key: "done", label: t("common.done"), surface: "issues", statuses: ["done", "cancelled"], hint: "Completed and cancelled" },
     ],
   },
 ];

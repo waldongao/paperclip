@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -98,9 +99,9 @@ export function SearchableSelect<
   groups,
   onValueChange,
   placeholder,
-  searchPlaceholder = "Search...",
-  emptyMessage = "No options found.",
-  loadingMessage = "Loading...",
+  searchPlaceholder = t("search_6d7a30"),
+  emptyMessage = t("no_options_found"),
+  loadingMessage = t("loading_b04ba4"),
   loading = false,
   disabled = false,
   className,
@@ -272,7 +273,7 @@ export function SearchableSelect<
           <button
             type="button"
             className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-            aria-label="Close selector"
+            aria-label={t("stability.74de5f1da8b5", { defaultValue: "Close selector" })}
             onClick={() => closePopover({ suppressTriggerFocus: true })}
           >
             <X className="size-5" />

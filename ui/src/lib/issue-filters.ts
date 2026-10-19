@@ -1,4 +1,6 @@
 import type { ExternalObjectSummary, Issue } from "@paperclipai/shared";
+import { t } from "@/i18n";
+import { getDisplayLabel } from "./display-labels";
 
 export type IssueFilterWorkspaceLookup = {
   mode?: string | null;
@@ -63,13 +65,13 @@ export const externalObjectFilterOrder = [
 ];
 
 const EXTERNAL_OBJECT_FILTER_LABELS: Record<string, string> = {
-  failed: "Any failed",
-  waiting: "Any waiting",
-  running: "Any running",
-  auth_required: "Auth required",
-  unreachable: "Unreachable",
-  stale: "Stale",
-  none: "No external objects",
+  failed: t("any_failed"),
+  waiting: t("any_waiting"),
+  running: t("any_running"),
+  auth_required: t("auth_required"),
+  unreachable: t("unreachable"),
+  stale: t("stale"),
+  none: t("no_external_objects"),
 };
 
 export function externalObjectFilterLabel(value: string): string {
@@ -80,14 +82,14 @@ export const issueStatusOrder = ["in_progress", "todo", "backlog", "in_review", 
 export const issuePriorityOrder = ["critical", "high", "medium", "low"];
 
 export const issueQuickFilterPresets = [
-  { label: "All", statuses: [] as string[] },
-  { label: "Active", statuses: ["todo", "in_progress", "in_review", "blocked"] },
-  { label: "Backlog", statuses: ["backlog"] },
-  { label: "Done", statuses: ["done", "cancelled"] },
+  { label: t("all"), statuses: [] as string[] },
+  { label: t("active"), statuses: ["todo", "in_progress", "in_review", "blocked"] },
+  { label: t("backlog"), statuses: ["backlog"] },
+  { label: t("done"), statuses: ["done", "cancelled"] },
 ];
 
 export function issueFilterLabel(value: string): string {
-  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+  return getDisplayLabel(value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()), "raw");
 }
 
 export function issueFilterArraysEqual(a: string[], b: string[]): boolean {

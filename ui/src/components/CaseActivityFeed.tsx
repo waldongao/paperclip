@@ -14,26 +14,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn, relativeTime } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 const EVENT_LABEL: Record<CaseEventKind, string> = {
   created: "created",
   updated: "updated",
-  fields_changed: "fields changed",
-  status_changed: "status changed",
-  issue_linked: "issue linked",
-  issue_unlinked: "issue unlinked",
-  document_revised: "document revised",
-  child_linked: "child linked",
-  attachment_added: "attachment added",
-  label_added: "label added",
-  label_removed: "label removed",
+  fields_changed: t("fields_changed"),
+  status_changed: t("status_changed"),
+  issue_linked: t("issue_linked"),
+  issue_unlinked: t("issue_unlinked"),
+  document_revised: t("document_revised"),
+  child_linked: t("child_linked"),
+  attachment_added: t("attachment_added"),
+  label_added: t("label_added"),
+  label_removed: t("label_removed"),
 };
 
 /** Human label for the actor, preferring the resolved agent name. */
 function actorLabel(event: CaseEvent): string {
-  if (event.actorType === "agent") return event.actorAgentName ?? "Agent";
-  if (event.actorType === "user") return "User";
-  return "System";
+  if (event.actorType === "agent") return event.actorAgentName ?? t("agent_5ce2e6");
+  if (event.actorType === "user") return t("user");
+  return t("system");
 }
 
 function ActorIcon({ event }: { event: CaseEvent }) {
@@ -86,6 +88,7 @@ export function CaseEventRow({ event, compact = false }: { event: CaseEvent; com
 
 /** The full activity feed with kind filters (detail-page Activity tab). */
 export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
+  const { t } = useTranslation();
   const [active, setActive] = useState<Set<CaseEventKind>>(new Set());
 
   // Only offer filters for kinds actually present, in first-seen order.
@@ -110,20 +113,20 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
   }
 
   const filterLabel = active.size === 0
-    ? "All activity"
+    ? t("all_activity")
     : active.size === 1
       ? EVENT_LABEL[[...active][0]!] ?? [...active][0]!
-      : `${active.size} filters`;
+      : t("zhComponents.message_550a9a1b73", { value1: active.size });
 
   if (events.length === 0) {
-    return <p className="py-6 text-center text-sm text-muted-foreground">No activity yet.</p>;
+    return <p className="py-6 text-center text-sm text-muted-foreground">{t("no_activity_yet")}</p>;
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
-          {filtered.length} of {events.length} events
+          {filtered.length} {t("zhComponents.text_de04fa0e29")} {events.length} {t("zhComponents.text_82d50d9042")}
         </p>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -134,9 +137,9 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Activity filter</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("activity_filter")}</DropdownMenuLabel>
             <DropdownMenuItem onSelect={() => setActive(new Set())}>
-              All activity
+              {t("all_activity")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {presentKinds.map((kind) => (
@@ -152,7 +155,7 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
         </DropdownMenu>
       </div>
       {filtered.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">No events match this filter.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">{t("no_events_match_this_filter")}</p>
       ) : (
         <div className="divide-y divide-border">
           {filtered.map((event) => (

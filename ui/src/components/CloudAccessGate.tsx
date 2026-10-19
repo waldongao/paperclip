@@ -1,3 +1,5 @@
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Navigate, Outlet, useLocation } from "@/lib/router";
@@ -31,17 +33,17 @@ export function CloudAccessError({
       <RefreshCw className="size-6 text-muted-foreground" aria-hidden="true" />
       <div className="flex flex-col gap-2" role="status">
         <h1 className="text-xl font-semibold">
-          {temporary ? "Reconnecting to Paperclip" : "Unable to load Paperclip"}
+          {temporary ? t("stability.b11ca004872d", { defaultValue: "Reconnecting to Paperclip" }) : t("stability.e28227a9a280", { defaultValue: "Unable to load Paperclip" })}
         </h1>
         <p className="text-sm text-muted-foreground">
           {temporary
-            ? "The server may be restarting or your connection was interrupted. We’ll try again every few seconds and reconnect automatically."
-            : "We couldn’t check your access to this instance. Try again, or contact your instance administrator if this continues."}
+            ? t("stability.a0bc2bfcc5c4", { defaultValue: "The server may be restarting or your connection was interrupted. We’ll try again every few seconds and reconnect automatically." })
+            : t("stability.c7f5fa9bd723", { defaultValue: "We couldn’t check your access to this instance. Try again, or contact your instance administrator if this continues." })}
         </p>
       </div>
       <div>
         <Button variant="outline" onClick={onRetry} disabled={retrying}>
-          {retrying ? "Connecting…" : "Try again"}
+          {retrying ? t("stability.72021eb70e91", { defaultValue: "Connecting…" }) : t("try_again")}
         </Button>
       </div>
     </div>
@@ -49,16 +51,16 @@ export function CloudAccessError({
 }
 
 function NoBoardAccessPage() {
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-xl py-10">
       <Card className="block p-6">
-        <h1 className="text-xl font-semibold">No organization access</h1>
+        <h1 className="text-xl font-semibold">{t("no_organization_access")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This account is signed in, but it does not have an active organization membership or instance-admin access on
-          this Paperclip instance.
+          {t("this_account_is_signed_in_but_it_does_not_have_a")}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Use an organization invite or sign in with an account that already belongs to this org.
+          {t("use_an_organization_invite_or_sign_in_with_an_ac")}
         </p>
       </Card>
     </div>
@@ -213,9 +215,7 @@ export function CloudAccessGate({ allowMembershipRequest = false }: { allowMembe
   return (
     <>
       {isReconnecting && (
-        <div role="status" className="bg-muted px-4 py-2 text-center text-sm text-muted-foreground">
-          Connection interrupted. Reconnecting automatically…
-        </div>
+        <div role="status" className="bg-muted px-4 py-2 text-center text-sm text-muted-foreground">{t("stability.725cbac59377", { defaultValue: "Connection interrupted. Reconnecting automatically…" })}</div>
       )}
       <Outlet />
     </>

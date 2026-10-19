@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -6,7 +7,7 @@ import type { CheckResult } from "./index.js";
 import { resolveRuntimeLikePath } from "./path-resolver.js";
 
 const AWS_CREDENTIAL_SOURCE_HINT =
-  "Provide AWS runtime credentials through the AWS SDK default credential chain: IAM role/workload identity, AWS_PROFILE/SSO/shared credentials, web identity, container/instance metadata, or short-lived shell credentials";
+  tCli("Provide AWS runtime credentials through the AWS SDK default credential chain: IAM role/workload identity, AWS_PROFILE/SSO/shared credentials, web identity, container/instance metadata, or short-lived shell credentials");
 
 function decodeMasterKey(raw: string): Buffer | null {
   const trimmed = raw.trim();
@@ -41,10 +42,10 @@ function withStrictModeNote(
   return {
     ...base,
     status: "warn",
-    message: `${base.message}; strict secret mode is disabled for postgres deployment`,
+    message: tCli("{{message}}; strict secret mode is disabled for postgres deployment", { message: String(base.message) }),
     repairHint: base.repairHint
-      ? `${base.repairHint}. Consider enabling secrets.strictMode`
-      : "Consider enabling secrets.strictMode",
+      ? tCli("{{repairHint}}. Consider enabling secrets.strictMode", { repairHint: String(base.repairHint) })
+      : tCli("Consider enabling secrets.strictMode"),
   };
 }
 
@@ -55,11 +56,11 @@ export function secretsCheck(config: PaperclipConfig, configPath?: string): Chec
   }
   if (provider !== "local_encrypted") {
     return {
-      name: "Secrets adapter",
+      name: tCli("Secrets adapter"),
       status: "fail",
-      message: `${provider} is configured, but this build only supports local_encrypted and aws_secrets_manager`,
+      message: tCli("{{provider}} is configured, but this build only supports local_encrypted and aws_secrets_manager", { provider: String(provider) }),
       canRepair: false,
-      repairHint: "Run `paperclipai configure --section secrets` and choose local_encrypted or aws_secrets_manager",
+      repairHint: tCli("Run `paperclipai configure --section secrets` and choose local_encrypted or aws_secrets_manager"),
     };
   }
 
@@ -67,20 +68,20 @@ export function secretsCheck(config: PaperclipConfig, configPath?: string): Chec
   if (envMasterKey && envMasterKey.trim().length > 0) {
     if (!decodeMasterKey(envMasterKey)) {
       return {
-        name: "Secrets adapter",
+        name: tCli("Secrets adapter"),
         status: "fail",
         message:
-          "PAPERCLIP_SECRETS_MASTER_KEY is invalid (expected 32-byte base64, 64-char hex, or raw 32-char string)",
+          tCli("PAPERCLIP_SECRETS_MASTER_KEY is invalid (expected 32-byte base64, 64-char hex, or raw 32-char string)"),
         canRepair: false,
-        repairHint: "Set PAPERCLIP_SECRETS_MASTER_KEY to a valid key or unset it to use a key file",
+        repairHint: tCli("Set PAPERCLIP_SECRETS_MASTER_KEY to a valid key or unset it to use a key file"),
       };
     }
 
     return withStrictModeNote(
       {
-        name: "Secrets adapter",
+        name: tCli("Secrets adapter"),
         status: "pass",
-        message: "Local encrypted provider configured via PAPERCLIP_SECRETS_MASTER_KEY",
+        message: tCli("Local encrypted provider configured via PAPERCLIP_SECRETS_MASTER_KEY"),
       },
       config,
     );
@@ -96,9 +97,9 @@ export function secretsCheck(config: PaperclipConfig, configPath?: string): Chec
   if (!fs.existsSync(keyFilePath)) {
     return withStrictModeNote(
       {
-        name: "Secrets adapter",
+        name: tCli("Secrets adapter"),
         status: "warn",
-        message: `Secrets key file does not exist yet: ${keyFilePath}`,
+        message: tCli("Secrets key file does not exist yet: {{keyFilePath}}", { keyFilePath: String(keyFilePath) }),
         canRepair: true,
         repair: () => {
           fs.mkdirSync(path.dirname(keyFilePath), { recursive: true });
@@ -112,7 +113,7 @@ export function secretsCheck(config: PaperclipConfig, configPath?: string): Chec
             // best effort
           }
         },
-        repairHint: "Run with --repair to create a local encrypted secrets key file",
+        repairHint: tCli("Run with --repair to create a local encrypted secrets key file"),
       },
       config,
     );
@@ -123,37 +124,37 @@ export function secretsCheck(config: PaperclipConfig, configPath?: string): Chec
     raw = fs.readFileSync(keyFilePath, "utf8");
   } catch (err) {
     return {
-      name: "Secrets adapter",
+      name: tCli("Secrets adapter"),
       status: "fail",
-      message: `Could not read secrets key file: ${err instanceof Error ? err.message : String(err)}`,
+      message: tCli("Could not read secrets key file: {{message}}", { message: translateCliDisplayMessage(err instanceof Error ? err.message : String(err)) }),
       canRepair: false,
-      repairHint: "Check file permissions or set PAPERCLIP_SECRETS_MASTER_KEY",
+      repairHint: tCli("Check file permissions or set PAPERCLIP_SECRETS_MASTER_KEY"),
     };
   }
 
   if (!decodeMasterKey(raw)) {
     return {
-      name: "Secrets adapter",
+      name: tCli("Secrets adapter"),
       status: "fail",
-      message: `Invalid key material in ${keyFilePath}`,
+      message: tCli("Invalid key material in {{keyFilePath}}", { keyFilePath: String(keyFilePath) }),
       canRepair: false,
-      repairHint: "Replace with valid key material or delete it and run doctor --repair",
+      repairHint: tCli("Replace with valid key material or delete it and run doctor --repair"),
     };
   }
 
   const keyMode = fs.statSync(keyFilePath).mode & 0o777;
   const permissionWarning =
     (keyMode & 0o077) !== 0
-      ? `; key file permissions are ${keyMode.toString(8)} (run chmod 600 ${keyFilePath})`
+      ? tCli("; key file permissions are {{keyMode}} (run chmod 600 {{keyFilePath}})", { keyMode: String(keyMode.toString(8)), keyFilePath: String(keyFilePath) })
       : "";
 
   return withStrictModeNote(
     {
-      name: "Secrets adapter",
+      name: tCli("Secrets adapter"),
       status: permissionWarning ? "warn" : "pass",
-      message: `Local encrypted provider configured with key file ${keyFilePath}${permissionWarning}`,
+      message: tCli("Local encrypted provider configured with key file {{keyFilePath}}{{permissionWarning}}", { keyFilePath: String(keyFilePath), permissionWarning: String(permissionWarning) }),
       repairHint: permissionWarning
-        ? "Restrict the local encrypted secrets key file to owner read/write permissions"
+        ? tCli("Restrict the local encrypted secrets key file to owner read/write permissions")
         : undefined,
     },
     config,
@@ -164,12 +165,12 @@ function awsSecretsManagerCheck(): CheckResult {
   const missingConfig = missingAwsSecretsManagerConfig();
   if (missingConfig.length > 0) {
     return {
-      name: "Secrets adapter",
+      name: tCli("Secrets adapter"),
       status: "fail",
-      message: `AWS Secrets Manager provider is missing non-secret config: ${missingConfig.join(", ")}`,
+      message: tCli("AWS Secrets Manager provider is missing non-secret config: {{missingConfig}}", { missingConfig: String(missingConfig.join(", ")) }),
       canRepair: false,
       repairHint:
-        `Set ${missingConfig.join(", ")} in the Paperclip server runtime. ${AWS_CREDENTIAL_SOURCE_HINT}. Do not store AWS root credentials or long-lived IAM user keys in Paperclip secrets.`,
+        tCli("Set {{missingConfig}} in the Paperclip server runtime. {{AWS_CREDENTIAL_SOURCE_HINT}}. Do not store AWS root credentials or long-lived IAM user keys in Paperclip secrets.", { missingConfig: String(missingConfig.join(", ")), AWS_CREDENTIAL_SOURCE_HINT: String(AWS_CREDENTIAL_SOURCE_HINT) }),
     };
   }
 
@@ -177,22 +178,22 @@ function awsSecretsManagerCheck(): CheckResult {
     process.env.AWS_ACCESS_KEY_ID?.trim() && process.env.AWS_SECRET_ACCESS_KEY?.trim();
   const credentialSource = detectedAwsCredentialSources().join(", ");
   const message =
-    `AWS Secrets Manager provider configured for deployment ${process.env.PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID}; ` +
-    `runtime credentials source: ${credentialSource || "AWS SDK default credential chain"}`;
+    tCli("AWS Secrets Manager provider configured for deployment {{PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID}}; ", { PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID: String(process.env.PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID) }) +
+    tCli("runtime credentials source: {{chain}}", { chain: String(credentialSource || tCli("AWS SDK default credential chain")) });
 
   if (staticEnvCredentials) {
     return {
-      name: "Secrets adapter",
+      name: tCli("Secrets adapter"),
       status: "warn",
       message,
       canRepair: false,
       repairHint:
-        "AWS static environment credentials are visible. Use only short-lived shell credentials locally; prefer IAM role/workload identity for hosted deployments and never store AWS access keys in Paperclip company secrets.",
+        tCli("AWS static environment credentials are visible. Use only short-lived shell credentials locally; prefer IAM role/workload identity for hosted deployments and never store AWS access keys in Paperclip company secrets."),
     };
   }
 
   return {
-    name: "Secrets adapter",
+    name: tCli("Secrets adapter"),
     status: "pass",
     message,
   };
@@ -207,7 +208,7 @@ function missingAwsSecretsManagerConfig(): string[] {
       process.env.AWS_DEFAULT_REGION?.trim()
     )
   ) {
-    missing.push("PAPERCLIP_SECRETS_AWS_REGION or AWS_REGION/AWS_DEFAULT_REGION");
+    missing.push(tCli("PAPERCLIP_SECRETS_AWS_REGION or AWS_REGION/AWS_DEFAULT_REGION"));
   }
   if (!process.env.PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID?.trim()) {
     missing.push("PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID");
@@ -220,21 +221,21 @@ function missingAwsSecretsManagerConfig(): string[] {
 
 function detectedAwsCredentialSources(): string[] {
   const sources: string[] = [];
-  if (process.env.AWS_PROFILE?.trim()) sources.push("AWS_PROFILE/shared config");
+  if (process.env.AWS_PROFILE?.trim()) sources.push(tCli("AWS_PROFILE/shared config"));
   if (process.env.AWS_ACCESS_KEY_ID?.trim() && process.env.AWS_SECRET_ACCESS_KEY?.trim()) {
-    sources.push("temporary AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY environment credentials");
+    sources.push(tCli("temporary AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY environment credentials"));
   }
   if (process.env.AWS_WEB_IDENTITY_TOKEN_FILE?.trim() && process.env.AWS_ROLE_ARN?.trim()) {
-    sources.push("AWS web identity token");
+    sources.push(tCli("AWS web identity token"));
   }
   if (
     process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI?.trim() ||
     process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI?.trim()
   ) {
-    sources.push("AWS container credentials endpoint");
+    sources.push(tCli("AWS container credentials endpoint"));
   }
   if (process.env.AWS_SHARED_CREDENTIALS_FILE?.trim() || process.env.AWS_CONFIG_FILE?.trim()) {
-    sources.push("custom AWS shared credentials/config file");
+    sources.push(tCli("custom AWS shared credentials/config file"));
   }
   return sources;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { t } from "@/i18n";
 
 const CHARS = [" ", ".", "·", "▪", "▫", "○"] as const;
 const TARGET_FPS = 24;
@@ -46,7 +47,7 @@ function measureChar(container: HTMLElement): { w: number; h: number } {
   const span = document.createElement("span");
   span.textContent = "M";
   span.style.cssText =
-    "position:absolute;visibility:hidden;white-space:pre;font-size:11px;font-family:monospace;line-height:1;";
+    t("position_absolute_visibility_hidden_white_space");
   container.appendChild(span);
   const rect = span.getBoundingClientRect();
   container.removeChild(span);

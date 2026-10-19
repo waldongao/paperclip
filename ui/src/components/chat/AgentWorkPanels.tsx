@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpDown, File, FileText, Image, Search, Video } from "lucide-react";
@@ -150,15 +151,15 @@ export function AgentTasksPanel({
   const capped = (tasksQuery.data?.length ?? 0) >= AGENT_TASK_LIMIT;
 
   return (
-    <section className="flex flex-col gap-3" aria-label="Agent tasks">
+    <section className="flex flex-col gap-3" aria-label={t("stability.07fdbcd6fb73", { defaultValue: "Agent tasks" })}>
       <div className="flex items-center gap-1">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search tasks"
-            aria-label="Search tasks"
+            placeholder={t("search_tasks_73ffe8")}
+            aria-label={t("search_tasks_73ffe8")}
             className="h-8 pl-7 text-sm"
           />
         </div>
@@ -174,7 +175,7 @@ export function AgentTasksPanel({
         />
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title="Sort" aria-label="Sort tasks">
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title={t("sort")} aria-label={t("stability.952f3831e14f", { defaultValue: "Sort tasks" })}>
               <ArrowUpDown className="h-3.5 w-3.5" />
             </Button>
           </PopoverTrigger>
@@ -208,24 +209,22 @@ export function AgentTasksPanel({
       </div>
 
       {tasksQuery.isPending ? (
-        <PanelMessage>Loading tasks…</PanelMessage>
+        <PanelMessage>{t("stability.9ae9f7d835d9", { defaultValue: "Loading tasks…" })}</PanelMessage>
       ) : tasksQuery.isError ? (
-        <PanelMessage tone="error">Could not load this agent's tasks.</PanelMessage>
+        <PanelMessage tone="error">{t("stability.1ef2b2aa75b9", { defaultValue: "Could not load this agent's tasks." })}</PanelMessage>
       ) : total === 0 ? (
-        <PanelMessage>This agent hasn't worked on any tasks yet.</PanelMessage>
+        <PanelMessage>{t("stability.7960d22edac8", { defaultValue: "This agent hasn't worked on any tasks yet." })}</PanelMessage>
       ) : visible.length === 0 ? (
         <PanelMessage>
           {capped
             ? `No tasks match these filters among the ${AGENT_TASK_LIMIT} most recently updated.`
-            : "No tasks match these filters."}
+            : t("stability.2772176304ce", { defaultValue: "No tasks match these filters." })}
         </PanelMessage>
       ) : (
         <div className="flex flex-col gap-2">
           {visible.map((task) => <AgentTaskCard key={task.id} task={task} />)}
           {capped ? (
-            <p className="px-1 text-xs text-muted-foreground">
-              Showing the {AGENT_TASK_LIMIT} most recently updated tasks.
-            </p>
+            <p className="px-1 text-xs text-muted-foreground">{t("showing_the")}{" "}{AGENT_TASK_LIMIT}{" "}{t("stability.b605c25c26ee", { defaultValue: "most recently updated tasks." })}</p>
           ) : null}
         </div>
       )}
@@ -262,7 +261,7 @@ export function AgentArtifactCard({ artifact }: { artifact: CompanyArtifact }) {
         </span>
       </div>
       <div className="flex items-center gap-1.5 pl-6 text-xs text-muted-foreground">
-        <span>Updated {formatDate(artifact.updatedAt)}</span>
+        <span>{t("updated")}{" "}{formatDate(artifact.updatedAt)}</span>
         <span aria-hidden>·</span>
         <span className="font-mono">{artifact.issue.identifier}</span>
       </div>
@@ -293,15 +292,15 @@ export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string;
     queryFn: () => listAgentArtifacts(companyId, agentId),
   });
 
-  if (artifactsQuery.isPending) return <PanelMessage>Loading artifacts…</PanelMessage>;
-  if (artifactsQuery.isError) return <PanelMessage tone="error">Could not load this agent's artifacts.</PanelMessage>;
+  if (artifactsQuery.isPending) return <PanelMessage>{t("stability.11580619f554", { defaultValue: "Loading artifacts…" })}</PanelMessage>;
+  if (artifactsQuery.isError) return <PanelMessage tone="error">{t("stability.9202bbd9888d", { defaultValue: "Could not load this agent's artifacts." })}</PanelMessage>;
   const { artifacts, truncated } = artifactsQuery.data;
-  if (artifacts.length === 0) return <PanelMessage>This agent hasn't produced any artifacts yet.</PanelMessage>;
+  if (artifacts.length === 0) return <PanelMessage>{t("stability.fd7148b1ac2c", { defaultValue: "This agent hasn't produced any artifacts yet." })}</PanelMessage>;
   return (
-    <section className="flex flex-col gap-2" aria-label="Agent artifacts">
+    <section className="flex flex-col gap-2" aria-label={t("stability.1e85a350614f", { defaultValue: "Agent artifacts" })}>
       {artifacts.map((artifact) => <AgentArtifactCard key={artifact.id} artifact={artifact} />)}
       {truncated ? (
-        <p className="px-1 text-xs text-muted-foreground">Showing this agent's {artifacts.length} most recent artifacts.</p>
+        <p className="px-1 text-xs text-muted-foreground">{t("stability.635eda6ffa21", { defaultValue: "Showing this agent's" })}{" "}{artifacts.length}{" "}{t("stability.3f4d1829220b", { defaultValue: "most recent artifacts." })}</p>
       ) : null}
     </section>
   );

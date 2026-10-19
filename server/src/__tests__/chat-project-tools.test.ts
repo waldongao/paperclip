@@ -18,6 +18,8 @@ const support = await getEmbeddedPostgresTestSupport();
   const originalSecret = process.env.PAPERCLIP_AGENT_JWT_SECRET;
   beforeAll(async () => { process.env.PAPERCLIP_AGENT_JWT_SECRET = randomUUID(); server = await startRunnerApiTestServer(); }, 60_000);
   afterAll(async () => { await server?.close(); if (originalSecret === undefined) delete process.env.PAPERCLIP_AGENT_JWT_SECRET; else process.env.PAPERCLIP_AGENT_JWT_SECRET = originalSecret; });
+  // These cases verify tool contracts and persistence, not provider execution.
+  // Keep task assignment from starting a real host agent during the suite.
   const call = (fixture: Awaited<ReturnType<typeof server.fixture>>, tool: string, args: Record<string, unknown>) => fixture.authority.execute({ tool, arguments: args, callId: randomUUID() });
 
   it("pages only visible projects and prefilters low-trust agent and run scopes", async () => {
@@ -70,7 +72,7 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("allows a conversation reply to enter review without manufacturing a review interaction", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     const token = createLocalAgentJwt(f.agentId, f.companyId, "paperclip_runner", f.runId, f.responsibleUserId)!;
     const response = await fetch(`${server.apiUrl}/api/issues/${f.issueId}`, {
       method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -82,7 +84,7 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("creates an ordinary project task and its plan atomically, retaining the conversation plan", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     await documentService(server.db).upsertIssueDocument({ issueId: f.issueId, key: "plan", format: "markdown", body: "Full discussion plan" });
     const input = { title: "Implement the clarified outcome", projectId: f.projectId, initialPlan: "# Execution plan\n\nBuild and verify the outcome.", idempotencyKey: "handoff" };
     const first = await call(f, "create_task", input) as any;
@@ -97,7 +99,7 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("rejects creation, child helpers, and reparenting under a chat, while retaining legacy children", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     const svc = issueService(server.db);
     await expect(svc.create(f.companyId, { title: "Invalid", parentId: f.issueId })).rejects.toThrow(/cannot have new subtasks/);
     await expect(svc.createChild(f.issueId, { title: "Invalid" })).rejects.toThrow(/cannot have new subtasks/);
@@ -115,7 +117,7 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("hands off through the same API used by Claude/Codex MCP with the plan present on return", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     const result = await callProjectTool({ name: "create_task", arguments: { title: "MCP handoff", projectId: f.projectId, initialPlan: "# Plan\nImplement in the execution task.", idempotencyKey: "mcp" },
       apiUrl: server.apiUrl, token: createLocalAgentJwt(f.agentId, f.companyId, "paperclip_runner", f.runId, f.responsibleUserId)!,
       companyId: f.companyId, issueId: f.issueId, agentId: f.agentId, conversation: true });
@@ -329,14 +331,14 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("retains ordinary child delegation and projectless task creation", async () => {
-    const f = await server.fixture();
+    const f = await server.fixture({ disableWakeOnDemand: true });
     const result = await call(f, "create_task", { title: "Delegate ordinary work", idempotencyKey: "child" }) as any;
     expect(result.task.parentId).toBe(f.issueId);
     expect(await issueService(server.db).create(f.companyId, { title: "No project needed" })).toMatchObject({ projectId: null });
   });
 
   it("creates a project once through the production API and records it on the source feed", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     const input = { name: "New non-code project", description: "A well-scoped outcome", idempotencyKey: "project" };
     const results = await Promise.all(Array.from({ length: 4 }, () => call(f, "create_project", input))) as any[];
     const project = results[0];
@@ -350,7 +352,7 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("includes an explicit workspace repository in the committed project card", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     const project = await call(f, "create_project", { name: "Workspace repo", workspace: { repoUrl: "https://github.com/example/web" }, idempotencyKey: "workspace" }) as any;
     const feed = await activityService(server.db).forIssue(f.issueId);
     expect(feed.find(event => event.entityId === project.id)?.details?.repositories).toEqual([
@@ -359,7 +361,7 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("registers multiple previously unknown GitHub URLs and deduplicates equivalent URLs", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     const project = await call(f, "create_project", { name: "Across repos", repositoryUrls: ["https://github.com/example/web.git", "https://github.com/example/api", "https://github.com/example/web/"], idempotencyKey: "urls" }) as any;
     expect(project.workspaces.map((w: any) => w.repoUrl).sort()).toEqual(["https://github.com/example/api", "https://github.com/example/web"]);
     expect(project.workspaces.filter((w: any) => w.isPrimary)).toHaveLength(1);
@@ -369,7 +371,7 @@ const support = await getEmbeddedPostgresTestSupport();
 
   it("allows planning documents while denying project/task creation in Plan and Ask mode", async () => {
     for (const mode of ["planning", "ask"] as const) {
-      const f = await server.fixture({ conversation: true, mode });
+      const f = await server.fixture({ conversation: true, mode, disableWakeOnDemand: true });
       await expect(call(f, "create_project", { name: "No", idempotencyKey: "no" })).rejects.toThrow(/mode_denied/);
       await expect(call(f, "create_task", { title: "No", idempotencyKey: "no" })).rejects.toThrow(/mode_denied/);
       if (mode === "planning") await call(f, "write_document", { key: "plan", title: "Plan", body: "Clarify and plan here", idempotencyKey: "plan" });
@@ -377,7 +379,7 @@ const support = await getEmbeddedPostgresTestSupport();
   });
 
   it("rejects invented repository IDs and cancelled runs without creating a project", async () => {
-    const f = await server.fixture({ conversation: true });
+    const f = await server.fixture({ conversation: true, disableWakeOnDemand: true });
     await expect(call(f, "create_project", { name: "Missing repo", repositoryIds: ["999999"], idempotencyKey: "missing" })).rejects.toThrow(/repository.*available/);
     await server.db.update(heartbeatRuns).set({ status: "cancelled" }).where(eq(heartbeatRuns.id, f.runId));
     await expect(call(f, "create_project", { name: "Cancelled", idempotencyKey: "cancelled" })).rejects.toThrow();

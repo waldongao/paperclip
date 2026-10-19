@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { i18n } from "@/i18n";
+const initialLanguage = i18n.language;
+afterEach(async () => { await i18n.changeLanguage(initialLanguage); });
 import type { TranscriptEntry } from "@/adapters";
 import type { HeartbeatRunEvent } from "@paperclipai/shared";
 import {
@@ -193,7 +196,8 @@ describe("completion tool feed visibility", () => {
       notice.details.find((detail) => detail.label === "Summary")?.value).toBe(summary);
   });
 
-  it("keeps completion events inspectable but hides both tool representations from live and settled feed activity", () => {
+  it.each(["en", "zh-CN"])("keeps completion events inspectable but hides both tool representations from live and settled feed activity in %s", async (locale) => {
+    await i18n.changeLanguage(locale);
     for (const running of [true, false]) {
       const entries: TranscriptEntry[] = [
         { kind: "tool_call", ts: TS, toolUseId: "legacy-finish", name: "paperclip_finish", input: {} },

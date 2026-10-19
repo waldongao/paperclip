@@ -42,6 +42,8 @@ import {
   resolveRegisteredPluginComponent,
   type RegisteredPluginComponent,
 } from "./slots";
+import { t, useTranslation } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 export type PluginLauncherContext = {
   companyId?: string | null;
@@ -128,8 +130,8 @@ const supportedLauncherBounds = new Set<PluginLauncherBounds>(
 const PluginLauncherRuntimeContext = createContext<PluginLauncherRuntimeContextValue | null>(null);
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message) return error.message;
-  return "Unknown error";
+  if (error instanceof Error && error.message) return translateDisplayMessage(error.message);
+  return t("unknown_error");
 }
 
 function buildLauncherHostContext(
@@ -252,7 +254,7 @@ function launcherPopoverStyle(instance: LauncherInstance): CSSProperties {
   if (!rect) {
     return {
       width: baseWidth,
-      maxHeight: "min(70vh, 36rem)",
+      maxHeight: t("min_70vh_36rem"),
       top: "4rem",
       left: "50%",
       transform: "translateX(-50%)",
@@ -267,7 +269,7 @@ function launcherPopoverStyle(instance: LauncherInstance): CSSProperties {
 
   return {
     width: baseWidth,
-    maxHeight: "min(70vh, 36rem)",
+    maxHeight: t("min_70vh_36rem"),
     top,
     left,
   };
@@ -417,7 +419,7 @@ class LauncherErrorBoundary extends Component<LauncherErrorBoundaryProps, Launch
     if (this.state.hasError) {
       return (
         <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {this.props.launcher.pluginDisplayName}: failed to render
+          {this.props.launcher.pluginDisplayName}{t("failed_to_render")}
         </div>
       );
     }
@@ -432,6 +434,7 @@ function LauncherRenderContent({
   instance: LauncherInstance;
   renderEnvironment: PluginRenderEnvironmentContext;
 }) {
+  const { t } = useTranslation();
   const component = instance.component;
   const { data: session } = useQuery({
     queryKey: queryKeys.auth.session,
@@ -456,7 +459,7 @@ function LauncherRenderContent({
 
     return (
       <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-        {instance.launcher.pluginDisplayName}: could not resolve launcher target "{instance.launcher.action.target}".
+        {instance.launcher.pluginDisplayName}{t("could_not_resolve_launcher_target")}{instance.launcher.action.target}".
       </div>
     );
   }
@@ -496,6 +499,7 @@ function LauncherModalShell({
   requestBounds: (key: string, request: PluginModalBoundsRequest) => Promise<void>;
   closeLauncher: (key: string, event: PluginRenderCloseEvent) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const contentRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
 
@@ -575,7 +579,7 @@ function LauncherModalShell({
         style={{
           zIndex: baseZ + 1,
           ...(shellType === "openDrawer"
-            ? { width: containerStyle.width ?? "min(44rem, 100vw)" }
+            ? { width: containerStyle.width ?? t("min_44rem_100vw") }
             : containerStyle),
         }}
         onMouseDown={(event) => event.stopPropagation()}
@@ -596,7 +600,7 @@ function LauncherModalShell({
             className="ml-auto"
             onClick={() => void closeLauncher(instance.key, { reason: "programmatic" })}
           >
-            Close
+            {t("close")}
           </Button>
         </div>
         <div
@@ -613,6 +617,7 @@ function LauncherModalShell({
 }
 
 export function PluginLauncherProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [stack, setStack] = useState<LauncherInstance[]>([]);
   const stackRef = useRef(stack);
   stackRef.current = stack;
@@ -743,9 +748,10 @@ export function PluginLauncherProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePluginLauncherRuntime(): PluginLauncherRuntimeContextValue {
+  const { t } = useTranslation();
   const value = useContext(PluginLauncherRuntimeContext);
   if (!value) {
-    throw new Error("usePluginLauncherRuntime must be used within PluginLauncherProvider");
+    throw new Error(t("usepluginlauncherruntime_must_be_used_within_plu"));
   }
   return value;
 }
@@ -791,6 +797,7 @@ export function PluginLauncherOutlet({
   itemClassName,
   errorClassName,
 }: PluginLauncherOutletProps) {
+  const { t } = useTranslation();
   const { activateLauncher } = usePluginLauncherRuntime();
   const { launchers, contributionsByPluginId, errorMessage } = usePluginLaunchers({
     placementZones,
@@ -802,7 +809,7 @@ export function PluginLauncherOutlet({
   if (errorMessage) {
     return (
       <div className={cn("rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-xs text-destructive", errorClassName)}>
-        Plugin launchers unavailable: {errorMessage}
+        {t("plugin_launchers_unavailable")} {errorMessage}
       </div>
     );
   }

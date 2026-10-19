@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ExternalObjectSummary } from "@paperclipai/shared";
 import {
   dominantExternalObjectTone,
@@ -34,9 +35,9 @@ function buildBreakdownTitle(summary: ExternalObjectSummary): string {
     if (!count) continue;
     parts.push(`${count} ${externalObjectCategoryLabel(category).toLowerCase()}`);
   }
-  if (summary.staleCount > 0) parts.push(`${summary.staleCount} stale`);
-  parts.push(`${summary.total} total`);
-  return `External objects: ${parts.join(", ")}`;
+  if (summary.staleCount > 0) parts.push(t("zhComponents.message_ce9f48fdac", { value1: summary.staleCount }));
+  parts.push(t("zhComponents.message_9245a701c8", { value1: summary.total }));
+  return t("zhComponents.message_6bb3c6196c", { value1: parts.join(", ") });
 }
 
 /**

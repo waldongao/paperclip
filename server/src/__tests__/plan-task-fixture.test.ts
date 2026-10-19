@@ -25,11 +25,15 @@ if (!support.supported) console.warn(`Planning fixture API calibration skipped: 
   let db: ReturnType<typeof createDb>;
   let root: string;
   const savedHome = process.env.PAPERCLIP_HOME, savedInstance = process.env.PAPERCLIP_INSTANCE_ID;
+  const savedUmask = process.umask();
   let api: Pick<RunnerApi, "get" | "post">;
   let app: express.Express;
   beforeAll(async () => {
     tempDb = await startEmbeddedPostgresTestDatabase("paperclip-plan-fixture-");
     root = await mkdtemp(path.join(os.tmpdir(), "paperclip-plan-fixture-home-"));
+    // This calibration hashes a 0444 snapshot manifest. Keep the fixture's
+    // creation mask explicit instead of inheriting the operator's stricter mask.
+    process.umask(0o022);
     process.env.PAPERCLIP_HOME = root;
     process.env.PAPERCLIP_INSTANCE_ID = "default";
     db = createDb(tempDb.connectionString);
@@ -53,6 +57,7 @@ if (!support.supported) console.warn(`Planning fixture API calibration skipped: 
     };
   });
   afterAll(async () => {
+    process.umask(savedUmask);
     if (savedHome === undefined) delete process.env.PAPERCLIP_HOME; else process.env.PAPERCLIP_HOME = savedHome;
     if (savedInstance === undefined) delete process.env.PAPERCLIP_INSTANCE_ID; else process.env.PAPERCLIP_INSTANCE_ID = savedInstance;
     await tempDb?.cleanup();

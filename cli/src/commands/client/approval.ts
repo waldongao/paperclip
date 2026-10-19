@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import {
   createApprovalSchema,
@@ -44,14 +45,14 @@ interface ApprovalCommentOptions extends BaseClientOptions {
 }
 
 export function registerApprovalCommands(program: Command): void {
-  const approval = program.command("approval").description("Approval operations");
+  const approval = program.command("approval").description(tCli("Approval operations"));
 
   addCommonClientOptions(
     approval
       .command("list")
-      .description("List approvals for a company")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .option("--status <status>", "Status filter")
+      .description(tCli("List approvals for a company"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .option("--status <status>", tCli("Status filter"))
       .action(async (opts: ApprovalListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -94,8 +95,8 @@ export function registerApprovalCommands(program: Command): void {
   addCommonClientOptions(
     approval
       .command("get")
-      .description("Get one approval")
-      .argument("<approvalId>", "Approval ID")
+      .description(tCli("Get one approval"))
+      .argument("<approvalId>", tCli("Approval ID"))
       .action(async (approvalId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -110,12 +111,12 @@ export function registerApprovalCommands(program: Command): void {
   addCommonClientOptions(
     approval
       .command("create")
-      .description("Create an approval request")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--type <type>", "Approval type (hire_agent|approve_ceo_strategy)")
-      .requiredOption("--payload <json>", "Approval payload as JSON object")
-      .option("--requested-by-agent-id <id>", "Requesting agent ID")
-      .option("--issue-ids <csv>", "Comma-separated linked issue IDs")
+      .description(tCli("Create an approval request"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--type <type>", tCli("Approval type (hire_agent|approve_ceo_strategy)"))
+      .requiredOption("--payload <json>", tCli("Approval payload as JSON object"))
+      .option("--requested-by-agent-id <id>", tCli("Requesting agent ID"))
+      .option("--issue-ids <csv>", tCli("Comma-separated linked issue IDs"))
       .action(async (opts: ApprovalCreateOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -138,10 +139,10 @@ export function registerApprovalCommands(program: Command): void {
   addCommonClientOptions(
     approval
       .command("approve")
-      .description("Approve an approval request")
-      .argument("<approvalId>", "Approval ID")
-      .option("--decision-note <text>", "Decision note")
-      .option("--decided-by-user-id <id>", "Decision actor user ID")
+      .description(tCli("Approve an approval request"))
+      .argument("<approvalId>", tCli("Approval ID"))
+      .option("--decision-note <text>", tCli("Decision note"))
+      .option("--decided-by-user-id <id>", tCli("Decision actor user ID"))
       .action(async (approvalId: string, opts: ApprovalDecisionOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -160,10 +161,10 @@ export function registerApprovalCommands(program: Command): void {
   addCommonClientOptions(
     approval
       .command("reject")
-      .description("Reject an approval request")
-      .argument("<approvalId>", "Approval ID")
-      .option("--decision-note <text>", "Decision note")
-      .option("--decided-by-user-id <id>", "Decision actor user ID")
+      .description(tCli("Reject an approval request"))
+      .argument("<approvalId>", tCli("Approval ID"))
+      .option("--decision-note <text>", tCli("Decision note"))
+      .option("--decided-by-user-id <id>", tCli("Decision actor user ID"))
       .action(async (approvalId: string, opts: ApprovalDecisionOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -182,10 +183,10 @@ export function registerApprovalCommands(program: Command): void {
   addCommonClientOptions(
     approval
       .command("request-revision")
-      .description("Request revision for an approval")
-      .argument("<approvalId>", "Approval ID")
-      .option("--decision-note <text>", "Decision note")
-      .option("--decided-by-user-id <id>", "Decision actor user ID")
+      .description(tCli("Request revision for an approval"))
+      .argument("<approvalId>", tCli("Approval ID"))
+      .option("--decision-note <text>", tCli("Decision note"))
+      .option("--decided-by-user-id <id>", tCli("Decision actor user ID"))
       .action(async (approvalId: string, opts: ApprovalDecisionOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -204,9 +205,9 @@ export function registerApprovalCommands(program: Command): void {
   addCommonClientOptions(
     approval
       .command("resubmit")
-      .description("Resubmit an approval (optionally with new payload)")
-      .argument("<approvalId>", "Approval ID")
-      .option("--payload <json>", "Payload JSON object")
+      .description(tCli("Resubmit an approval (optionally with new payload)"))
+      .argument("<approvalId>", tCli("Approval ID"))
+      .option("--payload <json>", tCli("Payload JSON object"))
       .action(async (approvalId: string, opts: ApprovalResubmitOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -224,9 +225,9 @@ export function registerApprovalCommands(program: Command): void {
   addCommonClientOptions(
     approval
       .command("comment")
-      .description("Add comment to an approval")
-      .argument("<approvalId>", "Approval ID")
-      .requiredOption("--body <text>", "Comment body")
+      .description(tCli("Add comment to an approval"))
+      .argument("<approvalId>", tCli("Approval ID"))
+      .requiredOption("--body <text>", tCli("Comment body"))
       .action(async (approvalId: string, opts: ApprovalCommentOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -251,10 +252,10 @@ function parseJsonObject(value: string, name: string): Record<string, unknown> {
   try {
     const parsed = JSON.parse(value) as unknown;
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-      throw new Error(`${name} must be a JSON object`);
+      throw new Error(tCli("{{name}} must be a JSON object", { name: name }));
     }
     return parsed as Record<string, unknown>;
   } catch (err) {
-    throw new Error(`Invalid ${name} JSON: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(tCli("Invalid {{name}} JSON: {{value1}}", { name: name, value1: err instanceof Error ? err.message : String(err) }));
   }
 }

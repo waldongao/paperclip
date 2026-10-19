@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 /**
  * Live adapter: map a run's streaming TranscriptEntry[] (from
  * useLiveRunTranscripts — the same source the current thread consumes) into the
@@ -195,7 +196,7 @@ export function summarizeToolInput(input: unknown): string | undefined {
  */
 export function toolDisplayName(name: string | undefined | null): string {
   const raw = (name ?? "").trim();
-  return isGenericToolName(raw) ? "Unnamed tool" : humanizeToolName(raw);
+  return isGenericToolName(raw) ? t("unnamed_tool") : humanizeToolName(raw);
 }
 
 /** "Thought for Ns" once a coalesced thinking group spans ≥1s. */
@@ -210,8 +211,8 @@ function thoughtDurationLabel(
   const secs = Math.round((end - start) / 1000);
   if (secs < 1) return undefined;
   return secs < 60
-    ? `Thought for ${secs}s`
-    : `Thought for ${Math.floor(secs / 60)}m ${secs % 60}s`;
+    ? t("thought_for_seconds", { secs })
+    : t("thought_for_minutes", { mins: Math.floor(secs / 60), secs: secs % 60 });
 }
 
 /** Append token deltas onto the open logical line while preserving real newlines. */
@@ -408,7 +409,7 @@ function providerActivityItem(
                 : "pending";
             return {
               id: stringValue(step.stepId) ?? `${runId}:plan-step:${stepIndex}`,
-              label: stringValue(step.body) ?? "Plan step",
+              label: stringValue(step.body) ?? t("plan_step"),
               status,
             };
           })
@@ -441,7 +442,7 @@ function providerActivityItem(
           .map((child, childIndex) => ({
             id:
               stringValue(child.childId) ?? `${runId}:delegation:${childIndex}`,
-            title: stringValue(child.role) ?? "Subagent",
+            title: stringValue(child.role) ?? t("subagent"),
             status: stringValue(child.status) ?? "unknown",
             metadata:
               [stringValue(child.model), stringValue(child.activitySummary)]
@@ -519,11 +520,11 @@ function mergeProviderActivityItem(
   const incomingName = providerItemDetail(incoming, "Name");
   const genericIncomingIdentity = isGenericToolName(incomingName);
   const identityLabels = new Set([
-    "Name",
-    "Transport",
-    "Namespace",
-    "Operation",
-    "Target",
+    t("name"),
+    t("transport"),
+    t("namespace"),
+    t("operation"),
+    t("target"),
   ]);
   for (const detail of incoming.details) {
     if (
@@ -534,9 +535,9 @@ function mergeProviderActivityItem(
       continue;
     }
     if (
-      detail.label === "Progress" &&
+      detail.label === titleCaseKey("progress") &&
       !meaningfulProviderToolSummary(detail.value) &&
-      details.has("Progress")
+      details.has(t("progress"))
     ) {
       continue;
     }
@@ -814,7 +815,7 @@ export function transcriptToTaskChatItems(
           items.push({
             id: `${runId}:diff:${i}`,
             kind: "tool",
-            name: "Edit",
+            name: t("edit"),
             status: "completed",
             diff: {
               added: line.kind === "add" ? 1 : 0,
@@ -990,10 +991,10 @@ export function transcriptToTaskChatItems(
           kind: "usage",
           ...(entry.subtype === "paperclip_runner_session_usage"
             ? {
-                label: "Provider session total",
+                label: t("provider_session_total"),
                 detail:
                   entry.text ||
-                  "This cumulative usage can include earlier runs in the resumed provider session.",
+                  t("this_cumulative_usage_can_include_earlier_runs_i"),
               }
             : {}),
           usage: {
@@ -1032,8 +1033,8 @@ export function transcriptToTaskChatItems(
       ) {
         item.status = "interrupted";
         item.detail = item.detail
-          ? `${item.detail}\nInterrupted before the provider reported completion.`
-          : "Interrupted before the provider reported completion.";
+          ? t("zhComponents.message_37b39c7586", { value1: item.detail })
+          : t("interrupted_before_the_provider_reported_complet");
       } else if (
         item.kind === "protocol" &&
         item.surface === "provider_activity" &&
@@ -1041,8 +1042,8 @@ export function transcriptToTaskChatItems(
       ) {
         item.status = "interrupted";
         item.summary = item.summary
-          ? `${item.summary} · Interrupted before completion.`
-          : "Interrupted before completion.";
+          ? t("zhComponents.message_c1bb4dab8d", { value1: item.summary })
+          : t("interrupted_before_completion");
       } else if (
         item.kind === "protocol" &&
         item.surface === "runtime_request" &&
@@ -1142,7 +1143,7 @@ export function paperclipRunnerHistoryItems(
     if (item.variant === "session_start") return false;
     return (
       item.variant !== "turn_boundary" ||
-      (item.label !== "Turn started" && item.label !== "Turn completed")
+      (!["Turn started", "Turn completed", t("turn_started"), t("turn_completed")].includes(item.label))
     );
   });
 }
@@ -1467,13 +1468,13 @@ function phaseSummary(
     if (count)
       phrases.push({ text: count === 1 ? singular : plural(count), count });
   };
-  add("read", "Read a file", (count) => `Read ${count} files`);
-  add("edit", "Edited a file", (count) => `Edited ${count} files`);
-  add("terminal", "Ran a command", (count) => `Ran ${count} commands`);
+  add("read", t("read_a_file"), (count) => t("read_n_files", { count: count }));
+  add("edit", t("edited_a_file"), (count) => t("edited_n_files", { count: count }));
+  add("terminal", t("ran_a_command"), (count) => t("ran_n_commands", { count: count }));
   const searched = (counts.get("grep") ?? 0) + (counts.get("search") ?? 0);
   if (searched)
     phrases.push({
-      text: searched === 1 ? "Searched once" : `Searched ${searched} times`,
+      text: searched === 1 ? t("searched_once") : t("searched_n_times", { count: searched }),
       count: searched,
     });
   const known = new Set(["read", "edit", "terminal", "grep", "search"]);
@@ -1484,7 +1485,7 @@ function phaseSummary(
     ) + generic;
   if (other)
     phrases.push({
-      text: other === 1 ? "Used a tool" : `Used ${other} tools`,
+      text: other === 1 ? t("used_a_tool") : t("used_n_tools", { count: other }),
       count: other,
     });
   const providerCount = (family: TaskChatProviderActivityItem["family"]) =>
@@ -1498,58 +1499,58 @@ function phaseSummary(
     if (count)
       phrases.push({ text: count === 1 ? singular : plural(count), count });
   };
-  addProvider("plan", "Updated the plan", (count) => `Updated ${count} plans`);
+  addProvider("plan", t("updated_the_plan"), (count) => t("updated_n_plans", { count: count }));
   addProvider(
     "research",
-    "Searched once",
-    (count) => `Searched ${count} times`,
+    t("searched_once"),
+    (count) => t("searched_n_times", { count: count }),
   );
   addProvider(
     "delegation",
-    "Used a subagent",
-    (count) => `Used ${count} subagents`,
+    t("used_a_subagent"),
+    (count) => t("used_n_subagents", { count: count }),
   );
   addProvider(
     "model_identity",
-    "Updated the model",
-    (count) => `Updated the model ${count} times`,
+    t("updated_the_model"),
+    (count) => t("updated_the_model_n_times", { count: count }),
   );
   addProvider(
     "context",
-    "Compacted context",
-    (count) => `Compacted context ${count} times`,
+    t("compacted_context"),
+    (count) => t("compacted_context_n_times", { count: count }),
   );
   addProvider(
     "artifact",
-    "Handled an artifact",
-    (count) => `Handled ${count} artifacts`,
+    t("handled_an_artifact"),
+    (count) => t("handled_n_artifacts", { count: count }),
   );
   addProvider(
     "review",
-    "Changed review mode",
-    (count) => `Changed review mode ${count} times`,
+    t("changed_review_mode"),
+    (count) => t("changed_review_mode_n_times", { count: count }),
   );
-  addProvider("hook", "Ran a hook", (count) => `Ran ${count} hooks`);
+  addProvider("hook", t("ran_a_hook"), (count) => t("ran_n_hooks", { count: count }));
   addProvider(
     "memory",
-    "Referenced memory",
-    (count) => `Referenced memory ${count} times`,
+    t("referenced_memory"),
+    (count) => t("referenced_memory_n_times", { count: count }),
   );
   addProvider(
     "safety",
-    "Ran a safety review",
-    (count) => `Ran ${count} safety reviews`,
+    t("ran_a_safety_review"),
+    (count) => t("ran_n_safety_reviews", { count: count }),
   );
   addProvider(
     "terminal",
-    "Sent terminal input",
-    (count) => `Sent terminal input ${count} times`,
+    t("sent_terminal_input"),
+    (count) => t("sent_terminal_input_n_times", { count: count }),
   );
-  addProvider("wait", "Waited", (count) => `Waited ${count} times`);
+  addProvider("wait", t("waited"), (count) => t("waited_n_times", { count: count }));
   addProvider(
     "provider_notice",
-    "Received a provider notice",
-    (count) => `Received ${count} provider notices`,
+    t("received_a_provider_notice"),
+    (count) => t("received_n_provider_notices", { count: count }),
   );
   // A canonical tool-execution row can be the only tool representation for a
   // provider. Avoid double-counting when the adapter also produced native
@@ -1563,41 +1564,41 @@ function phaseSummary(
       let text: string;
       switch (key) {
         case "command":
-          text = count === 1 ? "Ran a command" : `Ran ${count} commands`;
+          text = count === 1 ? t("ran_a_command") : t("ran_n_commands", { count: count });
           break;
         case "read":
-          text = count === 1 ? "Read a file" : `Read ${count} files`;
+          text = count === 1 ? t("read_a_file") : t("read_n_files", { count: count });
           break;
         case "search":
-          text = count === 1 ? "Searched once" : `Searched ${count} times`;
+          text = count === 1 ? t("searched_once") : t("searched_n_times", { count: count });
           break;
         case "file_change":
-          text = count === 1 ? "Edited a file" : `Edited ${count} files`;
+          text = count === 1 ? t("edited_a_file") : t("edited_n_files", { count: count });
           break;
         case "delegation":
-          text = count === 1 ? "Used a subagent" : `Used ${count} subagents`;
+          text = count === 1 ? t("used_a_subagent") : t("used_n_subagents", { count: count });
           break;
         case "wait":
-          text = count === 1 ? "Waited" : `Waited ${count} times`;
+          text = count === 1 ? t("waited") : t("waited_n_times", { count: count });
           break;
         case "tool_search":
           text =
             count === 1
-              ? "Searched available tools"
-              : `Searched available tools ${count} times`;
+              ? t("searched_available_tools")
+              : t("searched_available_tools_n_times", { count });
           break;
         case "paperclip_read":
           text =
             count === 1
-              ? "Read from Paperclip"
-              : `Read from Paperclip ${count} times`;
+              ? t("read_from_paperclip")
+              : t("read_from_paperclip_n_times", { count });
           break;
         case "task_operation":
           text =
-            count === 1 ? "Used Paperclip" : `Used Paperclip ${count} times`;
+            count === 1 ? t("used_paperclip") : t("used_paperclip_n_times", { count });
           break;
         default:
-          text = count === 1 ? "Used a tool" : `Used ${count} tools`;
+          text = count === 1 ? t("used_a_tool") : t("used_n_tools", { count: count });
       }
       phrases.push({
         text,
@@ -1609,8 +1610,8 @@ function phaseSummary(
     phrases.push({
       text:
         workspaceFiles === 1
-          ? "Changed a file"
-          : `Changed ${workspaceFiles} files`,
+          ? t("changed_a_file")
+          : t("changed_n_files", { count: workspaceFiles }),
       count: workspaceFiles,
     });
   if (phrases.length > 0) {
@@ -1625,20 +1626,20 @@ function phaseSummary(
           : phrase.text.charAt(0).toLowerCase() + phrase.text.slice(1),
       )
       .join(", ");
-    return `${summary}${hidden > 0 ? `, +${hidden} more` : ""}`;
+    return `${summary}${hidden > 0 ? t("zhComponents.message_b4ffc5254b", { value1: hidden }) : ""}`;
   }
   const protocolCount = items.filter((item) => item.kind === "protocol").length;
   if (protocolCount > 0)
     return protocolCount === 1
-      ? "Runner activity"
-      : `${protocolCount} runner updates`;
-  if (items.some((item) => item.kind === "thinking")) return "Reasoning";
+      ? t("runner_activity")
+      : t("zhComponents.message_7128fb5a62", { value1: protocolCount });
+  if (items.some((item) => item.kind === "thinking")) return t("reasoning");
   const interrupted = items.find(
     (item) => item.kind === "marker" && item.variant === "interrupted",
   );
   return interrupted?.kind === "marker"
     ? interrupted.label
-    : "No tool activity";
+    : t("no_tool_activity");
 }
 
 /**
@@ -1774,7 +1775,7 @@ function formatDurationLabel(ms: number): string | undefined {
 function formatTokensLabel(tokens: number): string | undefined {
   if (!Number.isFinite(tokens) || tokens <= 0) return undefined;
   const label = tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}k` : `${tokens}`;
-  return `${label} tokens`;
+  return t("zhComponents.message_87331110ab", { value1: label });
 }
 
 /** First→last ts span of a transcript, or undefined when unknowable. */
@@ -2112,11 +2113,11 @@ export function deriveRunStatusLabel(entries: readonly TranscriptEntry[]): {
         }
       }
       const selfTalk = flattenSelfTalk(parts.join(""));
-      return { label: "Responding", selfTalk: selfTalk || undefined };
+      return { label: t("responding"), selfTalk: selfTalk || undefined };
     }
-    if (entry.kind === "thinking") return { label: "Thinking" };
+    if (entry.kind === "thinking") return { label: t("thinking_d08d8d") };
     if (entry.kind === "system" && entry.text === "Reasoning started")
-      return { label: "Thinking" };
+      return { label: t("thinking_d08d8d") };
   }
-  return { label: "Running" };
+  return { label: t("running") };
 }

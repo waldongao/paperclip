@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { AgentContextualSidebar } from "./AgentContextualSidebar";
 import { queryKeys } from "@/lib/queryKeys";
+import { i18n, t } from "@/i18n";
 
 vi.mock("@/context/CompanyContext", () => ({
   useCompany: () => ({ selectedCompanyId: "company-1" }),
@@ -34,6 +35,22 @@ vi.mock("./SidebarNavItem", () => ({
 }));
 
 describe("AgentContextualSidebar", () => {
+  it.each(["en", "zh-CN"])("localizes the secrets tab without changing its route in %s", async (locale) => {
+    const previousLocale = i18n.language;
+    await i18n.changeLanguage(locale);
+    const client = new QueryClient();
+    try {
+      const markup = renderToStaticMarkup(<QueryClientProvider client={client}><MemoryRouter>
+        <AgentContextualSidebar agentRef="agent" agentId="agent-1" agentName="User agent name" />
+      </MemoryRouter></QueryClientProvider>);
+      const host = document.createElement("div");
+      host.innerHTML = markup;
+      expect(host.querySelector('a[href="/agents/agent/secrets"]')?.textContent).toBe(t("stability.bd56b51ec5f5"));
+    } finally {
+      client.clear();
+      await i18n.changeLanguage(previousLocale);
+    }
+  });
   it.each([false, true])("keeps Channels available for default email regardless of the chat setting (%s)", (enabled) => {
     const client = new QueryClient();
     client.setQueryData(queryKeys.instance.experimentalSettings, { enableChatConnectors: enabled });

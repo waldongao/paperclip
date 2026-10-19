@@ -1,4 +1,5 @@
 import type { StatusCard, StatusCardRefreshPolicy } from "@paperclipai/shared";
+import { t } from "@/i18n";
 
 /**
  * The lifecycle states a status card renders as on the board (plan §7,
@@ -52,60 +53,60 @@ export const STATUS_CARD_LIFECYCLE_PRESENTATION: Record<
   StatusCardLifecyclePresentation
 > = {
   compiling: {
-    label: "Setting up",
+    label: t("setting_up_5a9f0a"),
     dotClassName: "bg-cyan-400 animate-pulse",
-    description: "Just created; setting up and generating the first summary.",
+    description: t("just_created_setting_up_and_generating_the_first"),
     dashedBorder: true,
     keepsLastSummary: false,
   },
   fresh: {
-    label: "Fresh",
+    label: t("fresh"),
     dotClassName: "bg-emerald-400",
-    description: "Summary reflects all known changes; nothing pending.",
+    description: t("summary_reflects_all_known_changes_nothing_pendi"),
     dashedBorder: false,
     keepsLastSummary: true,
   },
   stale: {
-    label: "Stale",
+    label: t("stale"),
     dotClassName: "bg-amber-400",
-    description: "Changes are pending since the last update.",
+    description: t("changes_are_pending_since_the_last_update"),
     dashedBorder: false,
     keepsLastSummary: true,
   },
   updating: {
     // Blue (distinct from fresh-emerald and compiling-cyan) so an in-flight
     // update never reads as "fresh" on a glance-scan of the board.
-    label: "Updating",
+    label: t("updating_ec6952"),
     dotClassName: "bg-blue-500 animate-pulse",
-    description: "An update is streaming in now.",
+    description: t("an_update_is_streaming_in_now"),
     dashedBorder: false,
     keepsLastSummary: true,
   },
   error: {
-    label: "Error",
+    label: t("error"),
     dotClassName: "bg-red-500",
-    description: "The last run failed; the last good summary stays visible.",
+    description: t("the_last_run_failed_the_last_good_summary_stays"),
     dashedBorder: false,
     keepsLastSummary: true,
   },
   paused_budget: {
-    label: "Paused — budget",
+    label: t("paused_budget"),
     dotClassName: "bg-orange-400",
-    description: "The daily token cap was hit; auto-updates are suspended.",
+    description: t("the_daily_token_cap_was_hit_auto_updates_are_sus"),
     dashedBorder: false,
     keepsLastSummary: true,
   },
   paused_hours: {
-    label: "Paused — hours",
+    label: t("paused_hours"),
     dotClassName: "bg-orange-400",
-    description: "Outside active hours; changes batch into one update at window open.",
+    description: t("outside_active_hours_changes_batch_into_one_upda"),
     dashedBorder: false,
     keepsLastSummary: true,
   },
   archived: {
-    label: "Archived",
+    label: t("archived"),
     dotClassName: "bg-muted-foreground/50",
-    description: "No auto-updates and no watches. Restore to start watching again.",
+    description: t("no_auto_updates_and_no_watches_restore_to_start"),
     dashedBorder: false,
     keepsLastSummary: true,
   },
@@ -131,11 +132,11 @@ export function describeRefreshPolicy(policy: StatusCardRefreshPolicy): string {
       return "manual";
     case "interval":
       return policy.intervalMinutes
-        ? `every ${policy.intervalMinutes}m if changed`
-        : "on a schedule if changed";
+        ? t("zhSupport.refreshInterval", { minutes: policy.intervalMinutes })
+        : t("on_a_schedule_if_changed");
     case "reactive": {
       const debounce = policy.debounceSeconds ?? 60;
-      return `on change (${debounce}s)`;
+      return t("zhSupport.refreshOnChange", { seconds: debounce });
     }
     default:
       return "manual";

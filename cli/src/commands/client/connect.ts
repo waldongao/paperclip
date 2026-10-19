@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
@@ -38,10 +39,10 @@ export function registerConnectCommand(program: Command): void {
   addCommonClientOptions(
     program
       .command("connect")
-      .description("Interactively connect the CLI as a board operator or agent")
-      .option("--persona <persona>", "Persona to configure: board or agent")
-      .option("--api-key-env-var-name <name>", "Env var name to store in the profile", "PAPERCLIP_API_KEY")
-      .option("--token-name <name>", "Token label to create")
+      .description(tCli("Interactively connect the CLI as a board operator or agent"))
+      .option("--persona <persona>", tCli("Persona to configure: board or agent"))
+      .option("--api-key-env-var-name <name>", tCli("Env var name to store in the profile"), "PAPERCLIP_API_KEY")
+      .option("--token-name <name>", tCli("Token label to create"))
       .action(async (opts: ConnectOptions) => {
         try {
           const result = await connectWizard(opts);
@@ -55,7 +56,7 @@ export function registerConnectCommand(program: Command): void {
 
 async function connectWizard(opts: ConnectOptions) {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    throw new Error("`paperclipai connect` is interactive. For scripts, pass --api-base/--api-key or use context set/token commands.");
+    throw new Error(tCli("`paperclipai connect` is interactive. For scripts, pass --api-base/--api-key or use context set/token commands."));
   }
 
   p.intro(pc.bgCyan(pc.black(" paperclipai connect ")));
@@ -64,13 +65,13 @@ async function connectWizard(opts: ConnectOptions) {
   const resolvedProfile = resolveProfile(context, opts.profile);
   const initialApiBase = resolveApiBase(opts, resolvedProfile.profile);
   const apiBaseInput = await p.text({
-    message: "Paperclip API base",
+    message: tCli("Paperclip API base"),
     initialValue: initialApiBase,
     placeholder: "http://localhost:3100",
   });
   assertNotCancelled(apiBaseInput);
   const apiBase = normalizeApiBase(String(apiBaseInput || initialApiBase));
-  console.log(pc.dim(`Checking ${apiBase}/api/health ...`));
+  console.log(pc.dim(tCli("Checking {{apiBase}}/api/health ...", { apiBase: apiBase })));
   await verifyHealth(apiBase);
 
   const boardLogin = await loginBoardCli({
@@ -95,7 +96,7 @@ async function connectWizard(opts: ConnectOptions) {
       name: tokenName,
       requestedCompanyId: company?.id ?? null,
     }));
-    if (!key) throw new Error("Failed to create board token");
+    if (!key) throw new Error(tCli("Failed to create board token"));
     upsertProfile(profileName, {
       apiBase,
       companyId: company?.id,
@@ -108,7 +109,7 @@ async function connectWizard(opts: ConnectOptions) {
       tokenCreatedAt: key.createdAt,
     }, opts.context);
     setCurrentProfile(profileName, opts.context);
-    p.outro(pc.green(`Connected profile '${profileName}' as board.`));
+    p.outro(pc.green(tCli("Connected profile '{{profileName}}' as board.", { profileName: profileName })));
     return {
       ok: true,
       profile: profileName,
@@ -123,13 +124,13 @@ async function connectWizard(opts: ConnectOptions) {
   const company = await chooseCompany(companies, opts.companyId ?? resolvedProfile.profile.companyId, {
     optional: false,
   });
-  if (!company) throw new Error("Company is required for agent profiles");
+  if (!company) throw new Error(tCli("Company is required for agent profiles"));
   const agents = (await boardApi.get<Agent[]>(apiPath`/api/companies/${company.id}/agents`)) ?? [];
-  if (agents.length === 0) throw new Error(`Company '${company.name}' has no agents to connect.`);
+  if (agents.length === 0) throw new Error(tCli("Company '{{name}}' has no agents to connect.", { name: company.name }));
   const agent = await chooseAgent(agents, resolvedProfile.profile.agentId);
   const tokenName = opts.tokenName?.trim() || `cli-agent-${new Date().toISOString()}`;
   const key = await boardApi.post<CreatedAgentKey>(apiPath`/api/agents/${agent.id}/keys`, createAgentKeySchema.parse({ name: tokenName }));
-  if (!key) throw new Error("Failed to create agent token");
+  if (!key) throw new Error(tCli("Failed to create agent token"));
   upsertProfile(profileName, {
     apiBase,
     companyId: company.id,
@@ -142,7 +143,7 @@ async function connectWizard(opts: ConnectOptions) {
     tokenCreatedAt: key.createdAt,
   }, opts.context);
   setCurrentProfile(profileName, opts.context);
-  p.outro(pc.green(`Connected profile '${profileName}' as ${agent.name}.`));
+  p.outro(pc.green(tCli("Connected profile '{{profileName}}' as {{name}}.", { profileName: profileName, name: agent.name })));
   return {
     ok: true,
     profile: profileName,
@@ -164,10 +165,10 @@ async function verifyHealth(apiBase: string): Promise<void> {
 async function choosePersona(input: string | undefined): Promise<"board" | "agent"> {
   if (input === "board" || input === "agent") return input;
   const selected = await p.select({
-    message: "Connect as",
+    message: tCli("Connect as"),
     options: [
-      { value: "board", label: "Board operator" },
-      { value: "agent", label: "Agent in a company" },
+      { value: "board", label: tCli("Board operator") },
+      { value: "agent", label: tCli("Agent in a company") },
     ],
   });
   assertNotCancelled(selected);
@@ -176,12 +177,12 @@ async function choosePersona(input: string | undefined): Promise<"board" | "agen
 
 async function askProfileName(defaultName: string): Promise<string> {
   const profile = await p.text({
-    message: "Profile name",
+    message: tCli("Profile name"),
     initialValue: defaultName || "default",
   });
   assertNotCancelled(profile);
   const value = String(profile).trim();
-  if (!value) throw new Error("Profile name is required");
+  if (!value) throw new Error(tCli("Profile name is required"));
   return value;
 }
 
@@ -192,15 +193,15 @@ async function chooseCompany(
 ): Promise<Company | null> {
   if (companies.length === 0) {
     if (opts.optional) return null;
-    throw new Error("No companies are accessible with this board credential.");
+    throw new Error(tCli("No companies are accessible with this board credential."));
   }
   const preferred = preferredCompanyId ? companies.find((company) => company.id === preferredCompanyId) : null;
   if (companies.length === 1 && !opts.optional) return companies[0] ?? null;
   const selected = await p.select({
-    message: opts.optional ? "Default company for this profile" : "Agent company",
+    message: opts.optional ? tCli("Default company for this profile") : tCli("Agent company"),
     initialValue: preferred?.id ?? companies[0]?.id,
     options: [
-      ...(opts.optional ? [{ value: "", label: "(none)" }] : []),
+      ...(opts.optional ? [{ value: "", label: tCli("(none)") }] : []),
       ...companies.map((company) => ({
         value: company.id,
         label: company.name,
@@ -215,7 +216,7 @@ async function chooseCompany(
 
 async function chooseAgent(agents: Agent[], preferredAgentId: string | undefined): Promise<Agent> {
   const selected = await p.select({
-    message: "Agent",
+    message: tCli("Agent"),
     initialValue: preferredAgentId && agents.some((agent) => agent.id === preferredAgentId)
       ? preferredAgentId
       : agents[0]?.id,
@@ -227,7 +228,7 @@ async function chooseAgent(agents: Agent[], preferredAgentId: string | undefined
   });
   assertNotCancelled(selected);
   const agent = agents.find((item) => item.id === selected);
-  if (!agent) throw new Error("Agent selection failed");
+  if (!agent) throw new Error(tCli("Agent selection failed"));
   return agent;
 }
 
@@ -259,7 +260,7 @@ function publicKeyResult(key: CreatedAgentKey | CreatedBoardKey) {
 
 function assertNotCancelled<T>(value: T | symbol): asserts value is T {
   if (p.isCancel(value)) {
-    p.cancel("Cancelled.");
+    p.cancel(tCli("Cancelled."));
     process.exit(0);
   }
 }

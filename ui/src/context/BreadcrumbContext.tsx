@@ -1,3 +1,4 @@
+import { t, useTranslation } from "@/i18n";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode, type MouseEventHandler } from "react";
 
 export interface Breadcrumb {
@@ -70,7 +71,7 @@ export function buildDocumentTitle(breadcrumbs: Breadcrumb[], companyName?: stri
     ? []
     : [...breadcrumbs].reverse().map((breadcrumb) => breadcrumb.label);
   const companyPart = companyName?.trim() ? [companyName.trim()] : [];
-  const parts = [...pageParts, ...companyPart, "Paperclip"];
+  const parts = [...pageParts, ...companyPart, t("paperclip")];
   return parts.join(" • ");
 }
 
@@ -120,9 +121,10 @@ export function BreadcrumbProvider({ children, companyName }: BreadcrumbProvider
 }
 
 export function useBreadcrumbs() {
+  const { t } = useTranslation();
   const ctx = useContext(BreadcrumbContext);
   if (!ctx) {
-    throw new Error("useBreadcrumbs must be used within BreadcrumbProvider");
+    throw new Error(t("usebreadcrumbs_must_be_used_within_breadcrumbpro"));
   }
   return ctx;
 }

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { usePageVisibility } from "../../lib/page-visibility";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readTranscriptRequest } from "./read-transcript-request";
@@ -489,7 +490,7 @@ export function useLiveRunTranscripts({
           appendChunks(runId, [{
             ts: event.createdAt,
             stream: isTerminalStatus(status) && status !== "succeeded" ? "stderr" : "system",
-            chunk: `run ${status}`,
+            chunk: t("zhComponents.message_f6b6aa6b70", { value1: status }),
             dedupeKey: `socket:status:${runId}:${status}:${readString(payload["finishedAt"]) ?? ""}`,
           }]);
         }

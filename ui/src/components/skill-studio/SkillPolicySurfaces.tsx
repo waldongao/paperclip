@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 /**
  * @fileoverview Core Skill Studio permission surfaces (PAP-13865, Phase 3).
  *
@@ -14,6 +15,7 @@ import { useCallback, useState } from "react";
 import { InlineBanner } from "@/components/InlineBanner";
 import { Button } from "@/components/ui/button";
 import { classifySkillDenial, type SkillDenial } from "@/lib/skill-policy-denial";
+import { useTranslation } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Denial banner state hook
@@ -71,9 +73,10 @@ export function SkillPolicyDenialNotice({
   onDismiss?: () => void;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const actions = onDismiss ? (
     <Button variant="ghost" size="sm" onClick={onDismiss}>
-      Dismiss
+      {t("dismiss")}
     </Button>
   ) : undefined;
 

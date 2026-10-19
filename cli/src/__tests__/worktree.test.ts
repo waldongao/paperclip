@@ -72,6 +72,7 @@ import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
 } from "./helpers/embedded-postgres.js";
+import { translateCliDisplayMessage } from "../i18n.js";
 
 const ORIGINAL_CWD = process.cwd();
 const ORIGINAL_ENV = { ...process.env };
@@ -287,7 +288,7 @@ function buildSourceConfig(): PaperclipConfig {
 
 describe("worktree helpers", () => {
   it("uses the repo-local config for the current worktree", () => {
-    const targetRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-current-worktree-"));
+    const targetRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-current-worktree-")));
     try {
       const localConfig = path.join(targetRoot, ".paperclip", "config.json");
       fs.mkdirSync(path.dirname(localConfig), { recursive: true });
@@ -307,7 +308,7 @@ describe("worktree helpers", () => {
   });
 
   it("uses the repository config from a nested working directory", () => {
-    const targetRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-current-worktree-nested-"));
+    const targetRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-current-worktree-nested-")));
     try {
       execFileSync("git", ["init", "-q"], { cwd: targetRoot });
       const nestedDirectory = path.join(targetRoot, "packages", "example", "src");
@@ -516,7 +517,7 @@ describe("worktree helpers", () => {
   });
 
   it("requires the seed process to own the target embedded Postgres lifecycle", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-live-target-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-live-target-")));
     try {
       fs.writeFileSync(
         path.join(tempRoot, "postmaster.pid"),
@@ -525,6 +526,24 @@ describe("worktree helpers", () => {
 
       await expect(ensureEmbeddedPostgres(tempRoot, 55432, { allowExisting: false }))
         .rejects.toThrow("while it is already running");
+    } finally {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("retains the live-database rejection and its recovery advice in Chinese", async () => {
+    process.env.PAPERCLIP_LOCALE = "zh-CN";
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-zh-live-target-")));
+    try {
+      fs.writeFileSync(path.join(tempRoot, "postmaster.pid"), `${process.pid}\n${tempRoot}\n0\n55432\n`);
+      const error = await ensureEmbeddedPostgres(tempRoot, 55432, { allowExisting: false })
+        .then(() => null, (failure: unknown) => failure);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain("while it is already running");
+      expect(formatWorktreeSeedFailureDiagnostic("restore", error))
+        .toBe("目标嵌入式 PostgreSQL 已由正在运行的 Git 工作树服务占用。请停止该服务后重试初始化。");
+      expect(translateCliDisplayMessage((error as Error).message)).toContain("请停止使用此数据库的 Git 工作树服务");
+      expect((error as Error).message).toContain(`pid=${process.pid}`);
     } finally {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
@@ -552,6 +571,45 @@ describe("worktree helpers", () => {
     )).toBe(
       "Seed validation could not find a credential-backed instance administrator with an active company membership. Authenticated instances must create or sign in an administrator before seeding.",
     );
+  });
+
+  itEmbeddedPostgres("keeps authenticated seeds without credentials blocked with Chinese recovery advice", async () => {
+    process.env.PAPERCLIP_LOCALE = "zh-CN";
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-zh-credential-gate-")));
+    const worktreeRoot = path.join(tempRoot, "worktree");
+    const sourceConfigPath = path.join(tempRoot, "source", "config.json");
+    const sourceKeyPath = path.join(tempRoot, "source", "secrets", "master.key");
+    const sourceDb = await startEmbeddedPostgresTestDatabase("paperclip-worktree-zh-credential-source-");
+    onTestFinished(() => sourceDb.cleanup());
+    onTestFinished(() => {
+      process.chdir(ORIGINAL_CWD);
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    });
+    await seedValidWorktreeSource(sourceDb.connectionString, { includeCredentialAccount: false });
+    const sourceConfig = buildSourceConfig();
+    sourceConfig.database = { ...sourceConfig.database, mode: "postgres", connectionString: sourceDb.connectionString };
+    sourceConfig.server.deploymentMode = "authenticated";
+    sourceConfig.secrets.localEncrypted.keyFilePath = sourceKeyPath;
+    fs.mkdirSync(path.dirname(sourceKeyPath), { recursive: true });
+    fs.mkdirSync(worktreeRoot, { recursive: true });
+    fs.writeFileSync(sourceConfigPath, JSON.stringify(sourceConfig), "utf8");
+    fs.writeFileSync(sourceKeyPath, "source-master-key", "utf8");
+    process.chdir(worktreeRoot);
+    const error = await worktreeInitCommand({
+      name: "zh-credential-gate",
+      home: path.join(tempRoot, "home"),
+      fromConfig: sourceConfigPath,
+      force: true,
+    }).then(() => null, (failure: unknown) => failure);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain("No auth user has a non-empty credential account");
+    const advice = "初始化验证未找到具有有效组织成员资格的凭据型实例管理员。已认证实例必须先创建或登录管理员，再进行初始化。";
+    expect(formatWorktreeSeedFailureDiagnostic("source_validation", error)).toBe(advice);
+    expect(requiresWorktreeSeedCredentialAccount("authenticated")).toBe(true);
+    const manifest = readWorktreeSeedManifest(path.join(worktreeRoot, ".paperclip", "config.json"));
+    expect(manifest).toMatchObject({ state: "failed", phase: "source_validation" });
+    expect(manifest?.diagnostics.at(-1)?.message).toBe(advice);
+    expect(translateCliDisplayMessage((error as Error).message)).toContain("凭据账户");
   });
 
   it("requires credential accounts only for authenticated worktree seeds", () => {
@@ -609,7 +667,7 @@ describe("worktree helpers", () => {
   itEmbeddedPostgres("recognizes positive legacy database schema evidence", async () => {
     const tempDb = await startEmbeddedPostgresTestDatabase("paperclip-worktree-legacy-evidence-");
     onTestFinished(() => tempDb.cleanup());
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-legacy-config-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-legacy-config-")));
     try {
       const configPath = path.join(tempRoot, "config.json");
       const sourceConfig = buildSourceConfig();
@@ -643,7 +701,7 @@ describe("worktree helpers", () => {
   });
 
   it("ensure-seeded seeds once and fast-exits on the verified manifest", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-")));
     try {
       const sourceConfigPath = path.join(tempRoot, "source", "config.json");
       const targetRoot = path.join(tempRoot, "worktree");
@@ -714,7 +772,7 @@ describe("worktree helpers", () => {
   });
 
   it("treats an unregistered markerless config as a normal non-worktree boot", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-unregistered-markerless-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-unregistered-markerless-")));
     try {
       const configPath = path.join(tempRoot, "config.json");
       fs.writeFileSync(configPath, `${JSON.stringify(buildSourceConfig())}\n`);
@@ -739,7 +797,7 @@ describe("worktree helpers", () => {
   });
 
   it("honors a legacy complete marker without resolving a seed source", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-complete-marker-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-complete-marker-")));
     try {
       const configPath = path.join(tempRoot, "config.json");
       fs.writeFileSync(configPath, `${JSON.stringify(buildSourceConfig())}\n`);
@@ -762,7 +820,7 @@ describe("worktree helpers", () => {
   });
 
   it("seeds a configured worktree with no seed markers when no legacy database is present", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-unmarked-empty-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-unmarked-empty-")));
     try {
       const sourceConfigPath = path.join(tempRoot, "source", "config.json");
       const targetRoot = path.join(tempRoot, "worktree");
@@ -809,7 +867,7 @@ describe("worktree helpers", () => {
   });
 
   it("adopts a markerless legacy worktree only after validating its database schema", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-unmarked-legacy-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-unmarked-legacy-")));
     try {
       const sourceConfigPath = path.join(tempRoot, "source", "config.json");
       const targetRoot = path.join(tempRoot, "worktree");
@@ -857,7 +915,7 @@ describe("worktree helpers", () => {
   });
 
   it("managed ensure-seeded derives a valid source from the registered base workspace", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-managed-seed-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-managed-seed-")));
     try {
       const baseRoot = path.join(tempRoot, "base");
       const sourceConfigPath = path.join(baseRoot, ".paperclip", "config.json");
@@ -906,7 +964,7 @@ describe("worktree helpers", () => {
   it.each(["sibling", "foreign_instance", "symlink", "instance_mismatch"] as const)(
     "managed ensure-seeded re-derives a stale %s manifest source from registration",
     async (variant) => {
-      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), `paperclip-worktree-managed-${variant}-`));
+      const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), `paperclip-worktree-managed-${variant}-`)));
       try {
         const baseRoot = path.join(tempRoot, "base");
         const canonicalSource = path.join(baseRoot, ".paperclip", "config.json");
@@ -980,7 +1038,7 @@ describe("worktree helpers", () => {
   );
 
   it("ensure-seeded records a target shutdown diagnostic when restore fails", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-failure-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-failure-")));
     try {
       const sourceConfigPath = path.join(tempRoot, "source", "config.json");
       const targetRoot = path.join(tempRoot, "worktree");
@@ -1043,7 +1101,7 @@ describe("worktree helpers", () => {
   });
 
   it("serializes concurrent ensure-seeded calls across the seed marker lock", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-lock-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-lock-")));
     try {
       const sourceConfigPath = path.join(tempRoot, "source", "config.json");
       const targetRoot = path.join(tempRoot, "worktree");
@@ -1093,7 +1151,7 @@ describe("worktree helpers", () => {
   });
 
   it("records an interrupted phase before retrying to a verified terminal state", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-interrupted-seed-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-interrupted-seed-")));
     try {
       const sourceConfigPath = path.join(tempRoot, "source", "config.json");
       const targetRoot = path.join(tempRoot, "worktree");
@@ -1146,7 +1204,7 @@ describe("worktree helpers", () => {
   });
 
   it("fails closed instead of racing to reclaim a stale seed lock", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-stale-lock-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-ensure-seeded-stale-lock-")));
     try {
       const targetConfigPath = path.join(tempRoot, ".paperclip", "config.json");
       const lockPath = path.join(tempRoot, ".paperclip", "seed.lock");
@@ -1412,7 +1470,7 @@ describe("worktree helpers", () => {
   });
 
   it("copies the source local_encrypted secrets key into the seeded worktree instance", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-secrets-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-secrets-")));
     const originalInlineMasterKey = process.env.PAPERCLIP_SECRETS_MASTER_KEY;
     const originalKeyFile = process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE;
     try {
@@ -1451,7 +1509,7 @@ describe("worktree helpers", () => {
   });
 
   it("writes the source inline secrets master key into the seeded worktree instance", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-secrets-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-secrets-")));
     try {
       const sourceConfigPath = path.join(tempRoot, "source", "config.json");
       const targetKeyPath = path.join(tempRoot, "target", "secrets", "master.key");
@@ -1472,7 +1530,7 @@ describe("worktree helpers", () => {
   });
 
   it("persists the current agent jwt secret into the worktree env file", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-jwt-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-jwt-")));
     const repoRoot = path.join(tempRoot, "repo");
     const originalCwd = process.cwd();
     const originalJwtSecret = process.env.PAPERCLIP_AGENT_JWT_SECRET;
@@ -1513,7 +1571,7 @@ describe("worktree helpers", () => {
   });
 
   it("preserves repo-managed worktree checkouts when --force re-runs from the source repo", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-force-preserve-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-force-preserve-")));
     const repoRoot = path.join(tempRoot, "repo");
     const originalCwd = process.cwd();
 
@@ -1554,7 +1612,7 @@ describe("worktree helpers", () => {
   itEmbeddedPostgres(
     "seeds a local-trusted implicit board user without a credential account",
     async () => {
-      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-local-board-seed-"));
+      const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-local-board-seed-")));
       const originalCwd = process.cwd();
       onTestFinished(() => {
         process.chdir(originalCwd);
@@ -1636,7 +1694,7 @@ describe("worktree helpers", () => {
   itEmbeddedPostgres(
     "seeds a lagging source whose migration application order differs from filename order",
     async () => {
-      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-auth-seed-"));
+      const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-auth-seed-")));
       const originalCwd = process.cwd();
       onTestFinished(() => {
         process.chdir(originalCwd);
@@ -1790,7 +1848,7 @@ describe("worktree helpers", () => {
   );
 
   it("avoids ports already claimed by sibling worktree instance configs", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-claimed-ports-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-claimed-ports-")));
     const repoRoot = path.join(tempRoot, "repo");
     const homeDir = path.join(tempRoot, ".paperclip-worktrees");
     const siblingInstanceRoot = path.join(homeDir, "instances", "existing-worktree");
@@ -1871,7 +1929,7 @@ describe("worktree helpers", () => {
   });
 
   it("reserves distinct ports for postgres-mode siblings under a custom worktree parent", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-custom-parent-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-custom-parent-")));
     const homeDir = path.join(tempRoot, ".paperclip-worktrees");
     const customParentDir = path.join(tempRoot, "custom", "workspace-lanes");
     const firstWorktreeRoot = path.join(customParentDir, "lane-one");
@@ -1926,7 +1984,7 @@ describe("worktree helpers", () => {
   });
 
   it("defaults the seed source config to the current repo-local Paperclip config", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-source-config-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-source-config-")));
     const repoRoot = path.join(tempRoot, "repo");
     const localConfigPath = path.join(repoRoot, ".paperclip", "config.json");
     const originalCwd = process.cwd();
@@ -1951,7 +2009,7 @@ describe("worktree helpers", () => {
   });
 
   it("preserves the source config path across worktree:make cwd changes", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-source-override-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-source-override-")));
     const sourceConfigPath = path.join(tempRoot, "source", "config.json");
     const targetRoot = path.join(tempRoot, "target");
     const originalCwd = process.cwd();
@@ -1994,7 +2052,7 @@ describe("worktree helpers", () => {
   });
 
   it("derives worktree reseed target paths from the adjacent env file", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-target-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-target-")));
     const worktreeRoot = path.join(tempRoot, "repo");
     const configPath = path.join(worktreeRoot, ".paperclip", "config.json");
     const envPath = path.join(worktreeRoot, ".paperclip", ".env");
@@ -2026,7 +2084,7 @@ describe("worktree helpers", () => {
   });
 
   it("rejects reseed targets without worktree env metadata", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-target-missing-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-target-missing-")));
     const worktreeRoot = path.join(tempRoot, "repo");
     const configPath = path.join(worktreeRoot, ".paperclip", "config.json");
 
@@ -2051,7 +2109,7 @@ describe("worktree helpers", () => {
   });
 
   itEmbeddedPostgres("reseed preserves the current worktree ports, instance id, and branding", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-")));
     const repoRoot = path.join(tempRoot, "repo");
     const sourceRoot = path.join(tempRoot, "source");
     const homeDir = path.join(tempRoot, ".paperclip-worktrees");
@@ -2156,7 +2214,7 @@ describe("worktree helpers", () => {
   });
 
   it("restores the current worktree config and instance data if reseed fails", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-rollback-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-reseed-rollback-")));
     const repoRoot = path.join(tempRoot, "repo");
     const sourceRoot = path.join(tempRoot, "source");
     const homeDir = path.join(tempRoot, ".paperclip-worktrees");
@@ -2265,7 +2323,7 @@ describe("worktree helpers", () => {
   });
 
   it("copies shared git hooks into a linked worktree git dir", () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-hooks-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-hooks-")));
     const repoRoot = path.join(tempRoot, "repo");
     const worktreePath = path.join(tempRoot, "repo-feature");
 
@@ -2313,7 +2371,7 @@ describe("worktree helpers", () => {
   }, 15_000);
 
   it("creates and initializes a worktree from the top-level worktree:make command", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-make-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-make-")));
     const repoRoot = path.join(tempRoot, "repo");
     const fakeHome = path.join(tempRoot, "home");
     const worktreePath = path.join(fakeHome, "paperclip-make-test");
@@ -2348,7 +2406,7 @@ describe("worktree helpers", () => {
   }, 20_000);
 
   it("no-ops on the primary checkout unless --branch is provided", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-repair-primary-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-repair-primary-")));
     const repoRoot = path.join(tempRoot, "repo");
     const originalCwd = process.cwd();
 
@@ -2373,7 +2431,7 @@ describe("worktree helpers", () => {
   });
 
   it("repairs the current linked worktree when Paperclip metadata is missing", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-repair-current-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-repair-current-")));
     const repoRoot = path.join(tempRoot, "repo");
     const worktreePath = path.join(repoRoot, ".paperclip", "worktrees", "repair-me");
     const sourceConfigPath = path.join(tempRoot, "source-config.json");
@@ -2420,7 +2478,7 @@ describe("worktree helpers", () => {
   }, 20_000);
 
   it("creates and repairs a missing branch worktree when --branch is provided", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-repair-branch-"));
+    const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-worktree-repair-branch-")));
     const repoRoot = path.join(tempRoot, "repo");
     const sourceConfigPath = path.join(tempRoot, "source-config.json");
     const worktreeHome = path.join(tempRoot, ".paperclip-worktrees");

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Agent } from "@paperclipai/shared";
 import { AgentIcon } from "@/components/AgentIconPicker";
@@ -22,8 +23,8 @@ export function AgentChatPicker({ open, onOpenChange, ...props }: AgentChatPicke
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent aria-describedby={undefined} className="gap-0 overflow-hidden p-0 sm:max-w-md">
         <div className="px-4 pt-4 pb-3">
-          <DialogTitle>Chat with an agent</DialogTitle>
-          {props.existingChatAgentIds && <p className="mt-2 text-sm text-muted-foreground">One conversation per agent. Pick up where you left off.</p>}
+          <DialogTitle>{t("stability.73adffe32a9a", { defaultValue: "Chat with an agent" })}</DialogTitle>
+          {props.existingChatAgentIds && <p className="mt-2 text-sm text-muted-foreground">{t("stability.2daf9fb3f16c", { defaultValue: "One conversation per agent. Pick up where you left off." })}</p>}
         </div>
         {/* The dialog unmounts its content on close, so each search starts empty. */}
         <AgentChatPickerResults key={String(open)} {...props} onComplete={() => onOpenChange(false)} />
@@ -60,29 +61,29 @@ function AgentChatPickerResults({ agents, onSelect, onComplete, loading, error, 
   return (
     <Command>
       <CommandInput
-        aria-label="Search agents by name or role"
-        placeholder="Search by name or role…"
+        aria-label={t("stability.e5d13d38a250", { defaultValue: "Search agents by name or role" })}
+        placeholder={t("stability.ada757655c29", { defaultValue: "Search by name or role…" })}
         value={search}
         onValueChange={setSearch}
       />
       {selectionError && <p role="alert" className="px-4 py-3 text-sm text-destructive">{selectionError}</p>}
-      {openingId && <p role="status" className="sr-only">Opening conversation…</p>}
+      {openingId && <p role="status" className="sr-only">{t("stability.12a7ad1d379e", { defaultValue: "Opening conversation…" })}</p>}
       {error ? (
         <div role="alert" className="flex flex-col items-start gap-2 p-4 text-sm">
-          <p>Couldn’t load agents. Try again.</p>
-          {onRetry && <Button variant="outline" size="sm" onClick={onRetry}>Retry</Button>}
+          <p>{t("stability.3ca8c8512207", { defaultValue: "Couldn’t load agents. Try again." })}</p>
+          {onRetry && <Button variant="outline" size="sm" onClick={onRetry}>{t("common.retry")}</Button>}
         </div>
       ) : loading ? (
-        <p role="status" className="p-4 text-sm text-muted-foreground">Loading agents…</p>
+        <p role="status" className="p-4 text-sm text-muted-foreground">{t("loading_agents_aa8e27")}</p>
       ) : (
         <CommandList>
           <CommandEmpty>
             <div className="flex flex-col items-center gap-2 px-4">
-              <span>{agents.length ? `No agents match “${search}”` : "No agents yet."}</span>
+              <span>{agents.length ? `No agents match “${search}”` : t("no_agents_yet")}</span>
               {agents.length ? <>
-                <span className="text-xs text-muted-foreground">Try another name or role.</span>
-                <Button variant="ghost" size="sm" onClick={() => setSearch("")}>Clear search</Button>
-              </> : <span className="text-xs text-muted-foreground">Create an agent from the Agents page to start chatting.</span>}
+                <span className="text-xs text-muted-foreground">{t("stability.ec1f4d9dde9c", { defaultValue: "Try another name or role." })}</span>
+                <Button variant="ghost" size="sm" onClick={() => setSearch("")}>{t("clear_search")}</Button>
+              </> : <span className="text-xs text-muted-foreground">{t("stability.8f52c09515e8", { defaultValue: "Create an agent from the Agents page to start chatting." })}</span>}
             </div>
           </CommandEmpty>
           <CommandGroup>
@@ -100,10 +101,10 @@ function AgentChatPickerResults({ agents, onSelect, onComplete, loading, error, 
                   <span className="truncate font-medium">{agent.name}</span>
                   <span className="truncate text-xs text-muted-foreground">{agent.title ?? agent.role}</span>
                 </span>
-                {existingChatAgentIds && <span className="shrink-0 text-xs text-muted-foreground">{existingChatAgentIds.includes(agent.id) ? "Open chat" : "New chat"}</span>}
-                {agent.status === "paused" && <span className="text-xs text-(--status-agent-paused)">Paused</span>}
-                {agent.status === "terminated" && <span className="text-xs text-muted-foreground">Terminated</span>}
-                {agent.status === "pending_approval" && <span className="text-xs text-muted-foreground">Awaiting approval</span>}
+                {existingChatAgentIds && <span className="shrink-0 text-xs text-muted-foreground">{existingChatAgentIds.includes(agent.id) ? t("stability.0600175af842", { defaultValue: "Open chat" }) : t("stability.db18382a249e", { defaultValue: "New chat" })}</span>}
+                {agent.status === "paused" && <span className="text-xs text-(--status-agent-paused)">{t("paused")}</span>}
+                {agent.status === "terminated" && <span className="text-xs text-muted-foreground">{t("zhSupport.labels.common.terminated")}</span>}
+                {agent.status === "pending_approval" && <span className="text-xs text-muted-foreground">{t("awaiting_approval")}</span>}
               </CommandItem>
             ))}
           </CommandGroup>

@@ -6,6 +6,9 @@ import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { queryKeys } from "@/lib/queryKeys";
+import { i18n, t } from "@/i18n";
+import { getDisplayLabel } from "@/lib/display-labels";
+const initialLanguage = i18n.language;
 import { SidebarCompanyMenu } from "./SidebarCompanyMenu";
 import { SidebarCompanyMenu as SidebarCompanyMenuProduction } from "./SidebarCompanyMenu.production";
 
@@ -162,7 +165,8 @@ describe("SidebarCompanyMenu", () => {
     mockCompanyState.companyListUnavailable = false;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await i18n.changeLanguage(initialLanguage);
     container.remove();
     document.body.innerHTML = "";
     vi.clearAllMocks();
@@ -198,6 +202,20 @@ describe("SidebarCompanyMenu", () => {
     });
     await flushReact();
   }
+
+  it.each([
+    ["en", false], ["zh-CN", false], ["en", true], ["zh-CN", true],
+  ] as const)("localizes the organization switcher noun in %s (production=%s)", async (locale, production) => {
+    await i18n.changeLanguage(locale);
+    const { root } = renderMenu({ production });
+    await flushReact();
+    const label = t("zhComponents.message_a4391b19dc", { value1: "Acme Labs", value2: getDisplayLabel(production ? "company" : "organization", "raw") });
+    const trigger = container.querySelector(`button[aria-label="${label}"]`);
+    expect(trigger).not.toBeNull();
+    expect(trigger?.textContent).toContain("Acme Labs");
+    if (locale === "zh-CN") expect(label).not.toMatch(/organization|company/);
+    act(() => root.unmount());
+  });
 
   // This menu is the one the app renders, so it is the only place a customer can
   // act on a failed company list. Saying "No companies" there states something

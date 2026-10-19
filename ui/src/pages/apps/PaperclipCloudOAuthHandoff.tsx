@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { Link2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,19 +35,19 @@ export function ManagedOAuthHandoffState({
         </span>
         <div className="min-w-0">
           <h1 className="text-xl font-bold tracking-tight">
-            {failed ? "Sign-in couldn’t continue" : "Preparing secure sign-in"}
+            {failed ? t("stability.a790c4c9cb70", { defaultValue: "Sign-in couldn’t continue" }) : t("preparing_secure_sign_in")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {failed
-              ? error ?? "Paperclip couldn’t prepare the provider sign-in. Try again."
+              ? error ?? t("stability.4c14d5fc3f52", { defaultValue: "Paperclip couldn’t prepare the provider sign-in. Try again." })
               : phase === "reauthenticating"
-                ? "Your Paperclip sign-in is being refreshed."
-                : "Paperclip is opening the provider securely."}
+                ? t("stability.549710816016", { defaultValue: "Your Paperclip sign-in is being refreshed." })
+                : t("stability.a6a543ef4341", { defaultValue: "Paperclip is opening the provider securely." })}
           </p>
           {failed ? (
             <div className="mt-6 flex items-center gap-2">
-              <Button type="button" onClick={onRetry}>Try again</Button>
-              <Button type="button" variant="ghost" onClick={onCancel}>Return to Paperclip</Button>
+              <Button type="button" onClick={onRetry}>{t("try_again")}</Button>
+              <Button type="button" variant="ghost" onClick={onCancel}>{t("stability.7cb9e4e1973d", { defaultValue: "Return to Paperclip" })}</Button>
             </div>
           ) : null}
         </div>

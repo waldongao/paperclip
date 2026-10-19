@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { KeyRound, Save } from "lucide-react";
 import type { CompanySecret, RoutineEnvConfig } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
@@ -54,14 +55,14 @@ export function StageSecretsPanel({
     return (
       <EmptyState
         icon={KeyRound}
-        message="Secrets are available only to step automation. Pick an agent to run this step, then add the secrets it needs."
-        action="Set up automation"
+        message={t("secrets_are_available_only_to_step_automation_pi")}
+        action={t("set_up_automation")}
         onAction={onSetupAutomation}
       />
     );
   }
 
-  const displayName = agentName?.trim() || "the responsible agent";
+  const displayName = agentName?.trim() || t("the_responsible_agent");
 
   return (
     <div className="space-y-5">
@@ -72,15 +73,13 @@ export function StageSecretsPanel({
           <KeyRound className="h-3.5 w-3.5 mt-0.5 shrink-0" />
         )}
         <p>
-          These env vars are injected when{" "}
-          <span className="font-medium text-foreground">{displayName}</span> runs this step. They override
-          matching project and agent env on collisions. <span className="font-mono">PAPERCLIP_*</span> names
-          are reserved.
+          {t("these_env_vars_are_injected_when")}{" "}
+          <span className="font-medium text-foreground">{displayName}</span> {t("runs_this_step_they_override_matching_project_an")} <span className="font-mono">{t("paperclip_f1a7d4")}</span> {t("names_are_reserved")}
         </p>
       </div>
 
       {secretsLoading ? (
-        <p className="text-sm text-muted-foreground">Loading secrets…</p>
+        <p className="text-sm text-muted-foreground">{t("loading_secrets")}</p>
       ) : (
         <EnvironmentVariablesEditor
           value={value}
@@ -93,9 +92,9 @@ export function StageSecretsPanel({
       <div className="flex items-center gap-3">
         <Button type="button" onClick={onSave} disabled={!dirty || saving}>
           <Save className="h-4 w-4 mr-1.5" />
-          {saving ? "Saving…" : "Save secrets"}
+          {saving ? t("saving_56a228") : t("save_secrets")}
         </Button>
-        {dirty && !saving ? <span className="text-xs text-muted-foreground">Unsaved changes</span> : null}
+        {dirty && !saving ? <span className="text-xs text-muted-foreground">{t("unsaved_changes")}</span> : null}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { AiConnectionPoolConnector } from "@/components/ai-connections/AiConnectionPoolConnector";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -38,10 +39,10 @@ export function AppsConnect({ byoOnly = false, credentialSource = "paperclip_vau
   useEffect(() => {
     if (hasSavedComposio) navigate(`/apps?source=composio&targetToolkit=${encodeURIComponent(toolkit!)}`, { replace: true });
   }, [hasSavedComposio, toolkit, navigate]);
-  if (reuseComposio && selectedCompanyId && (saved.isPending || hasSavedComposio)) return <p role="status" className="text-sm text-muted-foreground">Checking saved Composio accounts…</p>;
+  if (reuseComposio && selectedCompanyId && (saved.isPending || hasSavedComposio)) return <p role="status" className="text-sm text-muted-foreground">{t("stability.a3d61cc52a92", { defaultValue: "Checking saved Composio accounts…" })}</p>;
   if (reuseComposio && saved.isError) return <div className="space-y-3">
-    <p role="alert" className="text-sm text-destructive">Couldn’t load your Composio accounts.</p>
-    <div className="flex items-center justify-between"><Button variant="ghost" onClick={() => navigate("/apps")}>Cancel</Button><Button onClick={() => void saved.refetch()}>Try again</Button></div>
+    <p role="alert" className="text-sm text-destructive">{t("stability.f3aea35319be", { defaultValue: "Couldn’t load your Composio accounts." })}</p>
+    <div className="flex items-center justify-between"><Button variant="ghost" onClick={() => navigate("/apps")}>{t("common.cancel")}</Button><Button onClick={() => void saved.refetch()}>{t("try_again")}</Button></div>
   </div>;
   const returningToSkills = source === "github" && selectedCompanyId && skillSourceReturnPath(selectedCompanyId);
   function returnToSkills() {
@@ -49,8 +50,8 @@ export function AppsConnect({ byoOnly = false, credentialSource = "paperclip_vau
     if (path) navigate(path);
   }
   if (source?.startsWith("ai-router-")) {
-    if (gallery.isPending) return <p role="status">Loading connector…</p>;
-    if (!router) return <p role="alert">{gallery.error?.message ?? "This connection pool plugin is unavailable. Enable it in Plugins."}</p>;
+    if (gallery.isPending) return <p role="status">{t("stability.6cd606384bc7", { defaultValue: "Loading connector…" })}</p>;
+    if (!router) return <p role="alert">{gallery.error?.message ?? t("stability.4088b7cf0129", { defaultValue: "This connection pool plugin is unavailable. Enable it in Plugins." })}</p>;
     return <AiConnectionPoolConnector pluginKey={router.pluginKey} />;
   }
   return <ConnectionSetupFlow byoOnly={byoOnly} credentialSource={credentialSource} host="page"

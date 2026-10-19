@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState, type MouseEvent } from "react";
 import type { Issue } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -20,6 +21,7 @@ import {
 import { ArrowUpRight, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { StatusIcon } from "../StatusIcon";
+import { useTranslation } from "@/i18n";
 
 export function RemovableIssueReferencePill({
   issue,
@@ -30,6 +32,7 @@ export function RemovableIssueReferencePill({
   onRemove: (issueId: string) => void;
   isMobile?: boolean;
 }) {
+  const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const issueLabel = issue.identifier ?? issue.title;
   const confirmLabel = issue.identifier ? `${issue.identifier}: ${issue.title}` : issue.title;
@@ -44,7 +47,7 @@ export function RemovableIssueReferencePill({
       <span className="truncate">{issueLabel}</span>
     </>
   );
-  const removeLabel = `Remove ${issueLabel} as blocker`;
+  const removeLabel = t("zhComponents.message_b4e8140c5d", { value1: issueLabel });
   const openRemoveConfirmation = () => setIsConfirmOpen(true);
   const handleRemove = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -67,7 +70,7 @@ export function RemovableIssueReferencePill({
                 data-mention-kind="issue"
                 className={chipClassName}
                 title={issue.title}
-                aria-label={`Actions for blocker ${issueLabel}`}
+                aria-label={t("zhComponents.message_1f2bb7cd73", { value1: issueLabel })}
               >
                 {content}
               </button>
@@ -77,13 +80,13 @@ export function RemovableIssueReferencePill({
                 <DropdownMenuItem asChild>
                   <Link to={`/issues/${issue.identifier}`}>
                     <ArrowUpRight className="h-4 w-4" />
-                    Visit task
+                    {t("visit_task")}
                   </Link>
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem variant="destructive" onSelect={openRemoveConfirmation}>
                 <X className="h-4 w-4" />
-                Remove blocker
+                {t("remove_blocker")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -104,7 +107,7 @@ export function RemovableIssueReferencePill({
                 data-mention-kind="issue"
                 className={chipClassName}
                 title={issue.title}
-                aria-label={`Task ${issueLabel}: ${issue.title}`}
+                aria-label={t("zhComponents.message_61b0123aa1", { value1: issueLabel, value2: issue.title })}
               >
                 {content}
               </Link>
@@ -113,7 +116,7 @@ export function RemovableIssueReferencePill({
                 data-mention-kind="issue"
                 className={chipClassName}
                 title={issue.title}
-                aria-label={`Task: ${issue.title}`}
+                aria-label={t("zhComponents.message_e933d2a91f", { value1: issue.title })}
               >
                 {content}
               </span>
@@ -124,17 +127,17 @@ export function RemovableIssueReferencePill({
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Remove blocker?</DialogTitle>
+            <DialogTitle>{t("remove_blocker_2085fd")}</DialogTitle>
             <DialogDescription>
-              Remove {confirmLabel} as a blocker for this task.
+              {t("remove")} {confirmLabel} {t("as_a_blocker_for_this_task")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancel</Button>
+              <Button type="button" variant="outline">{t("cancel")}</Button>
             </DialogClose>
             <Button type="button" variant="destructive" onClick={confirmRemove}>
-              Remove blocker
+              {t("remove_blocker")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -152,15 +155,16 @@ export function ExpandRelationListButton({
   expanded: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   if (!expanded && hiddenCount <= 0) return null;
   return (
     <button
       type="button"
       className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
       onClick={onClick}
-      aria-label={expanded ? "Show fewer items" : `Show ${hiddenCount} more items`}
+      aria-label={expanded ? t("show_fewer_items") : t("zhComponents.message_fcfa10bd25", { value1: hiddenCount })}
     >
-      {expanded ? "Show less" : `Show ${hiddenCount} more`}
+      {expanded ? t("show_less") : t("zhComponents.message_2ec0f5818a", { value1: hiddenCount })}
     </button>
   );
 }

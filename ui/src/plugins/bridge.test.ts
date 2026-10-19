@@ -8,6 +8,9 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/api/client";
+import { pluginsApi } from "@/api/plugins";
+import { i18n } from "@/i18n";
 import {
   FileTree as SdkFileTree,
   ManagedRoutinesList as SdkManagedRoutinesList,
@@ -21,6 +24,7 @@ import {
   resolveHostNavigationHref,
   shouldHandleHostNavigationClick,
   useHostNavigation,
+  usePluginAction,
   type PluginBridgeContextValue,
 } from "./bridge";
 import { initPluginBridge } from "./bridge-init";
@@ -373,5 +377,26 @@ describe("plugin jsx runtime bridge", () => {
     }
 
     expect(warnings.filter((message) => message.includes("key"))).toEqual([]);
+  });
+});
+
+describe("plugin API error protocol", () => {
+  it("keeps an unstructured API failure raw when passing it to a plugin action", async () => {
+    const previousLanguage = i18n.language;
+    await i18n.changeLanguage("zh-CN");
+    const failure = new ApiError("Issue not found", 404, null);
+    const request = vi.spyOn(pluginsApi, "bridgePerformAction").mockRejectedValue(failure);
+    let action: ReturnType<typeof usePluginAction> | undefined;
+    function Probe() { action = usePluginAction("test-action"); return null; }
+    try {
+      renderToStaticMarkup(React.createElement(PluginBridgeContext.Provider, {
+        value: { pluginId: "test-plugin", hostContext: { companyId: "company-1", companyPrefix: "PAP", projectId: null, entityId: null, entityType: null, userId: null } },
+      }, React.createElement(Probe)));
+      expect(failure.message).toMatch(/[\u3400-\u9fff]/);
+      await expect(action!()).rejects.toEqual({ code: "UNKNOWN", message: "Issue not found" });
+    } finally {
+      request.mockRestore();
+      await i18n.changeLanguage(previousLanguage);
+    }
   });
 });

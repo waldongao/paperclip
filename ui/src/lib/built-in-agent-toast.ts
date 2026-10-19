@@ -1,4 +1,5 @@
 import type { ToastInput } from "@/context/ToastContext";
+import { t } from "@/i18n";
 
 export interface BuiltInAgentPausedToastOptions {
   /** Display name of the paused built-in agent, e.g. "Briefs Agent". */
@@ -20,9 +21,9 @@ export function buildBuiltInAgentPausedToast(options: BuiltInAgentPausedToastOpt
   const noun = options.featureNoun ?? "item";
   return {
     dedupeKey: `built-in-agent-paused:${options.displayName}`,
-    title: `${options.displayName} is paused`,
-    body: `Resume the agent to generate this ${noun}.`,
+    title: t("zhSupport.pausedAgent", { name: options.displayName }),
+    body: t("zhSupport.resumeForProduct", { noun }),
     tone: "warn",
-    action: { label: "View agent", href: options.agentHref },
+    action: { label: t("view_agent"), href: options.agentHref },
   };
 }

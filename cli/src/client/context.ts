@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import fs from "node:fs";
 import path from "node:path";
 import { resolveDefaultContextPath } from "../config/home.js";
@@ -61,7 +62,7 @@ function parseJson(filePath: string): unknown {
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf-8"));
   } catch (err) {
-    throw new Error(`Failed to parse JSON at ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(tCli("Failed to parse JSON at {{filePath}}: {{message}}", { filePath: String(filePath), message: translateCliDisplayMessage(err instanceof Error ? err.message : String(err)) }));
   }
 }
 

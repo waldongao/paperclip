@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type BrowserUseControl, type TaskBrowser } from "@paperclipai/shared";
@@ -185,7 +186,7 @@ export function TaskBrowserPanel({
           <iframe
             ref={frameRef}
             key={refresh}
-            title="Live Browser Use browser"
+            title={t("stability.2c93ae8a4eaa", { defaultValue: "Live Browser Use browser" })}
             src={url}
             onLoad={() => setViewerLoad("loaded")}
             referrerPolicy="no-referrer"
@@ -203,24 +204,17 @@ export function TaskBrowserPanel({
                     className="size-5 animate-spin text-muted-foreground motion-reduce:animate-none"
                     aria-hidden="true"
                   />
-                  <p className="text-sm">Connecting to browser…</p>
+                  <p className="text-sm">{t("stability.7b883983a2d0", { defaultValue: "Connecting to browser…" })}</p>
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-medium">
-                    The live view did not load
-                  </p>
-                  <p className="max-w-sm text-sm text-muted-foreground">
-                    Reconnect the view or open this task in another browser. The
-                    remote browser is still running.
-                  </p>
+                  <p className="text-sm font-medium">{t("stability.02bd7771c890", { defaultValue: "The live view did not load" })}</p>
+                  <p className="max-w-sm text-sm text-muted-foreground">{t("stability.f6e862cac78d", { defaultValue: "Reconnect the view or open this task in another browser. The remote browser is still running." })}</p>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={reconnect}
-                  >
-                    Reconnect view
-                  </Button>
+                  >{t("stability.96216c2c26ea", { defaultValue: "Reconnect view" })}</Button>
                 </>
               )}
             </div>
@@ -248,21 +242,19 @@ export function TaskBrowserPanel({
               {message ??
                 (browser?.status === "closed"
                   ? onOpenActiveBrowser
-                    ? "Another browser is still open on this task."
-                    : "Send a task message to ask the agent to open another browser."
+                    ? t("stability.73bd1304338a", { defaultValue: "Another browser is still open on this task." })
+                    : t("stability.0385e64c773e", { defaultValue: "Send a task message to ask the agent to open another browser." })
                   : browser?.status === "starting"
-                    ? "The live view will appear here when it is ready."
+                    ? t("stability.6b4a34e36555", { defaultValue: "The live view will appear here when it is ready." })
                     : browser?.status === "stopping"
-                      ? "Waiting for Browser Use to confirm shutdown."
+                      ? t("stability.5ecf99796ce7", { defaultValue: "Waiting for Browser Use to confirm shutdown." })
                       : !viewable
-                        ? "Ask the agent to browse a website in a task message."
+                        ? t("stability.c87f7bdf7568", { defaultValue: "Ask the agent to browse a website in a task message." })
                         : null)}
             </p>
           </div>
           {browser?.status === "closed" && !accessError && onOpenActiveBrowser && (
-            <Button variant="outline" size="sm" onClick={onOpenActiveBrowser}>
-              Open active browser
-            </Button>
+            <Button variant="outline" size="sm" onClick={onOpenActiveBrowser}>{t("stability.9ed9ca489129", { defaultValue: "Open active browser" })}</Button>
           )}
         </div>
       )}
@@ -272,10 +264,7 @@ export function TaskBrowserPanel({
         </p>
       )}
       {viewable && presenceError && (
-        <p role="alert" className="px-3 py-2 text-xs text-destructive">
-          Could not keep this browser open. Check your connection before the
-          timer runs out.
-        </p>
+        <p role="alert" className="px-3 py-2 text-xs text-destructive">{t("stability.3cf45333e7ea", { defaultValue: "Could not keep this browser open. Check your connection before the timer runs out." })}</p>
       )}
       {viewable && viewport.error && (
         <p role="alert" className="px-3 py-2 text-xs text-destructive">

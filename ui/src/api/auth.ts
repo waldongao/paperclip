@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 import {
   authSessionSchema,
   currentUserProfileSchema,
@@ -26,9 +28,12 @@ export class AuthApiError extends Error {
   status: number;
   code: string | null;
   body: unknown;
+  /** Original server message for machine-readable error checks. */
+  rawMessage: string;
 
   constructor(message: string, status: number, body: unknown, code: string | null = null) {
-    super(message);
+    super(translateDisplayMessage(message));
+    this.rawMessage = message;
     this.name = "AuthApiError";
     this.status = status;
     this.code = code;
@@ -188,7 +193,7 @@ export const authApi = {
     if (!res.ok) {
       const recovery = tenantSessionRecovery.recoverIfNeeded(res.status, payload);
       if (recovery) return recovery;
-      throw new Error((payload as { error?: string } | null)?.error ?? `Failed to load profile (${res.status})`);
+      throw new Error(translateDisplayMessage((payload as { error?: string } | null)?.error ?? t("zhSupport.profileFailed", { status: res.status })));
     }
     return currentUserProfileSchema.parse(payload);
   },

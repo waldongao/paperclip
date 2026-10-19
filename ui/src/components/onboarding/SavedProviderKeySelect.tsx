@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { aiConnectionsApi } from "@/api/ai-connections";
 import type { AiProvider } from "@paperclipai/shared";
 import { useQuery } from "@tanstack/react-query";
@@ -91,9 +92,9 @@ export function SavedProviderKeySelect({
     <div className="space-y-2">
       {options.length > 0 && (
         <label className="block space-y-2 text-sm">
-          <span>{kind === "api" ? "API key" : "Subscription"}</span>
+          <span>{kind === "api" ? t("api_key") : t("subscription")}</span>
           <select
-            aria-label={kind === "api" ? "Saved API key" : "Saved subscription"}
+            aria-label={kind === "api" ? t("stability.90acb76dcf19", { defaultValue: "Saved API key" }) : t("stability.d4e6deb71120", { defaultValue: "Saved subscription" })}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={value}
             onChange={(event) => onChange(event.target.value)}
@@ -106,27 +107,20 @@ export function SavedProviderKeySelect({
             ))}
             <option value="">
               {kind === "api"
-                ? "Enter a new API key"
-                : "Sign in to another account"}
+                ? t("stability.9b6cc5e19d07", { defaultValue: "Enter a new API key" })
+                : t("stability.49077ef2d842", { defaultValue: "Sign in to another account" })}
             </option>
           </select>
         </label>
       )}
       {loading && (
-        <p role="status" className="text-sm text-muted-foreground">
-          Checking saved API keys…
-        </p>
+        <p role="status" className="text-sm text-muted-foreground">{t("stability.b34650f62297", { defaultValue: "Checking saved API keys…" })}</p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-destructive">
-          Some saved keys could not be loaded. You can still enter a new key.
-        </p>
+        <p role="alert" className="text-sm text-destructive">{t("stability.1af606f55aab", { defaultValue: "Some saved keys could not be loaded. You can still enter a new key." })}</p>
       )}
       {value && (
-        <p className="text-sm text-muted-foreground">
-          Reuse this saved {kind === "api" ? "key" : "subscription"} for this
-          agent.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("stability.315bac519ce7", { defaultValue: "Reuse this saved" })}{" "}{kind === "api" ? t("zhComponents.nouns.key") : t("stability.a8fa7fd60893", { defaultValue: "subscription" })}{" "}{t("stability.cc16afa877f0", { defaultValue: "for this agent." })}</p>
       )}
     </div>
   );

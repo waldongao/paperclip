@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import {
@@ -149,7 +150,7 @@ function Diff({ additions, deletions, filesChanged }: DiffProps) {
       )}
       {filesChanged != null && (
         <span className="text-muted-foreground">
-          {filesChanged} {filesChanged === 1 ? "file" : "files"}
+          {filesChanged} {filesChanged === 1 ? t("zhComponents.nouns.file") : t("zhComponents.nouns.file_other")}
         </span>
       )}
     </div>
@@ -211,7 +212,7 @@ export function PullRequestCard(props: PullRequestCardProps) {
       <div className="flex flex-col gap-4 p-5">
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <GitPullRequest className="size-4" /> Pull request{" "}
+            <GitPullRequest className="size-4" />{" "}{t("stability.f3dba6629c69", { defaultValue: "Pull request" })}{" "}
             {number != null && <span className="font-mono">#{number}</span>}
           </span>
           <Badge
@@ -255,14 +256,13 @@ export function PullRequestCard(props: PullRequestCardProps) {
           <p className="text-xs leading-relaxed">{reviewSummary}</p>
         )}
         {evidenceSource && (
-          <p className="text-xs text-muted-foreground">
-            Source: {evidenceSource}
+          <p className="text-xs text-muted-foreground">{t("source_922acd")}{" "}{evidenceSource}
           </p>
         )}
       </div>
       <Footer
         {...props}
-        action={<SourceLink url={url}>Open pull request</SourceLink>}
+        action={<SourceLink url={url}>{t("stability.439996522e21", { defaultValue: "Open pull request" })}</SourceLink>}
       />
     </Card>
   );
@@ -279,7 +279,7 @@ export function CommitCard(props: CommitCardProps) {
     <Card>
       <div className="flex flex-col gap-4 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <GitCommitHorizontal className="size-4" /> Commit{" "}
+          <GitCommitHorizontal className="size-4" />{" "}{t("stability.82a9c46ffa47", { defaultValue: "Commit" })}{" "}
           <code title={props.sha}>{props.sha.slice(0, 8)}</code>
         </span>
         <Identity {...props} />
@@ -296,7 +296,7 @@ export function CommitCard(props: CommitCardProps) {
       </div>
       <Footer
         {...props}
-        action={<SourceLink url={props.url}>View commit</SourceLink>}
+        action={<SourceLink url={props.url}>{t("stability.83b2eddb4177", { defaultValue: "View commit" })}</SourceLink>}
       />
     </Card>
   );
@@ -388,8 +388,7 @@ export function DocumentCard(props: DocumentCardProps) {
       )}
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <FileText className="size-4" /> Markdown
-          {props.revision != null && ` · revision ${props.revision}`}
+          <FileText className="size-4" />{" "}{t("markdown")}{props.revision != null && ` · revision ${props.revision}`}
         </span>
         <Identity {...props} />
         <span className="break-all font-mono text-xs text-muted-foreground">
@@ -463,7 +462,7 @@ function DataTable({ columns, rows }: Pick<DataCardProps, "columns" | "rows">) {
         </tbody>
       </table>
       {rows.length === 0 && (
-        <p className="p-4 text-xs text-muted-foreground">No rows</p>
+        <p className="p-4 text-xs text-muted-foreground">{t("no_rows")}</p>
       )}
     </div>
   );
@@ -481,10 +480,10 @@ export function DataCard(props: DataCardProps) {
       </div>
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Table2 className="size-4" /> CSV · {props.truncated ? "First " : ""}
-          {props.rows.length} {props.rows.length === 1 ? "row" : "rows"} ·{" "}
+          <Table2 className="size-4" />{" "}{t("stability.81887af63ac1", { defaultValue: "CSV ·" })}{" "}{props.truncated ? t("stability.2024afa3bc2e", { defaultValue: "First " }) : ""}
+          {props.rows.length} {props.rows.length === 1 ? t("stability.634768dae147", { defaultValue: "row" }) : t("stability.bc51e9e65d79", { defaultValue: "rows" })} ·{" "}
           {props.columns.length}{" "}
-          {props.columns.length === 1 ? "column" : "columns"}
+          {props.columns.length === 1 ? t("stability.881d5fb60090", { defaultValue: "column" }) : t("stability.0e624a1a135e", { defaultValue: "columns" })}
         </span>
         <Identity {...props} />
         <span className="break-all font-mono text-xs text-muted-foreground">
@@ -509,9 +508,7 @@ export function DataCard(props: DataCardProps) {
                     props.downloadUrl ||
                     `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`
                   }
-                >
-                  Download CSV
-                </a>
+                >{t("stability.a4023b89022f", { defaultValue: "Download CSV" })}</a>
               </Button>
             </Viewer>
           </div>
@@ -534,7 +531,7 @@ function ImageContent({ src, alt }: { src: string; alt: string }) {
   ) : (
     <div className="flex aspect-video flex-col items-center justify-center gap-3 text-muted-foreground">
       <ImageIcon className="size-8" />
-      <span className="text-xs">No preview available</span>
+      <span className="text-xs">{t("stability.e5c083cf41ff", { defaultValue: "No preview available" })}</span>
     </div>
   );
 }
@@ -555,8 +552,7 @@ export function ImageCard(props: ImageCardProps) {
       </div>
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <ImageIcon className="size-4" /> Image
-          {props.width && props.height
+          <ImageIcon className="size-4" />{" "}{t("image")}{props.width && props.height
             ? ` · ${props.width} × ${props.height}`
             : ""}
         </span>
@@ -572,11 +568,9 @@ export function ImageCard(props: ImageCardProps) {
             <Button
               size="sm"
               variant="outline"
-              aria-label={`View image: ${props.title}`}
+              aria-label={t("stability.7eba81ff82fe", { value1: props.title, defaultValue: "View image: {{value1}}" })}
               onClick={props.onOpen}
-            >
-              View image
-            </Button>
+            >{t("stability.5bb55a4bb4fd", { defaultValue: "View image" })}</Button>
           ) : (
             <Viewer
               title={props.title}
@@ -613,8 +607,7 @@ export function VideoCard(props: VideoCardProps) {
       />
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Film className="size-4" /> Video
-          {props.duration && ` · ${props.duration}`}
+          <Film className="size-4" />{" "}{t("video")}{props.duration && ` · ${props.duration}`}
         </span>
         <Identity {...props} />
         <span className="break-all font-mono text-xs text-muted-foreground">
@@ -628,13 +621,11 @@ export function VideoCard(props: VideoCardProps) {
             <Button
               size="sm"
               variant="outline"
-              aria-label={`Open video: ${props.title}`}
+              aria-label={t("stability.88d41f60d223", { value1: props.title, defaultValue: "Open video: {{value1}}" })}
               onClick={props.onOpen}
-            >
-              Open video
-            </Button>
+            >{t("stability.6ac7b387e42d", { defaultValue: "Open video" })}</Button>
           ) : (
-            <SourceLink url={props.videoUrl}>Open video</SourceLink>
+            <SourceLink url={props.videoUrl}>{t("stability.6ac7b387e42d", { defaultValue: "Open video" })}</SourceLink>
           )
         }
       />
@@ -657,8 +648,7 @@ export function LinkPreviewCard(props: LinkPreviewCardProps) {
       )}
       <div className="flex flex-col gap-4 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Globe className="size-4" /> Link preview
-        </span>
+          <Globe className="size-4" />{" "}{t("stability.165e9250b511", { defaultValue: "Link preview" })}</span>
         <Identity {...props} />
         <span className="break-all font-mono text-xs text-muted-foreground">
           {props.url}
@@ -666,7 +656,7 @@ export function LinkPreviewCard(props: LinkPreviewCardProps) {
       </div>
       <Footer
         {...props}
-        action={<SourceLink url={props.url}>Open link</SourceLink>}
+        action={<SourceLink url={props.url}>{t("stability.aab63f85c7f1", { defaultValue: "Open link" })}</SourceLink>}
       />
     </Card>
   );
@@ -686,8 +676,7 @@ export function FileCard(props: FileCardProps) {
     <Card>
       <div className="flex flex-col gap-4 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <File className="size-4" /> File
-          {props.fileSize && ` · ${props.fileSize}`}
+          <File className="size-4" />{" "}{t("file")}{props.fileSize && ` · ${props.fileSize}`}
         </span>
         <Identity {...props} />
         <div className="flex flex-col gap-1">
@@ -716,18 +705,14 @@ export function FileCard(props: FileCardProps) {
           <div className="flex flex-wrap items-center gap-2">
             {props.actions}
             {props.openUrl && (
-              <SourceLink url={props.openUrl}>Open file</SourceLink>
+              <SourceLink url={props.openUrl}>{t("stability.4190c0c7ec72", { defaultValue: "Open file" })}</SourceLink>
             )}
             {props.downloadUrl ? (
               <Button asChild size="sm" variant="outline">
-                <a href={props.downloadUrl} download={props.filename}>
-                  Download file
-                </a>
+                <a href={props.downloadUrl} download={props.filename}>{t("download_file")}</a>
               </Button>
             ) : (
-              <Button size="sm" variant="outline" disabled>
-                Download unavailable
-              </Button>
+              <Button size="sm" variant="outline" disabled>{t("stability.2f180e49010d", { defaultValue: "Download unavailable" })}</Button>
             )}
           </div>
         }

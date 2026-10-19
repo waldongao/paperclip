@@ -5,6 +5,7 @@ import type { HeartbeatRun } from "@paperclipai/shared";
 import { afterEach, expect, it, vi } from "vitest";
 import { LogViewer } from "./AgentDetail";
 import { LogViewer as ProductionLogViewer } from "./AgentDetail.production";
+import { i18n, t } from "@/i18n";
 
 const { log, events, empty } = vi.hoisted(() => ({ log: vi.fn(), events: vi.fn(async () => []), empty: [] }));
 vi.mock("../api/heartbeats", () => ({ heartbeatsApi: { log, events } }));
@@ -18,7 +19,7 @@ vi.mock("../adapters", () => ({
   buildTranscript: (lines: unknown[]) => lines,
 }));
 vi.mock("../components/transcript/RunTranscriptView", () => ({
-  RunTranscriptView: ({ entries }: { entries: Array<{ chunk: string }> }) => <div>{entries.map(line => line.chunk).join(" ")}</div>,
+  RunTranscriptView: ({ entries, mode }: { entries: Array<{ chunk: string }>; mode: string }) => <div data-transcript-mode={mode}>{entries.map(line => line.chunk).join(" ")}</div>,
 }));
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); log.mockReset(); events.mockClear(); });
@@ -91,4 +92,35 @@ it.each([LogViewer, ProductionLogViewer])("polls logs when WebSocket constructio
     await act(async () => root.unmount());
   }
   expect(sockets[0].close).toHaveBeenCalled();
+});
+
+
+it.each([
+  [LogViewer, "en"], [LogViewer, "zh-CN"],
+  [ProductionLogViewer, "en"], [ProductionLogViewer, "zh-CN"],
+] as const)("localizes the transcript controls without changing mode values or raw content (%#)", async (Viewer, locale) => {
+  const previousLocale = i18n.language;
+  await i18n.changeLanguage(locale);
+  const row = JSON.stringify({ seq: 1, ts: "2026-09-10T12:00:00Z", stream: "stdout", chunk: "Raw provider JSON remains unchanged" }) + "\n";
+  log.mockResolvedValue({ content: row, nextOffset: row.length });
+  const run = { id: "run-modes", companyId: "company-1", agentId: "agent-1", status: "succeeded", logRef: "log" } as HeartbeatRun;
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  try {
+    await act(async () => root.render(<Viewer run={run} adapterType="codex_local" />));
+    const button = (label: string) => Array.from(container.querySelectorAll("button")).find(node => node.textContent === label);
+    expect(button(t("stability.fdc96ffbf256"))).toBeTruthy();
+    expect(button(t("stability.848123d14f84"))).toBeTruthy();
+    expect(container.querySelector("[data-transcript-mode]")?.getAttribute("data-transcript-mode")).toBe("nice");
+    await act(async () => button(t("stability.848123d14f84"))!.click());
+    expect(container.querySelector("[data-transcript-mode]")?.getAttribute("data-transcript-mode")).toBe("raw");
+    expect(container.textContent).toContain("Raw provider JSON remains unchanged");
+    await act(async () => button(t("stability.fdc96ffbf256"))!.click());
+    expect(container.querySelector("[data-transcript-mode]")?.getAttribute("data-transcript-mode")).toBe("nice");
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+    await i18n.changeLanguage(previousLocale);
+  }
 });

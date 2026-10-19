@@ -68,6 +68,7 @@ async function confirmedCommentResponse<T>(
   }
 }
 
+
 export type IssueUpdateResponse = Issue & {
   comment?: IssueComment | null;
   changes: IssueChanges;

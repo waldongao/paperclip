@@ -1,8 +1,10 @@
+import { t } from "@/i18n";
 import {
   attachmentArtifactWorkProductMetadataSchema,
   type AttachmentArtifactWorkProductMetadata,
   type IssueWorkProduct,
 } from "@paperclipai/shared";
+
 
 /**
  * Helpers + selectors for the issue Output surface (PAP-10162 Phase 3).
@@ -186,26 +188,26 @@ export function getOutputFileGlyph(contentType: string | null | undefined): Outp
   const type = normalizeOutputContentType(contentType);
   if (type.startsWith("video/")) {
     const subtype = type.slice("video/".length);
-    if (subtype === "quicktime") return { label: "MOV", tone: "video" };
+    if (subtype === "quicktime") return { label: t("stability.3098b1708ea4", { defaultValue: "MOV" }), tone: "video" };
     return { label: (subtype || "vid").toUpperCase().slice(0, 4), tone: "video" };
   }
-  if (type === "application/pdf") return { label: "PDF", tone: "pdf" };
+  if (type === "application/pdf") return { label: t("stability.1d393b0081b6", { defaultValue: "PDF" }), tone: "pdf" };
   if (isZipContentType(type)) {
-    return { label: "ZIP", tone: "zip" };
+    return { label: t("stability.eaca4b306928", { defaultValue: "ZIP" }), tone: "zip" };
   }
-  if (type.startsWith("image/")) return { label: "IMG", tone: "image" };
-  if (MARKDOWN_CONTENT_TYPES.has(type)) return { label: "MD", tone: "bin" };
-  if (type === "text/plain") return { label: "TXT", tone: "bin" };
-  if (type === "text/csv" || type === "application/csv") return { label: "CSV", tone: "bin" };
+  if (type.startsWith("image/")) return { label: t("stability.d083ab0535d6", { defaultValue: "IMG" }), tone: "image" };
+  if (MARKDOWN_CONTENT_TYPES.has(type)) return { label: t("stability.7abcf6dac492", { defaultValue: "MD" }), tone: "bin" };
+  if (type === "text/plain") return { label: t("stability.d3dc6ac94909", { defaultValue: "TXT" }), tone: "bin" };
+  if (type === "text/csv" || type === "application/csv") return { label: t("stability.eb6b42f54c42", { defaultValue: "CSV" }), tone: "bin" };
   if (type === "text/html" || type === "application/html" || type === "application/xhtml+xml") {
     return { label: "HTML", tone: "bin" };
   }
   if (type === "application/json" || type.endsWith("+json")) return { label: "JSON", tone: "bin" };
   if (type === "application/xml" || type === "text/xml" || type.endsWith("+xml")) {
-    return { label: "XML", tone: "bin" };
+    return { label: t("stability.40658e9af8fd", { defaultValue: "XML" }), tone: "bin" };
   }
-  if (type === "application/wasm") return { label: "WASM", tone: "bin" };
-  return { label: "BIN", tone: "bin" };
+  if (type === "application/wasm") return { label: t("stability.4bec5a51a3d3", { defaultValue: "WASM" }), tone: "bin" };
+  return { label: t("stability.c73f954a0dcd", { defaultValue: "BIN" }), tone: "bin" };
 }
 
 export function isVideoContentType(contentType: string | null | undefined): boolean {

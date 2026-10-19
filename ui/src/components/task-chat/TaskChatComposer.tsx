@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { AgentAvatar } from "../AgentAvatar";
 import {
   useEffect,
@@ -305,11 +306,11 @@ function modePlaceholder(mode: IssueWorkMode, agentName: string, mobile: boolean
   }
   switch (mode) {
     case "planning":
-      return `Plan with ${agentName} — shapes the plan doc, no code changes…`;
+      return t("zhComponents.message_57576153a6", { value1: agentName });
     case "ask":
-      return `Ask ${agentName} a question — read-only, nothing runs…`;
+      return t("zhComponents.message_bd655f5b75", { value1: agentName });
     default:
-      return `Message ${agentName} — describe what you want done…`;
+      return t("zhComponents.message_d82712f9ac", { value1: agentName });
   }
 }
 
@@ -638,12 +639,11 @@ export function TaskChatComposer({
     enableReassign && reassignOptions && reassignOptions.length > 0,
   );
   const assigneeValue = creation ? currentAssigneeValue : pendingAssignee ?? currentAssigneeValue;
-  const assigneeLabel =
-    reassignOptions?.find((o) => o.id === assigneeValue)?.label ?? "Unassigned";
-  const assigneeName =
-    assigneeLabel === "Unassigned" ? "the agent" : assigneeLabel;
+  const assigneeOption = reassignOptions?.find((option) => option.id === assigneeValue);
+  const assigneeLabel = assigneeOption?.label ?? t("unassigned");
+  const assigneeName = assigneeOption?.label ?? t("the_agent");
   const effectivePlaceholder = queuedEdit
-    ? "Edit queued message…"
+    ? t("edit_queued_message")
     : (placeholder ?? modePlaceholder(pendingMode, assigneeName, mobile));
   const goalUnavailable = runnerGoalCapability?.availability !== "available";
   const goalCommandOption: ActionCommandOption = {
@@ -742,7 +742,7 @@ export function TaskChatComposer({
               ? {
                   ...item,
                   status: "error",
-                  error: "This file type cannot be attached here",
+                  error: t("this_file_type_cannot_be_attached_here"),
                 }
               : item,
           ),
@@ -773,7 +773,7 @@ export function TaskChatComposer({
             ? {
                 ...item,
                 status: "error",
-                error: err instanceof Error ? err.message : "Upload failed",
+                error: err instanceof Error ? err.message : t("upload_failed"),
               }
             : item,
         ),
@@ -1161,7 +1161,7 @@ export function TaskChatComposer({
       setTakeoverError(
         cause instanceof Error
           ? cause.message
-          : "This request could not be skipped.",
+          : t("this_request_could_not_be_skipped"),
       );
     });
   }
@@ -1177,7 +1177,7 @@ export function TaskChatComposer({
       {takeoverBusy ? (
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
       ) : null}
-      Skip
+      {t("skip")}
     </Button>
   ) : null;
 
@@ -1220,12 +1220,11 @@ export function TaskChatComposer({
             <div className="ml-auto flex shrink-0 items-center gap-1">
               {takeover.pendingCount > 1 ? (
                 <Button type="button" size="sm" variant="ghost" className="h-7 px-2" onClick={takeover.onShowNext}>
-                  {takeover.pendingCount} pending
-                </Button>
+                  {takeover.pendingCount}{" "}{t("zhComponents.text_e22586930a")}</Button>
               ) : null}
               <div ref={setTakeoverControlsSlot} className="flex shrink-0 items-center" data-testid="task-chat-composer-takeover-controls-slot" />
               <Button type="button" size="icon-xs" variant="ghost" className="text-muted-foreground hover:text-foreground"
-                aria-label={`Dismiss ${takeover.label}`} disabled={takeoverBusy} onClick={takeover.onDismiss}>
+                aria-label={t("zhComponents.message_6b642c6605", { value1: takeover.label })} disabled={takeoverBusy} onClick={takeover.onDismiss}>
                 <X aria-hidden />
               </Button>
             </div>
@@ -1255,7 +1254,7 @@ export function TaskChatComposer({
           className="flex h-11 min-w-0 items-center gap-2 px-2.5"
           data-testid="task-chat-composer-context"
           role="group"
-          aria-label="Task project and worktrees"
+          aria-label={t("stability.fc5cde17a319", { defaultValue: "Task project and worktrees" })}
         >
           {creation.contextBar}
         </TaskChatComposerBar>
@@ -1291,35 +1290,25 @@ export function TaskChatComposer({
           role="alert"
           className="mb-3 space-y-2 rounded-md border border-border bg-muted p-3 text-sm"
         >
-          <p>
-            We couldn’t confirm whether this comment was saved. It may already
-            be in the conversation. Review it before starting another draft.
-          </p>
+          <p>{t("stability.d18cbb202d4f", { defaultValue: "We couldn’t confirm whether this comment was saved. It may already be in the conversation. Review it before starting another draft." })}</p>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={reviewUncertainSubmission}
-          >
-            Review conversation
-          </Button>
+          >{t("stability.f2f5723a2045", { defaultValue: "Review conversation" })}</Button>
           {reviewError ? (
-            <p>Couldn’t refresh the conversation. Try reviewing it again.</p>
+            <p>{t("stability.57d51bf884c7", { defaultValue: "Couldn’t refresh the conversation. Try reviewing it again." })}</p>
           ) : null}
           {uncertainSubmission.reviewed ? (
             <>
-              <p>
-                Discarding this draft does not remove any saved comment or
-                uploaded file.
-              </p>
+              <p>{t("stability.fabd608bb681", { defaultValue: "Discarding this draft does not remove any saved comment or uploaded file." })}</p>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={discardUncertainDraft}
-              >
-                Discard draft and start new
-              </Button>
+              >{t("stability.c6c7026bc387", { defaultValue: "Discard draft and start new" })}</Button>
             </>
           ) : null}
         </div>
@@ -1333,17 +1322,16 @@ export function TaskChatComposer({
         >
           <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1 truncate">
-            {pendingTakeover?.label ?? takeover?.label ?? "Pending input"}
+            {pendingTakeover?.label ?? takeover?.label ?? t("pending_input")}
           </span>
           <span className="shrink-0 font-medium">
-            {pendingTakeover?.count ?? takeover?.pendingCount ?? 1} pending
-          </span>
+            {pendingTakeover?.count ?? takeover?.pendingCount ?? 1}{" "}{t("zhComponents.text_e22586930a")}</span>
         </button>
       ) : null}
           {pause && conversationMode ? (
             <div className="space-y-2">
               <TaskChatPausedTakeover {...pause} hasDraft={Boolean(body.trim() || attachments.length)} />
-              <p className="text-xs text-muted-foreground">Send /new to start a fresh session and resume this conversation.</p>
+              <p className="text-xs text-muted-foreground">{t("stability.bed063a11d2d", { defaultValue: "Send /new to start a fresh session and resume this conversation." })}</p>
             </div>
           ) : null}
           <div data-testid="task-chat-composer-input">
@@ -1353,14 +1341,14 @@ export function TaskChatComposer({
               onChange={changeBody}
               placeholder={
                 disabled
-                  ? (disabledReason ?? "Composer disabled")
+                  ? (disabledReason ?? t("composer_disabled"))
                   : effectivePlaceholder
               }
               readOnly={disabled || !!uncertainSubmission || Boolean(creation && submitting)}
               mentions={mentions}
               actionCommands={creation ? [] : conversationMode ? [{
                 id: "action:new", kind: "action", command: "new", name: "New session",
-                description: "Start fresh context here, preserving conversation history.", aliases: ["new"],
+                description: t("stability.130c3e630a6e", { defaultValue: "Start fresh context here, preserving conversation history." }), aliases: ["new"],
                 disabled,
               }] : [goalCommandOption]}
               onSubmit={() => void submit()}
@@ -1422,9 +1410,9 @@ export function TaskChatComposer({
                       </AttachmentTitle>
                       <AttachmentDescription className="max-w-48">
                         {attachment.status === "uploading"
-                          ? "Uploading…"
+                          ? t("uploading_d921a7")
                           : attachment.status === "error"
-                            ? (attachment.error ?? "Upload failed")
+                            ? (attachment.error ?? t("upload_failed"))
                             : [kind.label, sizeLabel]
                                 .filter(Boolean)
                                 .join(" · ")}
@@ -1432,7 +1420,7 @@ export function TaskChatComposer({
                     </AttachmentContent>
                     <AttachmentActions>
                       <AttachmentAction
-                        aria-label={`Remove ${attachment.name}`}
+                        aria-label={t("zhComponents.message_2f5a604b2a", { value1: attachment.name })}
                         disabled={!!uncertainSubmission}
                         onClick={() =>
                           setAttachments((prev) =>
@@ -1474,8 +1462,8 @@ export function TaskChatComposer({
             {queuedEdit ? (
               <span className="px-1 text-xs font-medium text-muted-foreground">
                 {queuedEdit.stale
-                  ? "Queued message changed"
-                  : "Editing queued message"}
+                  ? t("queued_message_changed")
+                  : t("editing_queued_message")}
               </span>
             ) : (
               <ComposerModeChip mode={pendingMode} onRemove={onWorkModeChange ? () => changeMode("standard") : undefined}
@@ -1512,11 +1500,11 @@ export function TaskChatComposer({
               <InlineEntitySelector
                 value={assigneeValue}
                 options={reassignOptions ?? []}
-                placeholder="Assignee"
+                placeholder={t("assignee")}
                 mobileTitle="Select assignee"
                 noneLabel="No assignee"
                 searchPlaceholder="Search assignees…"
-                emptyMessage="No matches."
+                emptyMessage={t("no_matches")}
                 onChange={updatePendingAssignee}
                 disabled={disabled}
                 triggerTestId="task-chat-composer-assignee"
@@ -1562,9 +1550,7 @@ export function TaskChatComposer({
                 onClick={onCancelQueuedEdit}
                 disabled={submitting}
                 className="h-8 shrink-0 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
-              >
-                Cancel
-              </button>
+              >{t("common.cancel")}</button>
             ) : null}
             <button
               type="button"
@@ -1584,28 +1570,28 @@ export function TaskChatComposer({
               title={
                 showStop
                   ? stopControl.stopping
-                    ? "Stopping…"
-                    : "Stop response"
+                    ? t("stopping")
+                    : t("stability.d5ca579c1943", { defaultValue: "Stop response" })
                   : queuedEdit
                     ? queuedEdit.stale
-                      ? "Queue as new message"
-                      : "Save queued message"
+                      ? t("queue_as_new_message")
+                      : t("save_queued_message")
                     : uploadPending
-                      ? "Waiting for upload to finish"
+                      ? t("waiting_for_upload_to_finish")
                       : uploadFailed
-                        ? "Remove the failed attachment to send"
-                        : creation ? `${creation.submitLabel} (⌘+Enter)` : "Send (⌘+Enter)"
+                        ? t("remove_the_failed_attachment_to_send")
+                        : creation ? t("stability.e17ea4e96a4b", { value1: creation.submitLabel, defaultValue: "{{value1}} (⌘+Enter)" }) : t("send_enter")
               }
               aria-label={
                 showStop
                   ? stopControl.stopping
-                    ? "Stopping…"
-                    : "Stop"
+                    ? t("stopping")
+                    : t("stop")
                   : queuedEdit
                     ? queuedEdit.stale
-                      ? "Queue as new message"
-                      : "Save queued message"
-                    : creation?.submitLabel ?? "Send"
+                      ? t("queue_as_new_message")
+                      : t("save_queued_message")
+                    : creation?.submitLabel ?? t("send")
               }
               aria-busy={submitting}
               className={cn(

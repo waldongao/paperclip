@@ -436,17 +436,45 @@ describe("kimi_local execute", () => {
     expect(prompt).toContain("./TOOLS.md");
   });
 
-  it("loads the operational skill when no optional skills are configured", async () => {
+  it.each([false, true])("loads only the operational skill when optional skills are unselected (explicit preference: %s)", async (explicitPreference) => {
     const root = await makeTempRoot();
+    const operationalSource = path.join(root, "skills", "paperclip");
+    const optionalSource = path.join(root, "skills", "review");
+    const operationalMarkdown = "# Paperclip\nUse the control-plane API.\n";
+    await fs.mkdir(operationalSource, { recursive: true });
+    await fs.mkdir(optionalSource, { recursive: true });
+    await fs.writeFile(path.join(operationalSource, "SKILL.md"), operationalMarkdown);
+    await fs.writeFile(path.join(optionalSource, "SKILL.md"), "# Optional review skill\n");
+
     let seenArgs: string[] = [];
+    let loadedSkills: string[] = [];
+    let loadedOperationalMarkdown: string | null = null;
     runProcessMock.mockImplementation(async (_runId, _target, _command, args) => {
       seenArgs = args;
+      const skillsDirIndex = args.indexOf("--skills-dir");
+      if (skillsDirIndex >= 0) {
+        const skillsDir = args[skillsDirIndex + 1];
+        loadedSkills = await fs.readdir(skillsDir);
+        loadedOperationalMarkdown = await fs.readFile(path.join(skillsDir, "paperclip", "SKILL.md"), "utf8");
+      }
       return { exitCode: 0, signal: null, timedOut: false, stdout: KIMI_STDOUT, stderr: "" };
     });
 
-    await execute(makeContext(root, { config: { cwd: root, model: "kimi-code/k3" } }));
+    await execute(makeContext(root, {
+      config: {
+        cwd: root,
+        model: "kimi-code/k3",
+        paperclipRuntimeSkills: [
+          { key: "paperclipai/paperclip/paperclip", runtimeName: "paperclip", source: operationalSource },
+          { key: "company/review", runtimeName: "review", source: optionalSource },
+        ],
+        ...(explicitPreference ? { paperclipSkillSync: { desiredSkills: [] } } : {}),
+      },
+    }));
 
     expect(seenArgs).toContain("--skills-dir");
     expect(seenArgs[seenArgs.indexOf("--skills-dir") + 1]).toContain("paperclip-kimi-skills-");
+    expect(loadedSkills).toEqual(["paperclip"]);
+    expect(loadedOperationalMarkdown).toBe(operationalMarkdown);
   });
 });

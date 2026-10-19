@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
@@ -17,12 +18,12 @@ export function ComposioAppManager({ app, connections, initialConnectionId, onCl
   const [connectionId, setConnectionId] = useState(initialConnectionId ?? connections[0]?.id ?? "");
   const connection = connections.find(candidate => candidate.id === connectionId);
   return <Dialog open onOpenChange={open => { if (!open) onClose(); }}><DialogContent>
-    <DialogHeader><DialogTitle>Manage {app.name}</DialogTitle><DialogDescription>Accounts and sign-in are managed in Composio.</DialogDescription></DialogHeader>
-    {connections.length > 1 ? <div className="space-y-2"><Label htmlFor="composio-manage-gateway">Composio account</Label>
+    <DialogHeader><DialogTitle>{t("manage")}{" "}{app.name}</DialogTitle><DialogDescription>{t("stability.ace5e91176d8", { defaultValue: "Accounts and sign-in are managed in Composio." })}</DialogDescription></DialogHeader>
+    {connections.length > 1 ? <div className="space-y-2"><Label htmlFor="composio-manage-gateway">{t("stability.c7d01d2a55ff", { defaultValue: "Composio account" })}</Label>
       <select id="composio-manage-gateway" value={connectionId} onChange={event => setConnectionId(event.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
         {connections.map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
       </select></div> : null}
-    {connection ? <ComposioAccountObservations key={connection.id} app={app} connection={connection} onClose={onClose} /> : <p role="alert">This Composio connection is no longer available.</p>}
+    {connection ? <ComposioAccountObservations key={connection.id} app={app} connection={connection} onClose={onClose} /> : <p role="alert">{t("stability.6a505ff1bd16", { defaultValue: "This Composio connection is no longer available." })}</p>}
   </DialogContent></Dialog>;
 }
 
@@ -46,21 +47,21 @@ function ComposioAccountObservations({ app, connection, onClose }: { app: Aggreg
     } finally { setBusy(false); }
   }
   return <>
-    {error || accountsQuery.isError ? <p role="alert" className="text-sm text-destructive">{error ?? "Couldn’t load Composio accounts. Refresh to try again."}</p> : null}
-    {accountsQuery.isLoading ? <p role="status" className="text-sm text-muted-foreground">Loading accounts…</p> : accounts.length === 0 ? <p className="text-sm text-muted-foreground">No connected {app.name} accounts.</p> : <div className="divide-y divide-border">
+    {error || accountsQuery.isError ? <p role="alert" className="text-sm text-destructive">{error ?? t("stability.df1f5da8bbd4", { defaultValue: "Couldn’t load Composio accounts. Refresh to try again." })}</p> : null}
+    {accountsQuery.isLoading ? <p role="status" className="text-sm text-muted-foreground">{t("stability.2494bdb5bc46", { defaultValue: "Loading accounts…" })}</p> : accounts.length === 0 ? <p className="text-sm text-muted-foreground">{t("stability.cb5960de04ba", { defaultValue: "No connected" })}{" "}{app.name}{" "}{t("stability.f95e0d92bef3", { defaultValue: "accounts." })}</p> : <div className="divide-y divide-border">
       {accounts.map(({ account, snapshot }) => <div key={`${snapshot.toolkit}:${account.id}`} className="py-3">
         <p className="truncate text-sm font-medium">{account.alias || `${app.name} account`}</p>
         <p className="text-xs text-muted-foreground">{snapshot.errorAt || Date.now() - new Date(snapshot.checkedAt).getTime() > 5 * 60_000
-          ? "Last known account · Refresh to verify" : account.status === "ACTIVE" ? "Connected" : account.status === "INITIATED" ? "Waiting for sign-in" : "Needs sign-in"}{account.isDefault ? " · Default" : ""}</p>
+          ? t("stability.398f59585b81", { defaultValue: "Last known account · Refresh to verify" }) : account.status === "ACTIVE" ? t("connected") : account.status === "INITIATED" ? t("stability.749a343a3a25", { defaultValue: "Waiting for sign-in" }) : t("stability.1077f6b6e64a", { defaultValue: "Needs sign-in" })}{account.isDefault ? t("stability.2a7e0b7b2062", { defaultValue: " · Default" }) : ""}</p>
       </div>)}
     </div>}
     <div className="space-y-1 text-xs text-muted-foreground">
-      <p>Via <Link to={`/apps/${connection.id}/permissions`} onClick={onClose} className="underline underline-offset-2">“{connection.name}”</Link></p>
-      <p>Composio permissions apply to all apps on this connection.</p>
+      <p>{t("stability.2ed8b8066255", { defaultValue: "Via" })}{" "}<Link to={`/apps/${connection.id}/permissions`} onClick={onClose} className="underline underline-offset-2">“{connection.name}”</Link></p>
+      <p>{t("stability.5d564e6d7eeb", { defaultValue: "Composio permissions apply to all apps on this connection." })}</p>
     </div>
-    <DialogFooter className="sm:items-center sm:justify-between"><Button variant="ghost" onClick={onClose}>Close</Button>
-      <div className="flex items-center gap-2"><Button variant="ghost" disabled={busy} onClick={() => void refresh()}>{busy ? "Checking…" : "Refresh"}</Button>
-        <Button asChild><a href={COMPOSIO_APP_MANAGEMENT_URL} target="_blank" rel="noopener noreferrer">Open in Composio<ExternalLink className="size-4" /></a></Button></div>
+    <DialogFooter className="sm:items-center sm:justify-between"><Button variant="ghost" onClick={onClose}>{t("common.close")}</Button>
+      <div className="flex items-center gap-2"><Button variant="ghost" disabled={busy} onClick={() => void refresh()}>{busy ? t("checking") : t("refresh")}</Button>
+        <Button asChild><a href={COMPOSIO_APP_MANAGEMENT_URL} target="_blank" rel="noopener noreferrer">{t("stability.08118c907990", { defaultValue: "Open in Composio" })}<ExternalLink className="size-4" /></a></Button></div>
     </DialogFooter>
   </>;
 }

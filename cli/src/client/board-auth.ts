@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -168,7 +169,9 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
       body && typeof body === "object" && typeof (body as { error?: unknown }).error === "string"
         ? (body as { error: string }).error
         : `Request failed: ${response.status}`;
-    throw new Error(message);
+    const error = new Error(translateCliDisplayMessage(message));
+    Object.assign(error, { rawMessage: message });
+    throw error;
   }
 
   return response.json() as Promise<T>;
@@ -229,18 +232,18 @@ export async function loginBoardCli(params: {
     : challenge.approvalUrl ?? `${apiBase}${challenge.approvalPath}`;
 
   if (params.print !== false) {
-    console.error(pc.bold("Board authentication required"));
-    console.error(`Open this URL in your browser to approve CLI access:\n${approvalUrl}`);
+    console.error(pc.bold(tCli("Board authentication required")));
+    console.error(tCli("Open this URL in your browser to approve CLI access:\n{{approvalUrl}}", { approvalUrl: String(approvalUrl) }));
   }
 
   const wantBrowser = params.openBrowser !== false && !isTruthyEnv(process.env.PAPERCLIP_NO_BROWSER);
   const opened = wantBrowser ? await openUrl(approvalUrl) : false;
   if (params.print !== false) {
     const browserMessage = !wantBrowser
-      ? "Browser open skipped — open the URL above to approve."
+      ? tCli("Browser open skipped — open the URL above to approve.")
       : opened
-        ? "Opened the approval page in your browser."
-        : "Couldn't open a browser automatically — open the URL above to approve.";
+        ? tCli("Opened the approval page in your browser.")
+        : tCli("Couldn't open a browser automatically — open the URL above to approve.");
     console.error(pc.dim(browserMessage));
   }
 
@@ -275,16 +278,16 @@ export async function loginBoardCli(params: {
     }
 
     if (status.status === "cancelled") {
-      throw new Error("CLI auth challenge was cancelled.");
+      throw new Error(tCli("CLI auth challenge was cancelled."));
     }
     if (status.status === "expired") {
-      throw new Error("CLI auth challenge expired before approval.");
+      throw new Error(tCli("CLI auth challenge expired before approval."));
     }
 
     await sleep(pollMs);
   }
 
-  throw new Error("CLI auth challenge expired before approval.");
+  throw new Error(tCli("CLI auth challenge expired before approval."));
 }
 
 export async function revokeStoredBoardCredential(params: {

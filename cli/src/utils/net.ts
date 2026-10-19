@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import net from "node:net";
 
 export function checkPort(port: number): Promise<{ available: boolean; error?: string }> {
@@ -5,7 +6,7 @@ export function checkPort(port: number): Promise<{ available: boolean; error?: s
     const server = net.createServer();
     server.once("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
-        resolve({ available: false, error: `Port ${port} is already in use` });
+        resolve({ available: false, error: tCli("Port {{port}} is already in use", { port: String(port) }) });
       } else {
         resolve({ available: false, error: err.message });
       }

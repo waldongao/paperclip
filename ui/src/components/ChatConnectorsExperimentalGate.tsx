@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { chatEndpointsApi } from "@/api/chatEndpoints";
@@ -14,7 +15,7 @@ function DefaultEmailEndpointGate({ endpointId, children }: { endpointId: string
   if (endpoint.isError) return (
     <div className="space-y-3 p-6">
       <p role="alert" className="text-sm text-destructive">{endpoint.error.message}</p>
-      <Button variant="outline" onClick={() => void endpoint.refetch()}>Retry</Button>
+      <Button variant="outline" onClick={() => void endpoint.refetch()}>{t("common.retry")}</Button>
     </div>
   );
   if (!endpoint.data) return null;

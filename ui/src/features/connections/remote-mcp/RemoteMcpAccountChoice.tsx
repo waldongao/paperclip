@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { InlineBanner } from "@/components/InlineBanner";
 import { ConnectionChoiceList } from "../ConnectionChoiceList";
@@ -30,15 +31,11 @@ export function RemoteMcpAccountChoice({
             ? `Connect ${upstreamServiceName} through ${providerName}`
             : `Connect ${providerName}`}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Use an existing connection or connect a new account. Existing access
-          stays unchanged.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("stability.a6155ab13776", { defaultValue: "Use an existing connection or connect a new account. Existing access stays unchanged." })}</p>
       </div>
       {upstreamServiceName && (
         <InlineBanner compact>
-          {providerName} is an external service that handles the connection and
-          requests to {upstreamServiceName}. Reusing this account does not yet
+          {providerName}{" "}{t("stability.03a1464873d7", { defaultValue: "is an external service that handles the connection and requests to" })}{" "}{upstreamServiceName}. Reusing this account does not yet
           verify app access; the agent will check it and guide any additional
           authorization.
         </InlineBanner>
@@ -46,7 +43,7 @@ export function RemoteMcpAccountChoice({
       <ConnectionChoiceList
         choices={connections.map((connection) => ({
           ...connection,
-          description: "Provider account available",
+          description: t("stability.a361419981c0", { defaultValue: "Provider account available" }),
         }))}
         pendingId={pendingId}
         onSelect={onSelect}
@@ -61,12 +58,8 @@ export function RemoteMcpAccountChoice({
           variant="ghost"
           disabled={Boolean(pendingId)}
           onClick={onCancel}
-        >
-          Cancel
-        </Button>
-        <Button disabled={Boolean(pendingId)} onClick={onConnectNew}>
-          Connect new
-        </Button>
+        >{t("common.cancel")}</Button>
+        <Button disabled={Boolean(pendingId)} onClick={onConnectNew}>{t("connect_new")}</Button>
       </div>
     </div>
   );

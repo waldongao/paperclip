@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import fs from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
 import os from "node:os";
@@ -56,7 +57,7 @@ export const defaultCommandRunner: CommandRunner = async (command, args, options
 
 function escapeSystemd(value: string): string {
   if (/\r|\n/.test(value)) {
-    throw new Error("Systemd service values must not contain line breaks");
+    throw new Error(tCli("Systemd service values must not contain line breaks"));
   }
   return value
     .replaceAll("\\", "\\\\")
@@ -180,13 +181,13 @@ async function writeIfChanged(filePath: string, contents: string): Promise<boole
   const directoryPath = path.dirname(filePath);
   await fs.mkdir(directoryPath, { recursive: true, mode: 0o700 });
   const directoryStat = await fs.lstat(directoryPath);
-  if (!directoryStat.isDirectory() || directoryStat.isSymbolicLink()) throw new Error(`Refusing to write service definition through unsafe directory ${directoryPath}.`);
+  if (!directoryStat.isDirectory() || directoryStat.isSymbolicLink()) throw new Error(tCli("Refusing to write service definition through unsafe directory {{directoryPath}}.", { directoryPath: String(directoryPath) }));
   const currentUid = process.getuid?.();
-  if (currentUid !== undefined && directoryStat.uid !== currentUid) throw new Error(`Refusing to write service definition in directory not owned by the current user: ${directoryPath}.`);
+  if (currentUid !== undefined && directoryStat.uid !== currentUid) throw new Error(tCli("Refusing to write service definition in directory not owned by the current user: {{directoryPath}}.", { directoryPath: String(directoryPath) }));
   try {
     const stat = await fs.lstat(filePath);
-    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink > 1) throw new Error(`Refusing to replace unsafe service definition ${filePath}.`);
-    if (currentUid !== undefined && stat.uid !== currentUid) throw new Error(`Refusing to replace service definition not owned by the current user: ${filePath}.`);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink > 1) throw new Error(tCli("Refusing to replace unsafe service definition {{filePath}}.", { filePath: String(filePath) }));
+    if (currentUid !== undefined && stat.uid !== currentUid) throw new Error(tCli("Refusing to replace service definition not owned by the current user: {{filePath}}.", { filePath: String(filePath) }));
     if (await fs.readFile(filePath, "utf8") === contents) return false;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
@@ -350,12 +351,12 @@ export async function detectServiceManager(input: { instanceId?: string; platfor
   const platform = input.platform ?? process.platform;
   const runner = input.runner ?? defaultCommandRunner;
   if (platform === "darwin") return { supported: true, manager: new LaunchdServiceManager(instanceId, runner) };
-  if (platform !== "linux") return { supported: false, reason: `Service management is not supported on ${platform}. Use paperclipai run instead.` };
+  if (platform !== "linux") return { supported: false, reason: tCli("Service management is not supported on {{platform}}. Use paperclipai run instead.", { platform: String(platform) }) };
   try {
     await runner("systemctl", ["--user", "show-environment"]);
     return { supported: true, manager: new SystemdServiceManager(instanceId, runner) };
   } catch {
-    return { supported: false, reason: "No usable systemd user manager was detected (common in containers and WSL1). Use paperclipai run instead." };
+    return { supported: false, reason: tCli("No usable systemd user manager was detected (common in containers and WSL1). Use paperclipai run instead.") };
   }
 }
 
@@ -364,5 +365,5 @@ export async function assertForegroundRunAllowed(instanceId: string, force = fal
   const detection = await detector({ instanceId });
   if (!detection.supported) return;
   const status = await detection.manager.status();
-  if (status.active) throw new Error(`Paperclip instance '${instanceId}' is already running as ${status.serviceName}. Use 'paperclipai service status --instance ${instanceId}' or pass --force to bypass this safety check.`);
+  if (status.active) throw new Error(tCli("Paperclip instance '{{instanceId}}' is already running as {{serviceName}}. Use 'paperclipai service status --instance {{instanceId2}}' or pass --force to bypass this safety check.", { instanceId: String(instanceId), serviceName: String(status.serviceName), instanceId2: String(instanceId) }));
 }

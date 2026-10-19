@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import fs from "node:fs";
 import type { PaperclipConfig } from "../config/schema.js";
 import type { CheckResult } from "./index.js";
@@ -14,17 +15,17 @@ export function logCheck(config: PaperclipConfig, configPath?: string): CheckRes
   try {
     fs.accessSync(reportedDir, fs.constants.W_OK);
     return {
-      name: "Log directory",
+      name: tCli("Log directory"),
       status: "pass",
-      message: `Log directory is writable: ${reportedDir}`,
+      message: tCli("Log directory is writable: {{reportedDir}}", { reportedDir: String(reportedDir) }),
     };
   } catch {
     return {
-      name: "Log directory",
+      name: tCli("Log directory"),
       status: "fail",
-      message: `Log directory is not writable: ${logDir}`,
+      message: tCli("Log directory is not writable: {{logDir}}", { logDir: String(logDir) }),
       canRepair: false,
-      repairHint: "Check file permissions on the log directory",
+      repairHint: tCli("Check file permissions on the log directory"),
     };
   }
 }

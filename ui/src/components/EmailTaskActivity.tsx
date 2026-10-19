@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { EmailMessageCard } from "./EmailMessageCard";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -77,35 +78,29 @@ function EmailDelivery({
     <div className="space-y-2 text-xs text-muted-foreground">
       {p.request && !p.providerMessageId && (
         <article
-          aria-label="Email send intent"
+          aria-label={t("stability.5cd558440d10", { defaultValue: "Email send intent" })}
           className="space-y-3 rounded-lg border border-border p-4"
         >
-          <p className="font-semibold">{p.request.subject ?? "Email reply"}</p>
-          {p.request.to && <p>To: {p.request.to.join(", ")}</p>}
+          <p className="font-semibold">{p.request.subject ?? t("stability.ef902e386028", { defaultValue: "Email reply" })}</p>
+          {p.request.to && <p>{t("stability.2b5fc5c94f64", { defaultValue: "To:" })}{" "}{p.request.to.join(", ")}</p>}
           <div className="whitespace-pre-wrap break-words text-sm text-foreground">
             {p.request.text}
           </div>
         </article>
       )}
-      <p>
-        Email {p.outcome}
+      <p>{t("profile.email")}{" "}{p.outcome}
         {p.error ? ` — ${p.error}` : ""}
       </p>
       {p.outcome === "uncertain" && (
         <details>
-          <summary className="cursor-pointer">
-            Resolve delivery after checking AgentMail
-          </summary>
+          <summary className="cursor-pointer">{t("stability.457318724b32", { defaultValue: "Resolve delivery after checking AgentMail" })}</summary>
           <div className="space-y-2 py-2">
-            <p>
-              Confirm the outcome in AgentMail before resolving. This action
-              does not resend.
-            </p>
+            <p>{t("stability.0e8704013507", { defaultValue: "Confirm the outcome in AgentMail before resolving. This action does not resend." })}</p>
             <Input
-              aria-label="Provider message ID"
+              aria-label={t("stability.c250cfdf994a", { defaultValue: "Provider message ID" })}
               value={messageId}
               onChange={(e) => setMessageId(e.target.value)}
-              placeholder="Provider message ID"
+              placeholder={t("stability.c250cfdf994a", { defaultValue: "Provider message ID" })}
             />
             <div className="flex gap-2">
               <Button
@@ -113,17 +108,13 @@ function EmailDelivery({
                 variant="outline"
                 disabled={!messageId || resolve.isPending}
                 onClick={() => resolve.mutate("sent")}
-              >
-                Confirm sent
-              </Button>
+              >{t("stability.a1913b58f2df", { defaultValue: "Confirm sent" })}</Button>
               <Button
                 size="sm"
                 variant="outline"
                 disabled={resolve.isPending}
                 onClick={() => resolve.mutate("failed")}
-              >
-                Confirm not sent
-              </Button>
+              >{t("stability.e948b4c3c1a3", { defaultValue: "Confirm not sent" })}</Button>
             </div>
             {resolve.error && (
               <p role="alert" className="text-destructive">

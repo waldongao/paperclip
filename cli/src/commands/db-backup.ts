@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
@@ -37,7 +38,7 @@ function resolveConnectionString(configPath?: string): { value: string; source: 
 function normalizeRetentionDays(value: number | undefined, fallback: number): number {
   const candidate = value ?? fallback;
   if (!Number.isInteger(candidate) || candidate < 1) {
-    throw new Error(`Invalid retention days '${String(candidate)}'. Use a positive integer.`);
+    throw new Error(tCli("Invalid retention days '{{value1}}'. Use a positive integer.", { value1: String(String(candidate)) }));
   }
   return candidate;
 }
@@ -62,13 +63,13 @@ export async function dbBackupCommand(opts: DbBackupOptions): Promise<void> {
   );
   const filenamePrefix = opts.filenamePrefix?.trim() || "paperclip";
 
-  p.log.message(pc.dim(`Config: ${configPath}`));
-  p.log.message(pc.dim(`Connection source: ${connection.source}`));
-  p.log.message(pc.dim(`Backup dir: ${backupDir}`));
-  p.log.message(pc.dim(`Retention: ${retentionDays} day(s)`));
+  p.log.message(pc.dim(tCli("Config: {{value1}}", { value1: String(configPath) })));
+  p.log.message(pc.dim(tCli("Connection source: {{value1}}", { value1: String(connection.source) })));
+  p.log.message(pc.dim(tCli("Backup dir: {{value1}}", { value1: String(backupDir) })));
+  p.log.message(pc.dim(tCli("Retention: {{value1}} day(s)", { value1: String(retentionDays) })));
 
   const spinner = p.spinner();
-  spinner.start("Creating database backup...");
+  spinner.start(tCli("Creating database backup..."));
   try {
     const result = await runDatabaseBackup({
       connectionString: connection.value,
@@ -76,7 +77,7 @@ export async function dbBackupCommand(opts: DbBackupOptions): Promise<void> {
       retention: { dailyDays: retentionDays, weeklyWeeks: 4, monthlyMonths: 1 },
       filenamePrefix,
     });
-    spinner.stop(`Backup saved: ${formatDatabaseBackupResult(result)}`);
+    spinner.stop(tCli("Backup saved: {{value1}}", { value1: translateCliDisplayMessage(formatDatabaseBackupResult(result)) }));
 
     if (opts.json) {
       console.log(
@@ -94,9 +95,9 @@ export async function dbBackupCommand(opts: DbBackupOptions): Promise<void> {
         ),
       );
     }
-    p.outro(pc.green("Backup completed."));
+    p.outro(pc.green(tCli("Backup completed.")));
   } catch (err) {
-    spinner.stop(pc.red("Backup failed."));
+    spinner.stop(pc.red(tCli("Backup failed.")));
     throw err;
   }
 }

@@ -1,5 +1,7 @@
 import type { IssueCommentPresentation } from "@paperclipai/shared";
 import type { SystemNoticeTone } from "../components/SystemNotice";
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 
 /**
  * Pure classifier for system comments in the chat shell (PAP-443 / PAP-442
@@ -15,7 +17,7 @@ export interface HumanizedSystemNotice {
   detail?: string;
 }
 
-const FALLBACK_TITLE = "System update";
+const FALLBACK_TITLE = t("system_update");
 const DETAIL_MAX_CHARS = 80;
 
 /** Failure code the recovery comments embed as "Latest retry failure: `code`". */
@@ -50,7 +52,7 @@ export function humanizeSystemNotice(input: {
   const presentationTitle = input.presentation?.title?.trim();
   const presentationTone = input.presentation?.tone;
   if (presentationTitle) {
-    return { title: presentationTitle, tone: presentationTone ?? "neutral" };
+    return { title: translateDisplayMessage(presentationTitle), tone: presentationTone ?? "neutral" };
   }
 
   const body = input.body ?? "";
@@ -58,19 +60,19 @@ export function humanizeSystemNotice(input: {
 
   if (code === "claude_auth_required") {
     return {
-      title: "Task paused — Claude needs re-authentication",
+      title: t("task_paused_claude_needs_re_authentication"),
       tone: presentationTone ?? "warning",
     };
   }
   if (code === "configuration_incomplete" || body.includes("secret/env bindings are missing")) {
     return {
-      title: "Task paused — a secret/config binding is missing",
+      title: t("task_paused_a_secret_config_binding_is_missing"),
       tone: presentationTone ?? "warning",
     };
   }
   if (code === "workspace_validation_failed" || body.includes("workspace failed validation")) {
     return {
-      title: "Task paused — workspace problem",
+      title: t("task_paused_workspace_problem"),
       tone: presentationTone ?? "warning",
     };
   }
@@ -78,8 +80,8 @@ export function humanizeSystemNotice(input: {
     const owner = recoveryOwnerName(body);
     return {
       title: owner
-        ? `Task paused — waiting on ${owner}`
-        : "Task paused — waiting on a recovery owner",
+        ? t("zhSupport.pausedWaitingOwner", { owner })
+        : t("task_paused_waiting_on_a_recovery_owner"),
       tone: presentationTone ?? "warning",
     };
   }

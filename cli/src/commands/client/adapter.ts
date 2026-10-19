@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import {
   addCommonClientOptions,
@@ -16,12 +17,12 @@ interface AdapterOptions extends BaseClientOptions {
 }
 
 export function registerAdapterCommands(program: Command): void {
-  const adapter = program.command("adapter").description("Adapter management operations");
+  const adapter = program.command("adapter").description(tCli("Adapter management operations"));
 
   addCommonClientOptions(
     adapter
       .command("list")
-      .description("List registered adapters")
+      .description(tCli("List registered adapters"))
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -32,13 +33,13 @@ export function registerAdapterCommands(program: Command): void {
       }),
   );
 
-  addJsonPost(adapter, "install", "Install an external adapter", "/api/adapters/install");
+  addJsonPost(adapter, "install", tCli("Install an external adapter"), "/api/adapters/install");
 
   addCommonClientOptions(
     adapter
       .command("get")
-      .description("Get one adapter")
-      .argument("<type>", "Adapter type")
+      .description(tCli("Get one adapter"))
+      .argument("<type>", tCli("Adapter type"))
       .action(async (type: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -49,16 +50,16 @@ export function registerAdapterCommands(program: Command): void {
       }),
   );
 
-  addAdapterPatch(adapter, "update", "Update adapter settings", "");
-  addAdapterPatch(adapter, "override", "Pause or resume a built-in adapter override", "/override");
-  addAdapterPost(adapter, "reload", "Reload an adapter", "/reload");
-  addAdapterPost(adapter, "reinstall", "Reinstall an adapter", "/reinstall");
+  addAdapterPatch(adapter, "update", tCli("Update adapter settings"), "");
+  addAdapterPatch(adapter, "override", tCli("Pause or resume a built-in adapter override"), "/override");
+  addAdapterPost(adapter, "reload", tCli("Reload an adapter"), "/reload");
+  addAdapterPost(adapter, "reinstall", tCli("Reinstall an adapter"), "/reinstall");
 
   addCommonClientOptions(
     adapter
       .command("delete")
-      .description("Delete an external adapter registration")
-      .argument("<type>", "Adapter type")
+      .description(tCli("Delete an external adapter registration"))
+      .argument("<type>", tCli("Adapter type"))
       .action(async (type: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -72,8 +73,8 @@ export function registerAdapterCommands(program: Command): void {
   addCommonClientOptions(
     adapter
       .command("config-schema")
-      .description("Get adapter config schema")
-      .argument("<type>", "Adapter type")
+      .description(tCli("Get adapter config schema"))
+      .argument("<type>", tCli("Adapter type"))
       .action(async (type: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -87,8 +88,8 @@ export function registerAdapterCommands(program: Command): void {
   addCommonClientOptions(
     adapter
       .command("ui-parser")
-      .description("Get adapter UI parser JavaScript")
-      .argument("<type>", "Adapter type")
+      .description(tCli("Get adapter UI parser JavaScript"))
+      .argument("<type>", tCli("Adapter type"))
       .action(async (type: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -102,11 +103,11 @@ export function registerAdapterCommands(program: Command): void {
   addCommonClientOptions(
     adapter
       .command("models")
-      .description("List adapter models for a company")
-      .argument("<type>", "Adapter type")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--refresh", "Refresh provider model list", false)
-      .option("--environment-id <id>", "Environment ID for environment-aware adapters")
+      .description(tCli("List adapter models for a company"))
+      .argument("<type>", tCli("Adapter type"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--refresh", tCli("Refresh provider model list"), false)
+      .option("--environment-id <id>", tCli("Environment ID for environment-aware adapters"))
       .action(async (type: string, opts: AdapterOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -122,13 +123,13 @@ export function registerAdapterCommands(program: Command): void {
     { includeCompany: false },
   );
 
-  addCompanyAdapterGet(adapter, "detect-model", "Detect adapter model", "detect-model");
-  addCompanyAdapterPost(adapter, "test-environment", "Test adapter environment configuration", "test-environment");
+  addCompanyAdapterGet(adapter, "detect-model", tCli("Detect adapter model"), "detect-model");
+  addCompanyAdapterPost(adapter, "test-environment", tCli("Test adapter environment configuration"), "test-environment");
 }
 
 function addJsonPost(parent: Command, name: string, description: string, path: string): void {
   addCommonClientOptions(
-    parent.command(name).description(description).requiredOption("--payload-json <json>", "JSON payload").action(async (opts: AdapterOptions) => {
+    parent.command(name).description(description).requiredOption("--payload-json <json>", tCli("JSON payload")).action(async (opts: AdapterOptions) => {
       try {
         const ctx = resolveCommandContext(opts);
         printOutput(await ctx.api.post(path, parseJson(opts.payloadJson ?? "{}")), { json: ctx.json });
@@ -144,8 +145,8 @@ function addAdapterPatch(parent: Command, name: string, description: string, suf
     parent
       .command(name)
       .description(description)
-      .argument("<type>", "Adapter type")
-      .requiredOption("--payload-json <json>", "JSON payload")
+      .argument("<type>", tCli("Adapter type"))
+      .requiredOption("--payload-json <json>", tCli("JSON payload"))
       .action(async (type: string, opts: AdapterOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -162,8 +163,8 @@ function addAdapterPost(parent: Command, name: string, description: string, suff
     parent
       .command(name)
       .description(description)
-      .argument("<type>", "Adapter type")
-      .option("--payload-json <json>", "JSON payload", "{}")
+      .argument("<type>", tCli("Adapter type"))
+      .option("--payload-json <json>", tCli("JSON payload"), "{}")
       .action(async (type: string, opts: AdapterOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -180,8 +181,8 @@ function addCompanyAdapterGet(parent: Command, name: string, description: string
     parent
       .command(name)
       .description(description)
-      .argument("<type>", "Adapter type")
-      .option("-C, --company-id <id>", "Company ID")
+      .argument("<type>", tCli("Adapter type"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (type: string, opts: AdapterOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -199,9 +200,9 @@ function addCompanyAdapterPost(parent: Command, name: string, description: strin
     parent
       .command(name)
       .description(description)
-      .argument("<type>", "Adapter type")
-      .option("-C, --company-id <id>", "Company ID")
-      .option("--payload-json <json>", "JSON payload", "{}")
+      .argument("<type>", tCli("Adapter type"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
+      .option("--payload-json <json>", tCli("JSON payload"), "{}")
       .action(async (type: string, opts: AdapterOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });

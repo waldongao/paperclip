@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useMemo, type CSSProperties } from "react";
 import { Folder, GitBranch, GitBranchPlus, Monitor } from "lucide-react";
 import type { ExecutionWorkspaceSummary } from "@paperclipai/shared";
@@ -25,11 +26,11 @@ interface ComposerWorktreePickerProps {
 }
 
 const MODE_OPTIONS: WorktreeOption[] = [
-  { key: "isolated_workspace", value: "isolated_workspace", mode: "isolated_workspace", label: "New worktree", description: "Start in an isolated checkout." },
-  { key: "shared_workspace", value: "shared_workspace", mode: "shared_workspace", label: "Project workspace", description: "Use the project's shared checkout." },
-  { key: "operator_branch", value: "operator_branch", mode: "operator_branch", label: "New branch", description: "Create a branch in the project workspace." },
-  { key: "agent_default", value: "agent_default", mode: "agent_default", label: "Agent default", description: "Let the agent choose its workspace." },
-  { key: "inherit", value: "inherit", mode: "inherit", label: "Project default", description: "Use the project's worktree settings." },
+  { key: "isolated_workspace", value: "isolated_workspace", mode: "isolated_workspace", label: t("stability.4f210afedcab", { defaultValue: "New worktree" }), description: t("stability.3bbfcd455bde", { defaultValue: "Start in an isolated checkout." }) },
+  { key: "shared_workspace", value: "shared_workspace", mode: "shared_workspace", label: t("project_workspace"), description: t("stability.87c10cff3706", { defaultValue: "Use the project's shared checkout." }) },
+  { key: "operator_branch", value: "operator_branch", mode: "operator_branch", label: t("stability.7f445154d634", { defaultValue: "New branch" }), description: t("stability.a18ecefdcca5", { defaultValue: "Create a branch in the project workspace." }) },
+  { key: "agent_default", value: "agent_default", mode: "agent_default", label: t("stability.90340504c623", { defaultValue: "Agent default" }), description: t("stability.b26701384135", { defaultValue: "Let the agent choose its workspace." }) },
+  { key: "inherit", value: "inherit", mode: "inherit", label: t("project_default"), description: t("stability.6ae5d813ac89", { defaultValue: "Use the project's worktree settings." }) },
 ];
 
 /** Reuses the searchable selector and the existing workspace recency ordering. */
@@ -40,7 +41,7 @@ export function ComposerWorktreePicker({
   const groups = useMemo(() => [
     { id: "new", options: [MODE_OPTIONS[0]!] },
     {
-      id: "reuse", label: "Reuse a worktree",
+      id: "reuse", label: t("stability.b15c650efb5b", { defaultValue: "Reuse a worktree" }),
       options: orderReusableExecutionWorkspaces(workspaces).map((workspace): WorktreeOption => ({
         key: `reuse:${workspace.id}`, value: `reuse:${workspace.id}`,
         workspaceId: workspace.id, mode: "reuse_existing", label: workspace.name,
@@ -49,7 +50,7 @@ export function ComposerWorktreePicker({
       })),
     },
     {
-      id: "other", label: "Other options",
+      id: "other", label: t("stability.2cbe84655eb2", { defaultValue: "Other options" }),
       options: MODE_OPTIONS.filter((option) => option.mode === "shared_workspace"
         || (option.mode !== "isolated_workspace" && option.mode === mode)),
     },
@@ -61,11 +62,11 @@ export function ComposerWorktreePicker({
       value={value}
       groups={groups}
       onValueChange={(_, option) => onChange(option.mode, option.workspaceId ?? "")}
-      placeholder="Worktrees"
+      placeholder={t("stability.aec2f93d67b7", { defaultValue: "Worktrees" })}
       triggerAriaLabel="Worktrees"
       mobileTitle="Worktrees"
       searchPlaceholder="Search worktrees..."
-      emptyMessage="No matching worktrees."
+      emptyMessage={t("stability.220f59569a5b", { defaultValue: "No matching worktrees." })}
       disabled={disabled}
       modal={mobile}
       contentStyle={contentStyle}
@@ -76,7 +77,7 @@ export function ComposerWorktreePicker({
         <span className="flex min-w-0 items-center gap-1.5">
           <GitBranch className="size-3.5 shrink-0" aria-hidden />
           <span className="truncate">
-            <span className="hidden text-muted-foreground sm:inline">Worktrees · </span>
+            <span className="hidden text-muted-foreground sm:inline">{t("stability.0b4b48f7b678", { defaultValue: "Worktrees ·" })}{" "}</span>
             {option?.label ?? selectedWorkspaceLabel ?? "Select worktree"}
           </span>
         </span>
@@ -97,9 +98,7 @@ export function ComposerWorktreePicker({
       listFooter={loading || error || workspaces.length === 0 ? (
         <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground" role="status">
           {loading ? "Loading existing worktrees…" : error ? (
-            <span className="flex items-center justify-between gap-2">
-              Couldn't load worktrees.
-              <button type="button" className="rounded px-2 py-1 text-foreground hover:bg-accent" onClick={onRetry}>Retry</button>
+            <span className="flex items-center justify-between gap-2">{t("stability.33ebd59042eb", { defaultValue: "Couldn't load worktrees." })}<button type="button" className="rounded px-2 py-1 text-foreground hover:bg-accent" onClick={onRetry}>{t("common.retry")}</button>
             </span>
           ) : "No existing worktrees yet. Choose New worktree to start one."}
         </div>

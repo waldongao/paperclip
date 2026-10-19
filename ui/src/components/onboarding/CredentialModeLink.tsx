@@ -1,8 +1,10 @@
+import { getDisplayLabel } from "@/lib/display-labels";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "../../lib/utils";
 import type { CredentialMode } from "./ModelSourceTiles";
 import { LINK_LABEL_FADE_IN, LINK_LABEL_FADE_OUT } from "./onboarding-motion";
+import { t } from "@/i18n";
 
 /**
  * The credential-mode switch as a line of text instead of a checkbox — an
@@ -18,8 +20,8 @@ import { LINK_LABEL_FADE_IN, LINK_LABEL_FADE_OUT } from "./onboarding-motion";
  */
 
 const LINK_LABEL: Record<CredentialMode, string> = {
-  subscription: "Use API key instead",
-  api: "Use subscription instead",
+  subscription: t("use_api_key_instead"),
+  api: t("use_subscription_instead"),
 };
 
 const OTHER_MODE: Record<CredentialMode, CredentialMode> = {
@@ -81,7 +83,7 @@ export function CredentialModeLink({
           animate={{ opacity: 1, transition: LINK_LABEL_FADE_IN }}
           exit={{ opacity: 0, transition: LINK_LABEL_FADE_OUT }}
         >
-          {LINK_LABEL[mode]}
+          {getDisplayLabel(LINK_LABEL[mode])}
         </motion.span>
       </AnimatePresence>
     </button>

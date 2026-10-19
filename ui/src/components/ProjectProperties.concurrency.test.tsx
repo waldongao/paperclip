@@ -2,19 +2,20 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Project } from "@paperclipai/shared";
-import type { ReactNode } from "react";
+import { act as reactAct, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProjectProperties } from "./ProjectProperties";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryKeys } from "../lib/queryKeys";
+import { i18n } from "@/i18n";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 function act(callback: () => void) {
-  flushSync(() => {
-    callback();
+  reactAct(() => {
+    flushSync(callback);
   });
 }
 
@@ -94,6 +95,39 @@ function concurrencySelect(): HTMLSelectElement {
 }
 
 describe("ProjectProperties — shared workspace concurrency select", () => {
+  it("localizes runtime service status, HTTPS and lifecycle enums without updating project fields or changing English formatting", async () => {
+    const originalLanguage = i18n.language;
+    const onFieldUpdate = vi.fn();
+    const project = makeProject({
+      status: "planned",
+      primaryWorkspace: {
+        id: "workspace-1",
+        runtimeServices: [{ id: "runtime-1", serviceName: "Customer web", status: "running", command: "pnpm dev", lifecycle: "shared", exposure: { state: "cleanup_pending" } }],
+      } as Project["primaryWorkspace"],
+    });
+    try {
+      await reactAct(async () => { await i18n.changeLanguage("zh-CN"); });
+      await reactAct(async () => { render(project, onFieldUpdate); });
+      expect(container.textContent).toContain("运行中");
+      expect(container.textContent).toContain("HTTPS 等待清理");
+      expect(container.textContent).toContain("共享");
+      expect(container.textContent).toContain("Customer web");
+      expect(project.status).toBe("planned");
+      expect(project.primaryWorkspace?.runtimeServices?.[0].status).toBe("running");
+      expect(project.primaryWorkspace?.runtimeServices?.[0].command).toBe("pnpm dev");
+      expect(project.primaryWorkspace?.runtimeServices?.[0].lifecycle).toBe("shared");
+      expect(project.primaryWorkspace?.runtimeServices?.[0].exposure?.state).toBe("cleanup_pending");
+      await reactAct(async () => { await i18n.changeLanguage("en"); });
+      expect(container.textContent).toContain("running");
+      expect(container.textContent).toContain("HTTPS cleanup pending");
+      expect(container.textContent).toContain("shared");
+      expect(onFieldUpdate).not.toHaveBeenCalled();
+      expect(project.status).toBe("planned");
+    } finally {
+      await reactAct(async () => { await i18n.changeLanguage(originalLanguage); });
+    }
+  });
+
   it("defaults to Auto when the policy has no sharedWorkspaceConcurrency", () => {
     render(makeProject(), vi.fn());
     expect(concurrencySelect().value).toBe("auto");

@@ -6,6 +6,7 @@
  */
 import type { TaskChatItem, TaskChatPlan } from "./task-chat-model";
 import type { TaskChatStateId } from "./task-chat-states";
+import { t } from "@/i18n";
 
 export interface TaskChatScenario {
   surface: "thread" | "plan";
@@ -13,23 +14,23 @@ export interface TaskChatScenario {
   plan?: TaskChatPlan;
 }
 
-const AGENT = "Atlas";
+const AGENT = t("atlas");
 
 /** A short human→agent exchange used as context in several scenarios. */
 function exchangePrefix(): TaskChatItem[] {
   return [
-    { id: "m-user-1", kind: "message", author: "human", text: "Add a rate limiter to the login route.", timestamp: "2:31 PM" },
+    { id: "m-user-1", kind: "message", author: "human", text: t("add_a_rate_limiter_to_the_login_route"), timestamp: t("2_31_pm") },
   ];
 }
 
 const SAMPLE_PLAN: TaskChatPlan = {
   revision: 2,
-  updatedAt: "2:33 PM",
+  updatedAt: t("2_33_pm"),
   entries: [
-    { id: "p1", content: "Read the login route and existing middleware", status: "completed", priority: "medium" },
-    { id: "p2", content: "Add a token-bucket rate limiter util", status: "in_progress", priority: "high" },
-    { id: "p3", content: "Wire the limiter into POST /login", status: "pending", priority: "high" },
-    { id: "p4", content: "Add tests for the limit + reset window", status: "pending", priority: "low" },
+    { id: "p1", content: t("read_the_login_route_and_existing_middleware"), status: "completed", priority: "medium" },
+    { id: "p2", content: t("add_a_token_bucket_rate_limiter_util"), status: "in_progress", priority: "high" },
+    { id: "p3", content: t("wire_the_limiter_into_post_login"), status: "pending", priority: "high" },
+    { id: "p4", content: t("add_tests_for_the_limit_reset_window"), status: "pending", priority: "low" },
   ],
 };
 
@@ -39,7 +40,7 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
       return {
         surface: "thread",
         items: [
-          { id: "mk-start", kind: "marker", variant: "session_start", label: "Session started", detail: "claude · Auto mode" },
+          { id: "mk-start", kind: "marker", variant: "session_start", label: t("session_started"), detail: t("claude_auto_mode") },
           ...exchangePrefix(),
         ],
       };
@@ -50,7 +51,7 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
         surface: "thread",
         items: [
           ...exchangePrefix(),
-          { id: "m-agent-1", kind: "message", author: "agent", authorName: AGENT, agentIcon: "bot", text: "On it — I'll add a token-bucket limiter and wire it into the login route.", timestamp: "2:31 PM" },
+          { id: "m-agent-1", kind: "message", author: "agent", authorName: AGENT, agentIcon: "bot", text: t("on_it_ill_add_a_token_bucket_limiter_and_wire_it"), timestamp: t("2_31_pm") },
         ],
       };
     case "thinking":
@@ -66,9 +67,9 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             kind: "turn",
             settled: false,
             summary: { toolCount: 1, added: 0, removed: 0 },
-            liveStatus: { id: "st-thinking", kind: "status", status: "running", label: "Thinking", startedAtMs: Date.now() - 6100, tokens: { used: 18240, size: 200000 } },
+            liveStatus: { id: "st-thinking", kind: "status", status: "running", label: t("thinking_d08d8d"), startedAtMs: Date.now() - 6100, tokens: { used: 18240, size: 200000 } },
             items: [
-              { id: "th-grep", kind: "tool", name: "Grep", target: "rateLimit", toolKind: "search", status: "completed" },
+              { id: "th-grep", kind: "tool", name: t("grep"), target: "rateLimit", toolKind: "search", status: "completed" },
             ],
           },
         ],
@@ -89,12 +90,12 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             settled: false,
             summary: { toolCount: 1, added: 0, removed: 0 },
             liveStatus: {
-              id: "st-responding", kind: "status", status: "running", label: "Responding", startedAtMs: Date.now() - 9300, tokens: { used: 18240, size: 200000 },
+              id: "st-responding", kind: "status", status: "running", label: t("responding"), startedAtMs: Date.now() - 9300, tokens: { used: 18240, size: 200000 },
               selfTalk:
-                "I found an existing ipRateLimit helper, so I'll extend it with a per-account token bucket keyed on the email address instead of adding a second limiter. The bucket refills at six requests a minute, matching the lockout policy the auth spec documents, and failed attempts drain it twice as fast so brute-force runs hit the ceiling quickly while a fat-fingered password barely registers.",
+                t("i_found_an_existing_ipratelimit_helper_so_ill_ex"),
             },
             items: [
-              { id: "resp-read", kind: "tool", name: "Read", target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
+              { id: "resp-read", kind: "tool", name: t("read"), target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
             ],
           },
         ],
@@ -115,16 +116,16 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             settled: false,
             summary: { toolCount: 2, added: 0, removed: 0 },
             liveStatus: {
-              id: "st-responding-burst", kind: "status", status: "running", label: "Responding", startedAtMs: Date.now() - 21400, tokens: { used: 18240, size: 200000 },
+              id: "st-responding-burst", kind: "status", status: "running", label: t("responding"), startedAtMs: Date.now() - 21400, tokens: { used: 18240, size: 200000 },
               selfTalk:
-                "Found the existing ipRateLimit helper — extending it beats adding a second limiter.\n\n" +
-                "Wiring a per-account token bucket keyed on the email address, refilling at six requests a minute per the auth spec.\n\n" +
-                "Failed attempts drain the bucket twice as fast, so brute-force runs hit the ceiling while a fat-fingered password barely registers.\n\n" +
-                "Now updating the login route to consume from the bucket before the password check and adding tests for the lockout path.",
+                t("found_the_existing_ipratelimit_helper_extending") +
+                t("wiring_a_per_account_token_bucket_keyed_on_the_e") +
+                t("failed_attempts_drain_the_bucket_twice_as_fast_s") +
+                t("now_updating_the_login_route_to_consume_from_the"),
             },
             items: [
-              { id: "burst-read", kind: "tool", name: "Read", target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
-              { id: "burst-grep", kind: "tool", name: "Grep", target: "ipRateLimit", toolKind: "search", status: "completed" },
+              { id: "burst-read", kind: "tool", name: t("read"), target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
+              { id: "burst-grep", kind: "tool", name: t("grep"), target: "ipRateLimit", toolKind: "search", status: "completed" },
             ],
           },
         ],
@@ -133,7 +134,7 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
       return {
         surface: "thread",
         items: [
-          { id: "tool-1", kind: "tool", name: "Read", target: "server/src/routes/auth.ts", toolKind: "read", status: "in_progress" },
+          { id: "tool-1", kind: "tool", name: t("read"), target: "server/src/routes/auth.ts", toolKind: "read", status: "in_progress" },
         ],
       };
     case "diff":
@@ -141,15 +142,15 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
         surface: "thread",
         items: [
           {
-            id: "tool-diff", kind: "tool", name: "Edit", target: "server/src/routes/auth.ts", toolKind: "edit", status: "completed", decision: "allowed",
+            id: "tool-diff", kind: "tool", name: t("edit"), target: "server/src/routes/auth.ts", toolKind: "edit", status: "completed", decision: "allowed",
             diff: {
               path: "server/src/routes/auth.ts", added: 3, removed: 1,
               lines: [
-                { kind: "context", text: "router.post('/login', async (req, res) => {" },
-                { kind: "remove", text: "  const ok = await checkPassword(req.body);" },
-                { kind: "add", text: "  await rateLimiter.consume(req.body.email);" },
-                { kind: "add", text: "  const ok = await checkPassword(req.body);" },
-                { kind: "add", text: "  if (!ok) return res.status(401).end();" },
+                { kind: "context", text: t("router_post_login_async_req_res") },
+                { kind: "remove", text: t("const_ok_await_checkpassword_req_body") },
+                { kind: "add", text: t("await_ratelimiter_consume_req_body_email") },
+                { kind: "add", text: t("const_ok_await_checkpassword_req_body") },
+                { kind: "add", text: t("if_ok_return_res_status_401_end") },
               ],
             },
           },
@@ -167,10 +168,10 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             kind: "turn",
             settled: false,
             summary: { toolCount: 2, added: 0, removed: 0 },
-            liveStatus: { id: "st-working", kind: "status", status: "working", label: "Editing files", detail: "Edit · server/src/routes/auth.ts", toolName: "Edit", startedAtMs: Date.now() - 4200 },
+            liveStatus: { id: "st-working", kind: "status", status: "working", label: t("editing_files"), detail: t("edit_server_src_routes_auth_ts"), toolName: t("edit"), startedAtMs: Date.now() - 4200 },
             items: [
-              { id: "w-read", kind: "tool", name: "Read", target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
-              { id: "w-edit", kind: "tool", name: "Edit", target: "server/src/routes/auth.ts", toolKind: "edit", status: "in_progress" },
+              { id: "w-read", kind: "tool", name: t("read"), target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
+              { id: "w-edit", kind: "tool", name: t("edit"), target: "server/src/routes/auth.ts", toolKind: "edit", status: "in_progress" },
             ],
           },
         ],
@@ -186,9 +187,9 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             kind: "turn",
             settled: false,
             summary: { toolCount: 1, added: 0, removed: 0 },
-            liveStatus: { id: "st-running", kind: "status", status: "running", label: "Running", detail: "no output for 3s — still running", startedAtMs: Date.now() - 12000, tokens: { used: 18240, size: 200000 } },
+            liveStatus: { id: "st-running", kind: "status", status: "running", label: t("running"), detail: t("no_output_for_3s_still_running"), startedAtMs: Date.now() - 12000, tokens: { used: 18240, size: 200000 } },
             items: [
-              { id: "r-grep", kind: "tool", name: "Grep", target: "rateLimit", toolKind: "search", status: "completed" },
+              { id: "r-grep", kind: "tool", name: t("grep"), target: "rateLimit", toolKind: "search", status: "completed" },
             ],
           },
         ],
@@ -207,18 +208,18 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             author: "agent",
             authorName: AGENT,
             agentIcon: "bot",
-            text: "Done — added a per-account token-bucket limiter and wired it into the login route. Tests pass.",
-            timestamp: "2:34 PM",
+            text: t("done_added_a_per_account_token_bucket_limiter_an"),
+            timestamp: t("2_34_pm"),
             attachedTurn: {
               id: "turn-done",
               kind: "turn",
               settled: true,
               // "Worked · N tools" expands to exactly the tool rows (PAP-361):
               // toolCount matches the nested rows, no thinking row.
-              summary: { durationLabel: "38s", toolCount: 2, added: 34, removed: 3, tokensLabel: "12.3k tokens" },
+              summary: { durationLabel: "38s", toolCount: 2, added: 34, removed: 3, tokensLabel: t("12_3k_tokens") },
               items: [
-                { id: "tool-done-1", kind: "tool", name: "Read", target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
-                { id: "tool-done-2", kind: "tool", name: "Edit", target: "server/src/routes/auth.ts", toolKind: "edit", status: "completed", diff: { path: "server/src/routes/auth.ts", added: 34, removed: 3 } },
+                { id: "tool-done-1", kind: "tool", name: t("read"), target: "server/src/routes/auth.ts", toolKind: "read", status: "completed" },
+                { id: "tool-done-2", kind: "tool", name: t("edit"), target: "server/src/routes/auth.ts", toolKind: "edit", status: "completed", diff: { path: "server/src/routes/auth.ts", added: 34, removed: 3 } },
               ],
             },
           },
@@ -229,14 +230,14 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
         surface: "thread",
         items: [
           {
-            id: "st-approval", kind: "status", status: "awaiting_approval", label: "Approve running a command?",
-            detail: "npm run migrate — modifies the database",
+            id: "st-approval", kind: "status", status: "awaiting_approval", label: t("approve_running_a_command"),
+            detail: t("npm_run_migrate_modifies_the_database"),
             approval: {
               toolName: "execute",
               options: [
-                { id: "reject", label: "Deny", kind: "reject_once" },
-                { id: "allow-always", label: "Always allow", kind: "allow_always" },
-                { id: "allow", label: "Allow once", kind: "allow_once" },
+                { id: "reject", label: t("deny"), kind: "reject_once" },
+                { id: "allow-always", label: t("always_allow"), kind: "allow_always" },
+                { id: "allow", label: t("allow_once"), kind: "allow_once" },
               ],
             },
           },
@@ -249,7 +250,7 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
         active,
         interstitial: text ? { id: `${id}:message`, kind: "message" as const, author: "agent" as const, authorName: AGENT, text, interstitial: true } : undefined,
         items: tools.filter((item): item is Extract<TaskChatItem, { kind: "tool" | "usage" }> => item.kind === "tool" || item.kind === "usage"),
-        summary: active ? "Ran 1 command, called 1 tool" : id.endsWith("opening") ? "Called 2 tools" : "Read 3 files, edited 1 file",
+        summary: active ? t("ran_1_command_called_1_tool") : id.endsWith("opening") ? t("called_2_tools") : t("read_3_files_edited_1_file"),
       });
       return {
         surface: "thread",
@@ -258,21 +259,21 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
           {
             id: "turn-long-run", kind: "turn", settled: false,
             summary: { toolCount: 8, added: 4, removed: 1 },
-            liveStatus: { id: "long-status", kind: "status", status: "working", label: "Running tests", detail: "Bash · vitest", toolName: "Bash", startedAtMs: Date.now() - 48_000 },
+            liveStatus: { id: "long-status", kind: "status", status: "working", label: t("running_tests"), detail: t("bash_vitest"), toolName: t("bash"), startedAtMs: Date.now() - 48_000 },
             items: [
               phase("phase-opening", undefined, false, [
-                { id: "generic-1", kind: "tool", name: "Tool", rawName: "tool call", status: "completed" },
-                { id: "generic-2", kind: "tool", name: "Tool", rawName: "acp_tool", status: "failed", detail: "Adapter interrupted" },
+                { id: "generic-1", kind: "tool", name: t("tool"), rawName: t("tool_call"), status: "completed" },
+                { id: "generic-2", kind: "tool", name: t("tool"), rawName: "acp_tool", status: "failed", detail: t("adapter_interrupted") },
               ]),
-              phase("phase-read", "I found the relevant adapter and am tracing its render boundary.", false, [
-                { id: "read-1", kind: "tool", name: "Read", status: "completed", target: "ui/src/components/task-chat/transcript-adapter.ts" },
-                { id: "read-2", kind: "tool", name: "Read", status: "completed", target: "ui/src/components/task-chat/TaskChatTurn.tsx" },
-                { id: "read-3", kind: "tool", name: "Read", status: "completed", target: "ui/src/components/task-chat/TaskChatThreadView.tsx" },
-                { id: "edit-1", kind: "tool", name: "Edit", status: "completed", target: "ui/src/components/task-chat/task-chat-model.ts" },
+              phase("phase-read", t("i_found_the_relevant_adapter_and_am_tracing_its"), false, [
+                { id: "read-1", kind: "tool", name: t("read"), status: "completed", target: "ui/src/components/task-chat/transcript-adapter.ts" },
+                { id: "read-2", kind: "tool", name: t("read"), status: "completed", target: "ui/src/components/task-chat/TaskChatTurn.tsx" },
+                { id: "read-3", kind: "tool", name: t("read"), status: "completed", target: "ui/src/components/task-chat/TaskChatThreadView.tsx" },
+                { id: "edit-1", kind: "tool", name: t("edit"), status: "completed", target: "ui/src/components/task-chat/task-chat-model.ts" },
               ]),
-              phase("phase-active", "The grouping is wired; I’m running focused checks now.", true, [
-                { id: "bash-1", kind: "tool", name: "Bash", status: "in_progress", target: "vitest task-chat" },
-                { id: "mcp-1", kind: "tool", name: "Search", rawName: "mcp__docs__search", status: "completed" },
+              phase("phase-active", t("the_grouping_is_wired_i_m_running_focused_checks"), true, [
+                { id: "bash-1", kind: "tool", name: t("bash"), status: "in_progress", target: "vitest task-chat" },
+                { id: "mcp-1", kind: "tool", name: t("search"), rawName: "mcp__docs__search", status: "completed" },
               ]),
             ],
           },
@@ -285,22 +286,22 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
       return {
         surface: "thread",
         items: [
-          { id: "m-int", kind: "message", author: "agent", authorName: AGENT, text: "Starting the migration now…" },
-          { id: "mk-int", kind: "marker", variant: "interrupted", label: "Interrupted", detail: "stopped by you at 2:35 PM" },
+          { id: "m-int", kind: "message", author: "agent", authorName: AGENT, text: t("starting_the_migration_now") },
+          { id: "mk-int", kind: "marker", variant: "interrupted", label: t("interrupted"), detail: t("stopped_by_you_at_2_35_pm") },
         ],
       };
     case "refused":
       return {
         surface: "thread",
         items: [
-          { id: "st-refused", kind: "status", status: "refused", label: "Turn ended: refusal", detail: "The agent declined to complete this request." },
+          { id: "st-refused", kind: "status", status: "refused", label: t("turn_ended_refusal"), detail: t("the_agent_declined_to_complete_this_request") },
         ],
       };
     case "truncated":
       return {
         surface: "thread",
         items: [
-          { id: "st-trunc", kind: "status", status: "truncated", label: "Turn ended: max tokens", detail: "Output was cut off — continue to resume.", tokens: { used: 199120, size: 200000 } },
+          { id: "st-trunc", kind: "status", status: "truncated", label: t("turn_ended_max_tokens"), detail: t("output_was_cut_off_continue_to_resume"), tokens: { used: 199120, size: 200000 } },
         ],
       };
     case "live-token-cost":

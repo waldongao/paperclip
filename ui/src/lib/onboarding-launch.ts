@@ -1,6 +1,8 @@
 import type { Goal, Project } from "@paperclipai/shared";
 
 export const ONBOARDING_PROJECT_NAME = "Onboarding";
+// The earlier localized build persisted this translated default name.
+const REUSABLE_ONBOARDING_PROJECT_NAMES = new Set(["onboarding", "入职引导"]);
 
 function goalCreatedAt(goal: Goal) {
   const createdAt = goal.createdAt instanceof Date ? goal.createdAt : new Date(goal.createdAt);
@@ -39,7 +41,7 @@ export function selectReusableOnboardingProject<T extends Pick<Project, "name" |
     projects.find(
       (project) =>
         project.status !== "cancelled" &&
-        project.name.trim().toLowerCase() === ONBOARDING_PROJECT_NAME.toLowerCase(),
+        REUSABLE_ONBOARDING_PROJECT_NAMES.has(project.name.trim().toLowerCase()),
     ) ?? null
   );
 }

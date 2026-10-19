@@ -1,4 +1,6 @@
 import { AGENT_ROLE_LABELS, type AgentRole } from "@paperclipai/shared";
+import { t } from "@/i18n";
+import { getDisplayLabel } from "./display-labels";
 
 /**
  * The name the wizard offers before the customer picks a role. It is a job
@@ -16,7 +18,7 @@ import { AGENT_ROLE_LABELS, type AgentRole } from "@paperclipai/shared";
  */
 export const DEFAULT_AGENT_ROLE = "general" as const;
 
-export const DEFAULT_AGENT_NAME = "Chief of staff";
+export const DEFAULT_AGENT_NAME = t("chief_of_staff");
 
 /**
  * Names the wizard put there itself, and may therefore replace. Anything the
@@ -30,6 +32,7 @@ export const DEFAULT_AGENT_NAME = "Chief of staff";
 const WIZARD_SUPPLIED_NAMES: ReadonlySet<string> = new Set([
   DEFAULT_AGENT_NAME,
   ...Object.values(AGENT_ROLE_LABELS),
+  ...Object.keys(AGENT_ROLE_LABELS).map((role) => getDisplayLabel(role, "role")),
 ]);
 
 /**
@@ -42,7 +45,7 @@ export function nextAgentNameForRole(params: {
 }): string {
   const current = params.currentName.trim();
   if (current === "" || WIZARD_SUPPLIED_NAMES.has(current)) {
-    return AGENT_ROLE_LABELS[params.nextRole];
+    return getDisplayLabel(params.nextRole, "role");
   }
   return params.currentName;
 }

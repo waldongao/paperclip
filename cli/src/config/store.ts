@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import fs from "node:fs";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -41,7 +42,7 @@ function parseJson(filePath: string): unknown {
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf-8"));
   } catch (err) {
-    throw new Error(`Failed to parse JSON at ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(tCli("Failed to parse JSON at {{filePath}}: {{message}}", { filePath: String(filePath), message: translateCliDisplayMessage(err instanceof Error ? err.message : String(err)) }));
   }
 }
 
@@ -80,7 +81,7 @@ function formatValidationError(err: unknown): string {
       .map((issue) => {
         const pathParts = Array.isArray(issue.path) ? issue.path.map(String) : [];
         const issuePath = pathParts.length > 0 ? pathParts.join(".") : "config";
-        const message = typeof issue.message === "string" ? issue.message : "Invalid value";
+        const message = typeof issue.message === "string" ? translateCliDisplayMessage(issue.message) : tCli("Invalid value");
         return `${issuePath}: ${message}`;
       })
       .join("; ");
@@ -95,7 +96,7 @@ export function readConfig(configPath?: string): PaperclipConfig | null {
   const migrated = migrateLegacyConfig(raw);
   const parsed = paperclipConfigSchema.safeParse(migrated);
   if (!parsed.success) {
-    throw new Error(`Invalid config at ${filePath}: ${formatValidationError(parsed.error)}`);
+    throw new Error(tCli("Invalid config at {{filePath}}: {{parsed}}", { filePath: String(filePath), parsed: String(formatValidationError(parsed.error)) }));
   }
   return parsed.data;
 }
@@ -167,7 +168,7 @@ function atomicWriteFile(filePath: string, contents: string): void {
 export function backupInvalidConfig(configPath?: string): string {
   const filePath = resolveConfigPath(configPath);
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Cannot back up missing config at ${filePath}`);
+    throw new Error(tCli("Cannot back up missing config at {{filePath}}", { filePath: String(filePath) }));
   }
 
   for (let suffix = 1; ; suffix += 1) {
@@ -204,7 +205,7 @@ export function writeConfig(
       const invalidBackupPath = options.invalidBackupPath;
       if (!invalidBackupPath) {
         throw new Error(
-          `Refusing to overwrite invalid config at ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+          tCli("Refusing to overwrite invalid config at {{filePath}}: {{message}}", { filePath: String(filePath), message: translateCliDisplayMessage(error instanceof Error ? error.message : String(error)) }),
         );
       }
       if (
@@ -212,7 +213,7 @@ export function writeConfig(
         !fs.readFileSync(filePath).equals(fs.readFileSync(invalidBackupPath))
       ) {
         throw new Error(
-          `Refusing to overwrite ${filePath} because it changed after the invalid backup was created`,
+          tCli("Refusing to overwrite {{filePath}} because it changed after the invalid backup was created", { filePath: String(filePath) }),
         );
       }
     }

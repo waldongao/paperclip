@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 import type { ServerInfoSnapshot } from "@paperclipai/shared";
 import { tenantSessionRecovery } from "@/lib/tenant-session-recovery";
 import { ApiError } from "./client";
@@ -62,7 +64,7 @@ export const healthApi = {
     if (!res.ok) {
       const recovery = tenantSessionRecovery.recoverIfNeeded(res.status, payload);
       if (recovery) return recovery;
-      throw new ApiError(payload?.error ?? `Failed to load health (${res.status})`, res.status, payload);
+      throw new ApiError(translateDisplayMessage(payload?.error ?? t("zhSupport.healthFailed", { status: res.status })), res.status, payload);
     }
     // Startup recovery can still serve sign-in and deployment metadata.
     if (payload?.status !== "ok" && payload?.status !== "starting") throw new ApiUnavailableError(res.status);
@@ -78,7 +80,7 @@ export const healthApi = {
       const payload = await res.json().catch(() => null) as { error?: string } | null;
       const recovery = tenantSessionRecovery.recoverIfNeeded(res.status, payload);
       if (recovery) return recovery;
-      throw new Error(payload?.error ?? `Failed to request restart (${res.status})`);
+      throw new Error(translateDisplayMessage(payload?.error ?? t("zhSupport.restartFailed", { status: res.status })));
     }
   },
 };

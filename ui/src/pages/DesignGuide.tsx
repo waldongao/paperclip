@@ -1,3 +1,4 @@
+import { t, useTranslation } from "@/i18n";
 import { AgentMailApiKeyField } from "@/features/connections/AgentMailApiKeyField";
 import { TaskBrowserFooter } from "@/components/task-side-panel/TaskBrowserFooter";
 import { TaskBrowserActivity } from "@/components/task-side-panel/TaskBrowserActivity";
@@ -277,7 +278,7 @@ const DESIGN_GUIDE_DEGRADED_OUTPUTS: IssueWorkProduct[] = [
 const DESIGN_GUIDE_TASK = {
   id: "design-guide-task",
   identifier: "PAP-427",
-  title: "Reconcile the navigation model across operator surfaces",
+  title: t("reconcile_the_navigation_model_across_operator_s"),
   status: "in_progress",
   priority: "medium",
   blockerAttention: false,
@@ -380,6 +381,7 @@ const DESIGN_GUIDE_SECRETS: CompanySecret[] = [
 ];
 
 function EnvironmentVariablesEditorShowcase() {
+  const { t } = useTranslation();
   const [env, setEnv] = useState<Record<string, EnvBinding>>({
     NODE_ENV: { type: "plain", value: "production" },
     GH_TOKEN: { type: "secret_ref", secretId: "dg-github", version: "latest" },
@@ -437,9 +439,9 @@ function TaskExecutionControlsExample() {
         onPause={() => setRunning(false)} onResume={() => setDialogMode("resume")}
         onCancel={() => setDialogMode("cancel")} onRestore={() => setDialogMode("restore")} />
     </div>
-    <p className="text-sm text-muted-foreground">{running ? "Running: type to switch Stop to Send." : "Paused: resume from the menu."}</p>
-    <TaskChatProjectCreatedCard item={{ id: "design-project", kind: "project_created", projectId: "example-project", name: "Onboarding improvements", description: "Help new teams reach their first useful result.", timestamp: "2026-09-11T00:00:00Z", repositories: [{ id: "1", name: "paperclipai/paperclip", url: "https://github.com/paperclipai/paperclip" }] }} />
-    {!running ? <TaskChatMarker item={{ id: "design-cancelled", kind: "marker", variant: "interrupted", tone: "neutral", label: "Run cancelled", detail: "The run was cancelled before returning an answer.", collapsible: true }} /> : null}
+    <p className="text-sm text-muted-foreground">{running ? t("stability.bd880c322ccd", { defaultValue: "Running: type to switch Stop to Send." }) : t("stability.43c034ff37ce", { defaultValue: "Paused: resume from the menu." })}</p>
+    <TaskChatProjectCreatedCard item={{ id: "design-project", kind: "project_created", projectId: "example-project", name: "Onboarding improvements", description: t("stability.dc595637ac4a", { defaultValue: "Help new teams reach their first useful result." }), timestamp: "2026-09-11T00:00:00Z", repositories: [{ id: "1", name: "paperclipai/paperclip", url: "https://github.com/paperclipai/paperclip" }] }} />
+    {!running ? <TaskChatMarker item={{ id: "design-cancelled", kind: "marker", variant: "interrupted", tone: "neutral", label: t("run_cancelled"), detail: "The run was cancelled before returning an answer.", collapsible: true }} /> : null}
     <TaskChatComposer pause={!running ? { scope: "subtree", onResume: () => setDialogMode("resume") } : null} onAdd={async () => {}} workMode="standard" stopScope="subtree" onStop={running ? async () => setRunning(false) : undefined} />
     <TaskTreeControlDialog open={dialogMode !== null} onOpenChange={(open) => { if (!open) setDialogMode(null); }}
       mode={dialogMode ?? "cancel"} scope="subtree" affectedCount={3} affectedAgentCount={2} loading={false} pending={false} valid
@@ -457,19 +459,19 @@ function TaskPendingInputExample() {
       workMode="standard"
       takeover={pending && open ? {
         id: "design-question",
-        label: "Question",
+        label: t("question"),
         pendingCount: 1,
         content: <div className="space-y-3 text-sm">
-          <p>Should the agent use the existing draft?</p>
+          <p>{t("stability.64d16fe20cbd", { defaultValue: "Should the agent use the existing draft?" })}</p>
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => setPending(false)}>Use draft</Button>
-            <Button size="sm" variant="outline" onClick={() => setPending(false)}>Start fresh</Button>
+            <Button size="sm" onClick={() => setPending(false)}>{t("stability.15e45f1ce74a", { defaultValue: "Use draft" })}</Button>
+            <Button size="sm" variant="outline" onClick={() => setPending(false)}>{t("stability.652aceea790a", { defaultValue: "Start fresh" })}</Button>
           </div>
         </div>,
         onDismiss: () => setOpen(false),
         onSkip: () => setPending(false),
       } : null}
-      pendingTakeover={pending ? { count: 1, label: "Question", onOpen: () => setOpen(true) } : null}
+      pendingTakeover={pending ? { count: 1, label: t("question"), onOpen: () => setOpen(true) } : null}
     />
   </div>;
 }
@@ -477,9 +479,9 @@ function TaskPendingInputExample() {
 function AgentChatPickerExample() {
   const [state, setState] = useState<"closed" | "empty" | "loading" | "error">("closed");
   return <div className="flex flex-wrap gap-2">
-    <Button variant="outline" onClick={() => setState("empty")}>Empty picker</Button>
-    <Button variant="outline" onClick={() => setState("loading")}>Loading picker</Button>
-    <Button variant="outline" onClick={() => setState("error")}>Failed picker</Button>
+    <Button variant="outline" onClick={() => setState("empty")}>{t("stability.ee2e925e71c0", { defaultValue: "Empty picker" })}</Button>
+    <Button variant="outline" onClick={() => setState("loading")}>{t("stability.e7a00dc85fc2", { defaultValue: "Loading picker" })}</Button>
+    <Button variant="outline" onClick={() => setState("error")}>{t("stability.7c4d2b0779a5", { defaultValue: "Failed picker" })}</Button>
     <AgentChatPicker agents={[]} open={state !== "closed"} onOpenChange={(open) => { if (!open) setState("closed"); }} onSelect={() => {}}
       loading={state === "loading"} error={state === "error" ? new Error("Unavailable") : null} onRetry={() => setState("empty")} />
   </div>;
@@ -490,7 +492,7 @@ function ComposerActionsExample() {
   return <div className="flex max-w-xl items-center gap-2 rounded-xl border border-border bg-card p-3">
     <ComposerAddMenu mode={mode} onModeChange={setMode} onAttachFile={() => {}} onGoal={() => {}} />
     <ComposerModeChip mode={mode} onRemove={() => setMode("standard")} />
-    <span className="ml-auto text-xs text-muted-foreground">Plus menu · removable mode chip</span>
+    <span className="ml-auto text-xs text-muted-foreground">{t("stability.8cfb3263eaed", { defaultValue: "Plus menu · removable mode chip" })}</span>
   </div>;
 }
 
@@ -508,10 +510,10 @@ export function DesignGuide() {
     "This is an editable description. Click to edit it — the textarea auto-sizes to fit the content without layout shift."
   );
   const [filters, setFilters] = useState<FilterValue[]>([
-    { key: "status", label: "Status", value: "Active" },
+    { key: "status", label: t("nav.status"), value: "Active" },
     // PAP-411: priority filter demo row suppressed while SHOW_TASK_PRIORITY_UI is off.
     ...(SHOW_TASK_PRIORITY_UI
-      ? [{ key: "priority", label: "Priority", value: "High" } as FilterValue]
+      ? [{ key: "priority", label: t("priority"), value: "High" } as FilterValue]
       : []),
   ]);
   const [allowExternal, setAllowExternal] = useState(false);
@@ -522,21 +524,21 @@ export function DesignGuide() {
     <div className="space-y-10 max-w-4xl">
       {/* Page header */}
       <div>
-        <h2 className="text-xl font-bold">Design Guide</h2>
+        <h2 className="text-xl font-bold">{t("design_guide")}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Every component, style, and pattern used across Paperclip.
+          {t("every_component_style_and_pattern_used_across_pa")}
         </p>
       </div>
 
       {/* ============================================================ */}
       {/*  COVERAGE                                                     */}
       {/* ============================================================ */}
-      <Section title="Component Coverage">
+      <Section title={t("component_coverage")}>
         <p className="text-sm text-muted-foreground">
-          This page should be updated when new UI primitives or app-level patterns ship.
+          {t("this_page_should_be_updated_when_new_ui_primitiv")}
         </p>
         <div className="grid gap-6 md:grid-cols-2">
-          <SubSection title="UI primitives">
+          <SubSection title={t("ui_primitives")}>
             <div className="flex flex-wrap gap-2">
               {[
                 "avatar", "badge", "breadcrumb", "button", "card", "checkbox", "collapsible",
@@ -549,14 +551,14 @@ export function DesignGuide() {
               ))}
             </div>
           </SubSection>
-          <SubSection title="App components">
+          <SubSection title={t("app_components")}>
             <div className="flex flex-wrap gap-2">
               {[
-                "StatusBadge", "StatusIcon", "PriorityIcon", "EntityRow", "EmptyState", "MetricCard",
-                "FilterBar", "InlineEditor", "PageSkeleton", "Identity", "CommentThread", "MarkdownEditor",
-                "PropertiesPanel", "Sidebar", "CommandPalette", "EnvironmentVariablesEditor",
-                "InlineBanner", "BuiltInAgentGate", "BuiltInLifecycleChip", "CollectionToolbar",
-                "IssueRow", "ContextualSidebarFrame",
+                t("statusbadge"), t("statusicon"), t("priorityicon"), t("entityrow"), t("emptystate"), t("metriccard"),
+                t("filterbar"), t("inlineeditor"), t("pageskeleton"), t("identity"), t("commentthread"), t("markdowneditor"),
+                t("propertiespanel"), t("sidebar"), t("commandpalette"), t("environmentvariableseditor"),
+                t("inlinebanner"), t("builtinagentgate"), t("builtinlifecyclechip"), t("collectiontoolbar"),
+                t("issuerow"), t("contextualsidebarframe"),
               ].map((name) => (
                 <Badge key={name} variant="ghost" className="font-mono text-(length:--text-nano)">
                   {name}
@@ -567,7 +569,7 @@ export function DesignGuide() {
         </div>
       </Section>
 
-      <Section title="Announcements">
+      <Section title={t("stability.fe02680f2479", { defaultValue: "Announcements" })}>
         <div className="grid gap-4 md:grid-cols-2">
           <AnnouncementCard announcement={announcementAnimationPreview} imageSrc="/announcement-preview.svg" animationSrc={announcementAnimationPreviewSrc} onDismiss={() => {}} />
           <AnnouncementCard announcement={announcementPreview} imageSrc="/announcement-preview.svg" onDismiss={() => {}} />
@@ -575,40 +577,36 @@ export function DesignGuide() {
         </div>
       </Section>
 
-      <Section title="Task Execution Controls">
+      <Section title={t("stability.c914f18daf83", { defaultValue: "Task Execution Controls" })}>
         <TaskExecutionControlsExample />
       </Section>
 
-      <Section title="Composer actions">
+      <Section title={t("stability.308976e54619", { defaultValue: "Composer actions" })}>
         <ComposerActionsExample />
       </Section>
 
-      <Section title="Task Collection">
-        <p className="max-w-prose text-sm text-muted-foreground">
-          CollectionToolbar owns shared geometry while each page owns its state and behavior.
-          The canonical task row is opt-in during migration: status leads, unread work uses
-          title emphasis, metadata remains stable, and the task identifier trails.
-        </p>
+      <Section title={t("task_collection")}>
+        <p className="max-w-prose text-sm text-muted-foreground">{t("collectiontoolbar_owns_shared_geometry_while_eac")}</p>
         <CollectionToolbar
-          context={<span className="text-sm font-medium">Recent tasks</span>}
-          search={<Input aria-label="Search task collection example" placeholder="Search tasks..." />}
-          controls={<Button variant="outline" size="sm">Filter</Button>}
-          actions={<Button size="sm">New task</Button>}
-          feedback={<span className="text-xs text-muted-foreground">1 task · Updated newest first</span>}
+          context={<span className="text-sm font-medium">{t("recent_tasks_21bcad")}</span>}
+          search={<Input aria-label={t("search_task_collection_example")} placeholder={t("search_tasks")} />}
+          controls={<Button variant="outline" size="sm">{t("filter")}</Button>}
+          actions={<Button size="sm">{t("new_task")}</Button>}
+          feedback={<span className="text-xs text-muted-foreground">{t("1_task_updated_newest_first")}</span>}
         />
         <div className="overflow-hidden rounded-lg border border-border">
           <IssueRow
             issue={DESIGN_GUIDE_TASK}
             presentation="task"
             unreadState="visible"
-            metadata={<span className="text-xs text-muted-foreground">Updated 12m ago</span>}
-            actions={<Button variant="ghost" size="xs">More</Button>}
+            metadata={<span className="text-xs text-muted-foreground">{t("updated_12m_ago")}</span>}
+            actions={<Button variant="ghost" size="xs">{t("more")}</Button>}
           />
         </div>
       </Section>
 
-      <Section title="Theme Toggle">
-        <SubSection title="Variants">
+      <Section title={t("stability.cafbda6ab549", { defaultValue: "Theme Toggle" })}>
+        <SubSection title={t("variants")}>
           <div className="flex max-w-sm flex-col items-start gap-3">
             <ThemeToggle />
             <ThemeToggle variant="menu-action" />
@@ -620,8 +618,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COLORS                                                       */}
       {/* ============================================================ */}
-      <Section title="Colors">
-        <SubSection title="Core">
+      <Section title={t("colors")}>
+        <SubSection title={t("core")}>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Swatch name="Background" cssVar="--background" />
             <Swatch name="Foreground" cssVar="--foreground" />
@@ -638,14 +636,14 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Sidebar">
+        <SubSection title={t("sidebar")}>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Swatch name="Sidebar" cssVar="--sidebar" />
             <Swatch name="Sidebar border" cssVar="--sidebar-border" />
           </div>
         </SubSection>
 
-        <SubSection title="Chart">
+        <SubSection title={t("chart")}>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Swatch name="Chart 1" cssVar="--chart-1" />
             <Swatch name="Chart 2" cssVar="--chart-2" />
@@ -659,7 +657,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TYPOGRAPHY                                                   */}
       {/* ============================================================ */}
-      <Section title="Runner activity">
+      <Section title={t("runner_activity")}>
         <TaskChatRunnerActivityGroup item={{ id: "design-runner-activity", kind: "activity_phase", active: true, summary: "", interstitial: { id: "design-runner-commentary", kind: "message", author: "agent", text: "I’ll inspect the activity feed and check the layout.", interstitial: true }, items: [
           { id: "design-runner-read", kind: "tool", name: "read", target: "TaskChatRunnerTurn.tsx", status: "completed", detail: "Found the activity groups." },
           { id: "design-runner-check", kind: "tool", name: "exec_command", target: "pnpm check:token-gates", status: "in_progress" },
@@ -670,34 +668,26 @@ export function DesignGuide() {
         ] }} />
       </Section>
 
-      <Section title="Typography">
+      <Section title={t("typography")}>
         <div className="space-y-3">
-          <h2 className="text-xl font-bold">Page Title — text-xl font-bold</h2>
-          <h2 className="text-lg font-semibold">Section Title — text-lg font-semibold</h2>
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Section Heading — text-sm font-semibold uppercase tracking-wide
-          </h3>
-          <p className="text-sm font-medium">Card Title — text-sm font-medium</p>
-          <p className="text-sm font-semibold">Card Title Alt — text-sm font-semibold</p>
-          <p className="text-sm">Body text — text-sm</p>
-          <p className="text-sm text-muted-foreground">
-            Muted description — text-sm text-muted-foreground
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Tiny label — text-xs text-muted-foreground
-          </p>
-          <p className="text-sm font-mono text-muted-foreground">
-            Mono identifier — text-sm font-mono text-muted-foreground
-          </p>
-          <p className="text-2xl font-bold">Large stat — text-2xl font-bold</p>
-          <p className="font-mono text-xs">Log/code text — font-mono text-xs</p>
+          <h2 className="text-xl font-bold">{t("page_title_text_xl_font_bold")}</h2>
+          <h2 className="text-lg font-semibold">{t("section_title_text_lg_font_semibold")}</h2>
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t("section_heading_text_sm_font_semibold_uppercase")}</h3>
+          <p className="text-sm font-medium">{t("card_title_text_sm_font_medium")}</p>
+          <p className="text-sm font-semibold">{t("card_title_alt_text_sm_font_semibold")}</p>
+          <p className="text-sm">{t("body_text_text_sm")}</p>
+          <p className="text-sm text-muted-foreground">{t("muted_description_text_sm_text_muted_foreground")}</p>
+          <p className="text-xs text-muted-foreground">{t("tiny_label_text_xs_text_muted_foreground")}</p>
+          <p className="text-sm font-mono text-muted-foreground">{t("mono_identifier_text_sm_font_mono_text_muted_for")}</p>
+          <p className="text-2xl font-bold">{t("large_stat_text_2xl_font_bold")}</p>
+          <p className="font-mono text-xs">{t("log_code_text_font_mono_text_xs")}</p>
         </div>
       </Section>
 
       {/* ============================================================ */}
       {/*  SPACING & RADIUS                                             */}
       {/* ============================================================ */}
-      <Section title="Radius">
+      <Section title={t("radius")}>
         <div className="flex items-end gap-4 flex-wrap">
           {[
             ["sm", "var(--radius-sm)"],
@@ -720,28 +710,28 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  BUTTONS                                                      */}
       {/* ============================================================ */}
-      <Section title="Buttons">
-        <SubSection title="Variants">
+      <Section title={t("buttons")}>
+        <SubSection title={t("variants")}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="default">Default</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="outline">Outline</Button>
-            <Button variant="ghost">Ghost</Button>
-            <Button variant="destructive">Destructive</Button>
-            <Button variant="link">Link</Button>
+            <Button variant="default">{t("default_808d7d")}</Button>
+            <Button variant="secondary">{t("secondary")}</Button>
+            <Button variant="outline">{t("outline")}</Button>
+            <Button variant="ghost">{t("ghost")}</Button>
+            <Button variant="destructive">{t("destructive")}</Button>
+            <Button variant="link">{t("link")}</Button>
           </div>
         </SubSection>
 
-        <SubSection title="Sizes">
+        <SubSection title={t("sizes")}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button size="xs">Extra Small</Button>
-            <Button size="sm">Small</Button>
-            <Button size="default">Default</Button>
-            <Button size="lg">Large</Button>
+            <Button size="xs">{t("extra_small")}</Button>
+            <Button size="sm">{t("small")}</Button>
+            <Button size="default">{t("default_808d7d")}</Button>
+            <Button size="lg">{t("large")}</Button>
           </div>
         </SubSection>
 
-        <SubSection title="Icon buttons">
+        <SubSection title={t("icon_buttons")}>
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="ghost" size="icon-xs"><Search /></Button>
             <Button variant="ghost" size="icon-sm"><Search /></Button>
@@ -750,19 +740,19 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="With icons">
+        <SubSection title={t("with_icons")}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button><Plus /> New Issue</Button>
-            <Button variant="outline"><Upload /> Upload</Button>
-            <Button variant="destructive"><Trash2 /> Delete</Button>
-            <Button size="sm"><Plus /> Add</Button>
+            <Button><Plus /> {t("new_issue")}</Button>
+            <Button variant="outline"><Upload /> {t("upload")}</Button>
+            <Button variant="destructive"><Trash2 /> {t("delete_f6fdbe")}</Button>
+            <Button size="sm"><Plus /> {t("add")}</Button>
           </div>
         </SubSection>
 
-        <SubSection title="States">
+        <SubSection title={t("states")}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button disabled>Disabled</Button>
-            <Button variant="outline" disabled>Disabled Outline</Button>
+            <Button disabled>{t("disabled")}</Button>
+            <Button variant="outline" disabled>{t("disabled_outline")}</Button>
           </div>
         </SubSection>
       </Section>
@@ -770,14 +760,14 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  BADGES                                                       */}
       {/* ============================================================ */}
-      <Section title="Badges">
-        <SubSection title="Variants">
+      <Section title={t("badges")}>
+        <SubSection title={t("variants")}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="default">Default</Badge>
-            <Badge variant="secondary">Secondary</Badge>
-            <Badge variant="outline">Outline</Badge>
-            <Badge variant="destructive">Destructive</Badge>
-            <Badge variant="ghost">Ghost</Badge>
+            <Badge variant="default">{t("default_808d7d")}</Badge>
+            <Badge variant="secondary">{t("secondary")}</Badge>
+            <Badge variant="outline">{t("outline")}</Badge>
+            <Badge variant="destructive">{t("destructive")}</Badge>
+            <Badge variant="ghost">{t("ghost")}</Badge>
           </div>
         </SubSection>
       </Section>
@@ -785,8 +775,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  STATUS BADGES & ICONS                                        */}
       {/* ============================================================ */}
-      <Section title="Status System">
-        <SubSection title="StatusBadge (all statuses)">
+      <Section title={t("status_system")}>
+        <SubSection title={t("statusbadge_all_statuses")}>
           <div className="flex items-center gap-2 flex-wrap">
             {[
               "active", "running", "paused", "idle", "archived", "planned",
@@ -800,7 +790,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="IssueStatusBadge (brand chip + glyph — PAP-75)">
+        <SubSection title={t("issuestatusbadge_brand_chip_glyph_pap_75")}>
           <div className="flex items-center gap-2 flex-wrap">
             {["backlog", "todo", "in_progress", "in_review", "done", "blocked", "cancelled"].map(
               (s) => (
@@ -810,11 +800,11 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Idle Slack conversation">
+        <SubSection title={t("stability.ed0009c959ce", { defaultValue: "Idle Slack conversation" })}>
           <StatusIcon status="in_review" externalConversationState="waiting" showLabel />
           <IssueStatusBadge status="in_review" externalConversationState="waiting" />
         </SubSection>
-        <SubSection title="StatusIcon (interactive)">
+        <SubSection title={t("statusicon_interactive")}>
           <div className="flex items-center gap-3 flex-wrap">
             {["backlog", "todo", "in_progress", "in_review", "done", "cancelled", "blocked"].map(
               (s) => (
@@ -827,13 +817,13 @@ export function DesignGuide() {
           </div>
           <div className="flex items-center gap-2 mt-2">
             <StatusIcon status={status} onChange={setStatus} />
-            <span className="text-sm">Click the icon to change status (current: {status})</span>
+            <span className="text-sm">{t("click_the_icon_to_change_status_current")}{" "}{status})</span>
           </div>
         </SubSection>
 
         {/* PAP-411: PriorityIcon showcase gated behind SHOW_TASK_PRIORITY_UI per board decision. */}
         {SHOW_TASK_PRIORITY_UI && (
-        <SubSection title="PriorityIcon (interactive)">
+        <SubSection title={t("priorityicon_interactive")}>
           <div className="flex items-center gap-3 flex-wrap">
             {["critical", "high", "medium", "low"].map((p) => (
               <div key={p} className="flex items-center gap-1.5">
@@ -844,12 +834,12 @@ export function DesignGuide() {
           </div>
           <div className="flex items-center gap-2 mt-2">
             <PriorityIcon priority={priority} onChange={setPriority} />
-            <span className="text-sm">Click the icon to change (current: {priority})</span>
+            <span className="text-sm">{t("click_the_icon_to_change_current")} {priority})</span>
           </div>
         </SubSection>
         )}
 
-        <SubSection title="Agent status dots">
+        <SubSection title={t("agent_status_dots")}>
           <div className="flex items-center gap-4 flex-wrap">
             {(["running", "active", "paused", "error", "archived"] as const).map((label) => (
               <div key={label} className="flex items-center gap-2">
@@ -862,7 +852,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Run invocation badges">
+        <SubSection title={t("run_invocation_badges")}>
           <div className="flex items-center gap-2 flex-wrap">
             {[
               ["timer", "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"],
@@ -877,19 +867,13 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="IssueReferencePill">
-          <p className="text-xs text-muted-foreground">
-            Used wherever a task is referenced — in markdown, the Related Work tab, and activity summaries.
-            Pass <code className="font-mono">status</code> to show the target issue&apos;s state at a glance.
-            Use <code className="font-mono">variant="property"</code> for compact badges with direct navigation.
-            Pass <code className="font-mono">onRemove</code> for a separate blocker removal control with reserved space.
-            Use <code className="font-mono">strikethrough</code> for &quot;removed&quot; contexts.
-          </p>
+        <SubSection title={t("issuereferencepill")}>
+          <p className="text-xs text-muted-foreground">{t("used_wherever_a_task_is_referenced_in_markdown_t")}<code className="font-mono">status</code>{t("to_show_the_target_issues_state_at_a_glance_use")}<code className="font-mono">variant="property"</code>{" "}{t("stability.9831dbd5a850", { defaultValue: "for compact badges with direct navigation. Pass" })}{" "}<code className="font-mono">onRemove</code>{" "}{t("stability.2366c373c96d", { defaultValue: "for a separate blocker removal control with reserved space. Use" })}{" "}<code className="font-mono">strikethrough</code>{t("for_removed_contexts")}</p>
           <div className="flex items-center gap-2 flex-wrap">
-            <IssueReferencePill issue={{ id: "demo-1", identifier: "PAP-123", title: "Identifier only — no status yet" }} />
-            <IssueReferencePill issue={{ id: "demo-2", identifier: "PAP-456", title: "With in_progress status", status: "in_progress" }} />
-            <IssueReferencePill issue={{ id: "demo-3", identifier: "PAP-789", title: "Done status", status: "done" }} />
-            <IssueReferencePill issue={{ id: "demo-4", identifier: "PAP-101", title: "Blocked status", status: "blocked" }} />
+            <IssueReferencePill issue={{ id: "demo-1", identifier: "PAP-123", title: t("identifier_only_no_status_yet") }} />
+            <IssueReferencePill issue={{ id: "demo-2", identifier: "PAP-456", title: t("with_in_progress_status"), status: "in_progress" }} />
+            <IssueReferencePill issue={{ id: "demo-3", identifier: "PAP-789", title: t("done_status"), status: "done" }} />
+            <IssueReferencePill issue={{ id: "demo-4", identifier: "PAP-101", title: t("blocked_status"), status: "blocked" }} />
             <IssueReferencePill onRemove={() => window.alert("Blocker removed")} issue={{ id: "demo-blocker", identifier: "PAP-303", title: "Hover or focus to remove blocker", status: "in_review" }} />
             <IssueReferencePill strikethrough issue={{ id: "demo-5", identifier: "PAP-202", title: "Removed (strikethrough)", status: "todo" }} />
           </div>
@@ -899,15 +883,13 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  AGENT CAPSULE                                                */}
       {/* ============================================================ */}
-      <Section title="Agent Capsule">
+      <Section title={t("agent_capsule")}>
         <p className="text-sm text-muted-foreground max-w-prose">
-          The brand &quot;capsule is the agent&quot; motif. A single agent reads as a tall
-          pill that moves through three states as it comes to life. The online fill uses
-          the live brand agent-gradient tokens (<code className="font-mono">--agent-Na</code> →{" "}
-          <code className="font-mono">--agent-Nb</code>); <code className="font-mono">prefers-reduced-motion</code>{" "}
-          skips the liquid rise and pulses and renders the final state.
+          {t("the_brand_capsule_is_the_agent_motif_a_single_ag")}<code className="font-mono">{t("agent_na")}</code> →{" "}
+          <code className="font-mono">{t("agent_nb")}</code>); <code className="font-mono">prefers-reduced-motion</code>{" "}
+          {t("skips_the_liquid_rise_and_pulses_and_renders_the")}
         </p>
-        <SubSection title="States">
+        <SubSection title={t("states")}>
           <div className="flex items-end gap-10">
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="slot" />
@@ -915,19 +897,19 @@ export function DesignGuide() {
             </div>
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="configured" />
-              <span className="text-xs text-muted-foreground">configured</span>
+              <span className="text-xs text-muted-foreground">{t("zhPages.201582247500")}</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="online" gradient={5} />
-              <span className="text-xs text-muted-foreground">online</span>
+              <span className="text-xs text-muted-foreground">{t("zhPages.f6fc84c9f21c")}</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="online" gradient={5} glow="blue" />
-              <span className="text-xs text-muted-foreground">online · blue glow</span>
+              <span className="text-xs text-muted-foreground">{t("online_blue_glow")}</span>
             </div>
           </div>
         </SubSection>
-        <SubSection title="Sizes">
+        <SubSection title={t("sizes")}>
           <div className="flex items-end gap-8">
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="online" size="sm" gradient={1} />
@@ -943,11 +925,11 @@ export function DesignGuide() {
             </div>
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="online" size={{ width: 28, height: 96 }} gradient={6} />
-              <span className="text-xs text-muted-foreground">custom px</span>
+              <span className="text-xs text-muted-foreground">{t("custom_px")}</span>
             </div>
           </div>
         </SubSection>
-        <SubSection title="Gradients">
+        <SubSection title={t("gradients")}>
           <div className="flex items-end gap-3 flex-wrap">
             {Array.from({ length: AGENT_GRADIENT_COUNT }, (_, i) => (
               <div key={i} className="flex flex-col items-center gap-1.5">
@@ -962,38 +944,38 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  FORM ELEMENTS                                                */}
       {/* ============================================================ */}
-      <Section title="Form Elements">
+      <Section title={t("form_elements")}>
         <div className="grid gap-6 md:grid-cols-2">
-          <SubSection title="Input">
-            <Input placeholder="Default input" />
-            <Input placeholder="Disabled input" disabled className="mt-2" />
+          <SubSection title={t("input")}>
+            <Input placeholder={t("default_input")} />
+            <Input placeholder={t("disabled_input")} disabled className="mt-2" />
           </SubSection>
 
-          <SubSection title="Textarea">
-            <Textarea placeholder="Write something..." />
+          <SubSection title={t("textarea")}>
+            <Textarea placeholder={t("write_something")} />
           </SubSection>
 
-          <SubSection title="Checkbox & Label">
+          <SubSection title={t("checkbox_label")}>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Checkbox id="check1" defaultChecked />
-                <Label htmlFor="check1">Checked item</Label>
+                <Label htmlFor="check1">{t("checked_item")}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox id="check2" />
-                <Label htmlFor="check2">Unchecked item</Label>
+                <Label htmlFor="check2">{t("unchecked_item")}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox id="check3" disabled />
-                <Label htmlFor="check3">Disabled item</Label>
+                <Label htmlFor="check3">{t("disabled_item")}</Label>
               </div>
             </div>
           </SubSection>
 
-          <SubSection title="Inline Editor">
+          <SubSection title={t("inline_editor")}>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Title (single-line)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("title_single_line")}</p>
                 <InlineEditor
                   value={inlineTitle}
                   onSave={setInlineTitle}
@@ -1002,7 +984,7 @@ export function DesignGuide() {
                 />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Body text (single-line)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("body_text_single_line")}</p>
                 <InlineEditor
                   value={inlineText}
                   onSave={setInlineText}
@@ -1011,13 +993,13 @@ export function DesignGuide() {
                 />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Description (multiline, auto-sizing)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("description_multiline_auto_sizing")}</p>
                 <InlineEditor
                   value={inlineDesc}
                   onSave={setInlineDesc}
                   as="p"
                   className="text-sm text-muted-foreground"
-                  placeholder="Add a description..."
+                  placeholder={t("add_a_description")}
                   multiline
                 />
               </div>
@@ -1029,34 +1011,34 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SELECT                                                       */}
       {/* ============================================================ */}
-      <Section title="Select">
-        <p className="mb-4 text-sm text-muted-foreground">Native single-value dropdowns share an inset, theme-aware caret and reserve room for it in the base stylesheet. Multiple-selection lists and controls with a custom icon keep their own appearance.</p>
+      <Section title={t("select_859822")}>
+        <p className="mb-4 text-sm text-muted-foreground">{t("stability.4db3d63d84c6", { defaultValue: "Native single-value dropdowns share an inset, theme-aware caret and reserve room for it in the base stylesheet. Multiple-selection lists and controls with a custom icon keep their own appearance." })}</p>
         <div className="grid gap-6 md:grid-cols-2">
-          <SubSection title="Default size">
+          <SubSection title={t("default_size")}>
             <Select value={selectValue} onValueChange={setSelectValue}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={t("select_status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="backlog">Backlog</SelectItem>
-                <SelectItem value="todo">Todo</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="in_review">In Review</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
+                <SelectItem value="backlog">{t("backlog")}</SelectItem>
+                <SelectItem value="todo">{t("todo")}</SelectItem>
+                <SelectItem value="in_progress">{t("in_progress")}</SelectItem>
+                <SelectItem value="in_review">{t("in_review")}</SelectItem>
+                <SelectItem value="done">{t("done")}</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">Current value: {selectValue}</p>
+            <p className="text-xs text-muted-foreground">{t("current_value")} {selectValue}</p>
           </SubSection>
-          <SubSection title="Small trigger">
+          <SubSection title={t("small_trigger")}>
             <Select defaultValue="high">
               <SelectTrigger size="sm" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="critical">{t("critical")}</SelectItem>
+                <SelectItem value="high">{t("high")}</SelectItem>
+                <SelectItem value="medium">{t("medium")}</SelectItem>
+                <SelectItem value="low">{t("low")}</SelectItem>
               </SelectContent>
             </Select>
           </SubSection>
@@ -1066,34 +1048,34 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  DROPDOWN MENU                                                */}
       {/* ============================================================ */}
-      <Section title="Dropdown Menu">
+      <Section title={t("dropdown_menu")}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
-              Quick Actions
+              {t("quick_actions")}
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuItem>
               <Check className="h-4 w-4" />
-              Mark as done
+              {t("mark_as_done")}
               <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <BookOpen className="h-4 w-4" />
-              Open docs
+              {t("open_docs")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={menuChecked}
               onCheckedChange={(value) => setMenuChecked(value === true)}
             >
-              Watch issue
+              {t("watch_issue")}
             </DropdownMenuCheckboxItem>
             <DropdownMenuItem variant="destructive">
               <Trash2 className="h-4 w-4" />
-              Delete issue
+              {t("delete_issue")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -1102,17 +1084,17 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  POPOVER                                                      */}
       {/* ============================================================ */}
-      <Section title="Popover">
+      <Section title={t("popover")}>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">Open Popover</Button>
+            <Button variant="outline" size="sm">{t("open_popover")}</Button>
           </PopoverTrigger>
           <PopoverContent className="space-y-2">
-            <p className="text-sm font-medium">Agent heartbeat</p>
+            <p className="text-sm font-medium">{t("agent_heartbeat")}</p>
             <p className="text-xs text-muted-foreground">
-              Last run succeeded 24s ago. Next timer run in 9m.
+              {t("last_run_succeeded_24s_ago_next_timer_run_in_9m")}
             </p>
-            <Button size="xs">Wake now</Button>
+            <Button size="xs">{t("wake_now")}</Button>
           </PopoverContent>
         </Popover>
       </Section>
@@ -1120,17 +1102,17 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COLLAPSIBLE                                                  */}
       {/* ============================================================ */}
-      <Section title="Collapsible">
+      <Section title={t("collapsible")}>
         <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className="space-y-2">
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm">
-              {collapsibleOpen ? "Hide" : "Show"} advanced filters
+              {collapsibleOpen ? t("hide") : t("show")} {t("advanced_filters")}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="rounded-md border border-border p-3">
             <div className="space-y-2">
-              <Label htmlFor="owner-filter">Owner</Label>
-              <Input id="owner-filter" placeholder="Filter by agent name" />
+              <Label htmlFor="owner-filter">{t("owner")}</Label>
+              <Input id="owner-filter" placeholder={t("filter_by_agent_name")} />
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -1139,29 +1121,29 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SHEET                                                        */}
       {/* ============================================================ */}
-      <Section title="Sheet">
+      <Section title={t("sheet")}>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm">Open Side Panel</Button>
+            <Button variant="outline" size="sm">{t("open_side_panel")}</Button>
           </SheetTrigger>
           <SheetContent side="right">
             <SheetHeader>
-              <SheetTitle>Issue Properties</SheetTitle>
-              <SheetDescription>Edit metadata without leaving the current page.</SheetDescription>
+              <SheetTitle>{t("issue_properties")}</SheetTitle>
+              <SheetDescription>{t("edit_metadata_without_leaving_the_current_page")}</SheetDescription>
             </SheetHeader>
             <div className="space-y-4 px-4">
               <div className="space-y-1">
-                <Label htmlFor="sheet-title">Title</Label>
+                <Label htmlFor="sheet-title">{t("title")}</Label>
                 <Input id="sheet-title" defaultValue="Improve onboarding docs" />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="sheet-description">Description</Label>
+                <Label htmlFor="sheet-description">{t("description")}</Label>
                 <Textarea id="sheet-description" defaultValue="Capture setup pitfalls and screenshots." />
               </div>
             </div>
             <SheetFooter>
-              <Button variant="outline">Cancel</Button>
-              <Button>Save</Button>
+              <Button variant="outline">{t("cancel")}</Button>
+              <Button>{t("save")}</Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>
@@ -1170,12 +1152,12 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SCROLL AREA                                                  */}
       {/* ============================================================ */}
-      <Section title="Scroll Area">
+      <Section title={t("scroll_area")}>
         <ScrollArea className="h-36 rounded-md border border-border">
           <div className="space-y-2 p-3">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="rounded-md border border-border p-2 text-sm">
-                Heartbeat run #{i + 1}: completed successfully
+                {t("heartbeat_run")}{i + 1}{t("completed_successfully")}
               </div>
             ))}
           </div>
@@ -1185,31 +1167,31 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COMMAND                                                      */}
       {/* ============================================================ */}
-      <Section title="Command (CMDK)">
+      <Section title={t("command_cmdk")}>
         <div className="rounded-md border border-border">
           <Command>
-            <CommandInput placeholder="Type a command or search..." />
+            <CommandInput placeholder={t("type_a_command_or_search")} />
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup heading="Pages">
+              <CommandEmpty>{t("no_results_found")}</CommandEmpty>
+              <CommandGroup heading={t("pages")}>
                 <CommandItem>
                   <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
+                  {t("dashboard")}
                 </CommandItem>
                 <CommandItem>
                   <CircleDot className="h-4 w-4" />
-                  Issues
+                  {t("issues")}
                 </CommandItem>
               </CommandGroup>
               <CommandSeparator />
-              <CommandGroup heading="Actions">
+              <CommandGroup heading={t("actions")}>
                 <CommandItem>
                   <CommandIcon className="h-4 w-4" />
-                  Open command palette
+                  {t("open_command_palette")}
                 </CommandItem>
                 <CommandItem>
                   <Plus className="h-4 w-4" />
-                  Create new issue
+                  {t("create_new_issue")}
                 </CommandItem>
               </CommandGroup>
             </CommandList>
@@ -1220,19 +1202,19 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  BREADCRUMB                                                   */}
       {/* ============================================================ */}
-      <Section title="Breadcrumb">
+      <Section title={t("breadcrumb")}>
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">Projects</BreadcrumbLink>
+              <BreadcrumbLink href="#">{t("projects")}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">Paperclip App</BreadcrumbLink>
+              <BreadcrumbLink href="#">{t("paperclip_app")}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Issue List</BreadcrumbPage>
+              <BreadcrumbPage>{t("issue_list")}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -1241,8 +1223,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  CARDS                                                        */}
       {/* ============================================================ */}
-      <Section title="Cards">
-        <SubSection title="Dashboard agent runs">
+      <Section title={t("cards")}>
+        <SubSection title={t("stability.0aaef7033135", { defaultValue: "Dashboard agent runs" })}>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {["running", "queued", "succeeded", "failed", "timed_out", "cancelled", "interrupted"].map((status) => (
               <AgentRunCard
@@ -1257,30 +1239,30 @@ export function DesignGuide() {
               />
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">The dashboard and Live runs page use the same compact cards. In-progress task icons animate across the app, including between runs, to represent task workflow status. Live indicators report active execution. Open a run to view its status and transcript.</p>
+          <p className="text-xs text-muted-foreground">{t("stability.27b8dd399bd3", { defaultValue: "The dashboard and Live runs page use the same compact cards. In-progress task icons animate across the app, including between runs, to represent task workflow status. Live indicators report active execution. Open a run to view its status and transcript." })}</p>
         </SubSection>
-        <SubSection title="Standard Card">
+        <SubSection title={t("standard_card")}>
           <Card>
             <CardHeader>
-              <CardTitle>Card Title</CardTitle>
-              <CardDescription>Card description with supporting text.</CardDescription>
+              <CardTitle>{t("card_title")}</CardTitle>
+              <CardDescription>{t("card_description_with_supporting_text")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">Card content goes here. This is the main body area.</p>
+              <p className="text-sm">{t("card_content_goes_here_this_is_the_main_body_are")}</p>
             </CardContent>
             <CardFooter className="gap-2">
-              <Button size="sm">Action</Button>
-              <Button variant="outline" size="sm">Cancel</Button>
+              <Button size="sm">{t("action")}</Button>
+              <Button variant="outline" size="sm">{t("common.cancel")}</Button>
             </CardFooter>
           </Card>
         </SubSection>
 
-        <SubSection title="Metric Cards">
+        <SubSection title={t("metric_cards")}>
           <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <MetricCard icon={Bot} value={12} label="Active Agents" description="+3 this week" />
-            <MetricCard icon={CircleDot} value={48} label="Open Issues" />
-            <MetricCard icon={DollarSign} value="$1,234" label="Monthly Cost" description="Under budget" />
-            <MetricCard icon={Zap} value="99.9%" label="Uptime" />
+            <MetricCard icon={Bot} value={12} label={t("active_agents")} description={t("3_this_week")} />
+            <MetricCard icon={CircleDot} value={48} label={t("open_issues")} />
+            <MetricCard icon={DollarSign} value="$1,234" label={t("monthly_cost")} description={t("under_budget")} />
+            <MetricCard icon={Zap} value="99.9%" label={t("uptime")} />
           </div>
         </SubSection>
       </Section>
@@ -1288,45 +1270,45 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TABS                                                         */}
       {/* ============================================================ */}
-      <Section title="Tabs">
-        <SubSection title="Default (pill) variant">
+      <Section title={t("tabs")}>
+        <SubSection title={t("default_pill_variant")}>
           <Tabs defaultValue="overview">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="runs">Runs</TabsTrigger>
-              <TabsTrigger value="config">Config</TabsTrigger>
-              <TabsTrigger value="costs">Costs</TabsTrigger>
+              <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
+              <TabsTrigger value="runs">{t("runs")}</TabsTrigger>
+              <TabsTrigger value="config">{t("config")}</TabsTrigger>
+              <TabsTrigger value="costs">{t("costs")}</TabsTrigger>
             </TabsList>
             <TabsContent value="overview">
-              <p className="text-sm text-muted-foreground py-4">Overview tab content.</p>
+              <p className="text-sm text-muted-foreground py-4">{t("overview_tab_content")}</p>
             </TabsContent>
             <TabsContent value="runs">
-              <p className="text-sm text-muted-foreground py-4">Runs tab content.</p>
+              <p className="text-sm text-muted-foreground py-4">{t("runs_tab_content")}</p>
             </TabsContent>
             <TabsContent value="config">
-              <p className="text-sm text-muted-foreground py-4">Config tab content.</p>
+              <p className="text-sm text-muted-foreground py-4">{t("config_tab_content")}</p>
             </TabsContent>
             <TabsContent value="costs">
-              <p className="text-sm text-muted-foreground py-4">Costs tab content.</p>
+              <p className="text-sm text-muted-foreground py-4">{t("costs_tab_content")}</p>
             </TabsContent>
           </Tabs>
         </SubSection>
 
-        <SubSection title="Line variant">
+        <SubSection title={t("line_variant")}>
           <Tabs defaultValue="summary">
             <TabsList variant="line">
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="comments">Comments</TabsTrigger>
+              <TabsTrigger value="summary">{t("summary")}</TabsTrigger>
+              <TabsTrigger value="details">{t("details")}</TabsTrigger>
+              <TabsTrigger value="comments">{t("comments_fce06e")}</TabsTrigger>
             </TabsList>
             <TabsContent value="summary">
-              <p className="text-sm text-muted-foreground py-4">Summary content with underline tabs.</p>
+              <p className="text-sm text-muted-foreground py-4">{t("summary_content_with_underline_tabs")}</p>
             </TabsContent>
             <TabsContent value="details">
-              <p className="text-sm text-muted-foreground py-4">Details content.</p>
+              <p className="text-sm text-muted-foreground py-4">{t("details_content")}</p>
             </TabsContent>
             <TabsContent value="comments">
-              <p className="text-sm text-muted-foreground py-4">Comments content.</p>
+              <p className="text-sm text-muted-foreground py-4">{t("comments_content")}</p>
             </TabsContent>
           </Tabs>
         </SubSection>
@@ -1335,7 +1317,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  ENTITY ROWS                                                  */}
       {/* ============================================================ */}
-      <Section title="Entity Rows">
+      <Section title={t("entity_rows")}>
         <div className="border border-border rounded-md">
           <EntityRow
             leading={
@@ -1346,8 +1328,8 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-001"
-            title="Implement authentication flow"
-            subtitle="Responsible: Agent Alpha"
+            title={t("implement_authentication_flow")}
+            subtitle={t("responsible_agent_alpha")}
             trailing={<IssueStatusBadge status="in_progress" />}
             onClick={() => {}}
           />
@@ -1359,8 +1341,8 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-002"
-            title="Set up CI/CD pipeline"
-            subtitle="Completed 2 days ago"
+            title={t("set_up_ci_cd_pipeline")}
+            subtitle={t("completed_2_days_ago")}
             trailing={<IssueStatusBadge status="done" />}
             onClick={() => {}}
           />
@@ -1372,7 +1354,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-003"
-            title="Write API documentation"
+            title={t("write_api_documentation")}
             trailing={<IssueStatusBadge status="todo" />}
             onClick={() => {}}
           />
@@ -1384,17 +1366,17 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-004"
-            title="Deploy to production"
-            subtitle="Blocked by PAP-001"
+            title={t("deploy_to_production")}
+            subtitle={t("blocked_by_pap_001")}
             trailing={<IssueStatusBadge status="blocked" />}
             selected
           />
         </div>
-        <SubSection title="Membership action">
+        <SubSection title={t("membership_action")}>
           <div className="border border-border rounded-md">
             <EntityRow
-              title="Joined resource"
-              subtitle="Hover or focus the row to reveal the reserved action slot."
+              title={t("joined_resource")}
+              subtitle={t("hover_or_focus_the_row_to_reveal_the_reserved_ac")}
               className="group"
               trailing={
                 <MembershipAction
@@ -1406,8 +1388,8 @@ export function DesignGuide() {
               }
             />
             <EntityRow
-              title="Left resource"
-              subtitle="Persistent action with dimmed row content."
+              title={t("left_resource")}
+              subtitle={t("persistent_action_with_dimmed_row_content")}
               className="group text-foreground/55"
               trailing={
                 <MembershipAction
@@ -1419,8 +1401,8 @@ export function DesignGuide() {
               }
             />
             <EntityRow
-              title="Leaving resource"
-              subtitle="Disabled while the optimistic mutation is pending."
+              title={t("leaving_resource")}
+              subtitle={t("disabled_while_the_optimistic_mutation_is_pendin")}
               className="group text-foreground/55"
               trailing={
                 <MembershipAction
@@ -1434,8 +1416,8 @@ export function DesignGuide() {
               }
             />
             <EntityRow
-              title="Joining resource"
-              subtitle="The target state is visible immediately while the server confirms."
+              title={t("joining_resource")}
+              subtitle={t("the_target_state_is_visible_immediately_while_th")}
               className="group"
               trailing={
                 <MembershipAction
@@ -1455,7 +1437,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  FILTER BAR                                                   */}
       {/* ============================================================ */}
-      <Section title="Filter Bar">
+      <Section title={t("filter_bar")}>
         <FilterBar
           filters={filters}
           onRemove={(key) => setFilters((f) => f.filter((x) => x.key !== key))}
@@ -1467,15 +1449,15 @@ export function DesignGuide() {
             size="sm"
             onClick={() =>
               setFilters([
-                { key: "status", label: "Status", value: "Active" },
+                { key: "status", label: t("status"), value: t("active") },
                 // PAP-411: priority filter demo row suppressed while SHOW_TASK_PRIORITY_UI is off.
                 ...(SHOW_TASK_PRIORITY_UI
-                  ? [{ key: "priority", label: "Priority", value: "High" } as FilterValue]
+                  ? [{ key: "priority", label: t("priority"), value: t("high") } as FilterValue]
                   : []),
               ])
             }
           >
-            Reset filters
+            {t("reset_filters")}
           </Button>
         )}
       </Section>
@@ -1483,16 +1465,16 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  AVATARS                                                      */}
       {/* ============================================================ */}
-      <Section title="Avatars">
-        <SubSection title="Sizes">
+      <Section title={t("avatars")}>
+        <SubSection title={t("sizes")}>
           <div className="flex items-center gap-3">
-            <Avatar size="sm"><AvatarFallback>SM</AvatarFallback></Avatar>
-            <Avatar><AvatarFallback>DF</AvatarFallback></Avatar>
-            <Avatar size="lg"><AvatarFallback>LG</AvatarFallback></Avatar>
+            <Avatar size="sm"><AvatarFallback>{t("sm")}</AvatarFallback></Avatar>
+            <Avatar><AvatarFallback>{t("df")}</AvatarFallback></Avatar>
+            <Avatar size="lg"><AvatarFallback>{t("lg")}</AvatarFallback></Avatar>
           </div>
         </SubSection>
 
-        <SubSection title="Group">
+        <SubSection title={t("group")}>
           <AvatarGroup>
             <Avatar><AvatarFallback>A1</AvatarFallback></Avatar>
             <Avatar><AvatarFallback>A2</AvatarFallback></Avatar>
@@ -1502,8 +1484,8 @@ export function DesignGuide() {
         </SubSection>
       </Section>
 
-      <Section title="App logos">
-        <SubSection title="Official marks and runtime fallback">
+      <Section title={t("app_logos")}>
+        <SubSection title={t("official_marks_and_runtime_fallback")}>
           <div className="flex items-center gap-3">
             <AppLogo
               name="Notion"
@@ -1520,17 +1502,17 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  IDENTITY                                                     */}
       {/* ============================================================ */}
-      <Section title="Agent personas">
-        <SubSection title="Stable palette identities">
+      <Section title={t("stability.0f26abe613c7", { defaultValue: "Agent personas" })}>
+        <SubSection title={t("stability.973eab1bea92", { defaultValue: "Stable palette identities" })}>
           <div className="flex flex-wrap gap-3">{AGENT_PALETTE_IDS.map(palette => <AgentAvatar key={palette} appearance={appearanceForPalette(palette)} size={48} label={palette} />)}</div>
         </SubSection>
-        <SubSection title="Onboarding and live character">
-          <p className="text-sm text-muted-foreground">Place one live character beside the agent name. Onboarding uses a larger padded frame. Onboarding and agent headers follow the pointer across the page; other placements track within their region. Full-page examples are in Storybook under Agents / Personas / Full pages.</p>
+        <SubSection title={t("stability.af25f8ad224f", { defaultValue: "Onboarding and live character" })}>
+          <p className="text-sm text-muted-foreground">{t("stability.43bf80fcabd0", { defaultValue: "Place one live character beside the agent name. Onboarding uses a larger padded frame. Onboarding and agent headers follow the pointer across the page; other placements track within their region. Full-page examples are in Storybook under Agents / Personas / Full pages." })}</p>
           <div className="flex gap-4"><AgentCharacter muted state="sleepy" motion="still" size={128} /><AgentCharacter size={128} /></div>
         </SubSection>
       </Section>
-      <Section title="Human identity">
-        <SubSection title="Sizes">
+      <Section title={t("stability.c421cb464dcd", { defaultValue: "Human identity" })}>
+        <SubSection title={t("sizes")}>
           <div className="flex items-center gap-6">
             <Identity name="Alex Morgan" size="sm" />
             <Identity name="Alex Morgan" />
@@ -1538,7 +1520,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Initials derivation">
+        <SubSection title={t("initials_derivation")}>
           <div className="flex flex-col gap-2">
             <Identity name="Casey Jordan" size="sm" />
             <Identity name="Alpha" size="sm" />
@@ -1546,7 +1528,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Custom initials">
+        <SubSection title={t("custom_initials")}>
           <Identity name="Backend Service" initials="BS" size="sm" />
         </SubSection>
       </Section>
@@ -1554,19 +1536,19 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TOOLTIPS                                                     */}
       {/* ============================================================ */}
-      <Section title="Tooltips">
+      <Section title={t("tooltips")}>
         <div className="flex items-center gap-4">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="sm">Hover me</Button>
+              <Button variant="outline" size="sm">{t("hover_me")}</Button>
             </TooltipTrigger>
-            <TooltipContent>This is a tooltip</TooltipContent>
+            <TooltipContent>{t("this_is_a_tooltip")}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon-sm"><Settings /></Button>
             </TooltipTrigger>
-            <TooltipContent>Settings</TooltipContent>
+            <TooltipContent>{t("settings_")}</TooltipContent>
           </Tooltip>
         </div>
       </Section>
@@ -1574,31 +1556,31 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  DIALOG                                                       */}
       {/* ============================================================ */}
-      <Section title="Dialog">
+      <Section title={t("dialog")}>
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">Open Dialog</Button>
+            <Button variant="outline">{t("open_dialog")}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Dialog Title</DialogTitle>
+              <DialogTitle>{t("dialog_title")}</DialogTitle>
               <DialogDescription>
-                This is a sample dialog showing the standard layout with header, content, and footer.
+                {t("this_is_a_sample_dialog_showing_the_standard_lay")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <Label>Name</Label>
-                <Input placeholder="Enter a name" className="mt-1.5" />
+                <Label>{t("name")}</Label>
+                <Input placeholder={t("enter_a_name")} className="mt-1.5" />
               </div>
               <div>
-                <Label>Description</Label>
-                <Textarea placeholder="Describe..." className="mt-1.5" />
+                <Label>{t("description")}</Label>
+                <Textarea placeholder={t("describe")} className="mt-1.5" />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-              <Button>Save</Button>
+              <Button variant="outline">{t("cancel")}</Button>
+              <Button>{t("save")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -1607,12 +1589,12 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  EMPTY STATE                                                  */}
       {/* ============================================================ */}
-      <Section title="Empty State">
+      <Section title={t("empty_state")}>
         <div className="border border-border rounded-md">
           <EmptyState
             icon={Inbox}
-            message="No items to show. Create your first one to get started."
-            action="Create Item"
+            message={t("no_items_to_show_create_your_first_one_to_get_st")}
+            action={t("create_item")}
             onAction={() => {}}
           />
         </div>
@@ -1621,12 +1603,12 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  PROGRESS BARS                                                */}
       {/* ============================================================ */}
-      <Section title="Progress Bars (Budget)">
+      <Section title={t("progress_bars_budget")}>
         <div className="space-y-3">
           {[
-            { label: "Under budget (40%)", pct: 40, color: "bg-green-400" },
-            { label: "Warning (75%)", pct: 75, color: "bg-yellow-400" },
-            { label: "Over budget (95%)", pct: 95, color: "bg-red-400" },
+            { label: t("under_budget_40"), pct: 40, color: "bg-green-400" },
+            { label: t("warning_75"), pct: 75, color: "bg-yellow-400" },
+            { label: t("over_budget_95"), pct: 95, color: "bg-red-400" },
           ].map(({ label, pct, color }) => (
             <div key={label} className="space-y-1">
               <div className="flex items-center justify-between">
@@ -1647,21 +1629,21 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  LOG VIEWER                                                   */}
       {/* ============================================================ */}
-      <Section title="Log Viewer">
+      <Section title={t("log_viewer")}>
         <div className="bg-neutral-950 rounded-lg p-3 font-mono text-xs max-h-80 overflow-y-auto">
-          <div className="text-foreground">[12:00:01] INFO  Agent started successfully</div>
-          <div className="text-foreground">[12:00:02] INFO  Processing task PAP-001</div>
-          <div className="text-yellow-400">[12:00:05] WARN  Rate limit approaching (80%)</div>
-          <div className="text-foreground">[12:00:08] INFO  Task PAP-001 completed</div>
-          <div className="text-red-400">[12:00:12] ERROR Connection timeout to upstream service</div>
-          <div className="text-blue-300">[12:00:12] SYS   Retrying connection in 5s...</div>
-          <div className="text-foreground">[12:00:17] INFO  Reconnected successfully</div>
+          <div className="text-foreground">{t("12_00_01_info_agent_started_successfully")}</div>
+          <div className="text-foreground">{t("12_00_02_info_processing_task_pap_001")}</div>
+          <div className="text-yellow-400">{t("12_00_05_warn_rate_limit_approaching_80")}</div>
+          <div className="text-foreground">{t("12_00_08_info_task_pap_001_completed")}</div>
+          <div className="text-red-400">{t("12_00_12_error_connection_timeout_to_upstream_se")}</div>
+          <div className="text-blue-300">{t("12_00_12_sys_retrying_connection_in_5s")}</div>
+          <div className="text-foreground">{t("12_00_17_info_reconnected_successfully")}</div>
           <div className="flex items-center gap-1.5">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 animate-pulse" />
               <span className="inline-flex h-full w-full rounded-full bg-blue-500" />
             </span>
-            <span className="text-blue-600 dark:text-blue-400">Live</span>
+            <span className="text-blue-600 dark:text-blue-400">{t("live")}</span>
           </div>
         </div>
       </Section>
@@ -1669,29 +1651,29 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  PROPERTY ROW PATTERN                                         */}
       {/* ============================================================ */}
-      <Section title="Property Row Pattern">
+      <Section title={t("property_row_pattern")}>
         <div className="border border-border rounded-md p-4 space-y-1 max-w-sm">
           <div className="flex items-center justify-between py-1.5">
-            <span className="text-xs text-muted-foreground">Status</span>
+            <span className="text-xs text-muted-foreground">{t("status")}</span>
             <StatusBadge status="active" />
           </div>
           {/* PAP-411: priority metadata row hidden behind SHOW_TASK_PRIORITY_UI. */}
           {SHOW_TASK_PRIORITY_UI && (
             <div className="flex items-center justify-between py-1.5">
-              <span className="text-xs text-muted-foreground">Priority</span>
+              <span className="text-xs text-muted-foreground">{t("priority")}</span>
               <PriorityIcon priority="high" />
             </div>
           )}
           <div className="flex items-center justify-between py-1.5">
-            <span className="text-xs text-muted-foreground">Responsible</span>
+            <span className="text-xs text-muted-foreground">{t("responsible")}</span>
             <div className="flex items-center gap-1.5">
               <Avatar size="sm"><AvatarFallback>A</AvatarFallback></Avatar>
-              <span className="text-xs">Agent Alpha</span>
+              <span className="text-xs">{t("agent_alpha")}</span>
             </div>
           </div>
           <div className="flex items-center justify-between py-1.5">
-            <span className="text-xs text-muted-foreground">Created</span>
-            <span className="text-xs">Jan 15, 2025</span>
+            <span className="text-xs text-muted-foreground">{t("created")}</span>
+            <span className="text-xs">{t("jan_15_2025")}</span>
           </div>
         </div>
       </Section>
@@ -1699,21 +1681,21 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  NAVIGATION PATTERNS                                          */}
       {/* ============================================================ */}
-      <Section title="Navigation Patterns">
-        <SubSection title="Independent MCP connections">
-          <p className="text-sm text-muted-foreground">Zapier, Arcade, Composio and Executor each own a connection. Their controlled setup views share Access → Connect. Tool discovery completes setup. Saved connections reuse the standard Permissions action list and per-action Test dialog. Storybook’s Apps / Connections groups use in-memory provider fixtures.</p>
+      <Section title={t("navigation_patterns")}>
+        <SubSection title={t("stability.21832da26eb0", { defaultValue: "Independent MCP connections" })}>
+          <p className="text-sm text-muted-foreground">{t("stability.85739bb6bd3c", { defaultValue: "Zapier, Arcade, Composio and Executor each own a connection. Their controlled setup views share Access → Connect. Tool discovery completes setup. Saved connections reuse the standard Permissions action list and per-action Test dialog. Storybook’s Apps / Connections groups use in-memory provider fixtures." })}</p>
           <RemoteMcpDesignExample />
         </SubSection>
-        <SubSection title="Setup wizard">
-          <p className="text-sm text-muted-foreground">Shared by connection setup and trigger previews. Setup navigation takes over the section sidebar; each step owns a single footer.</p>
+        <SubSection title={t("stability.dfcce1df7656", { defaultValue: "Setup wizard" })}>
+          <p className="text-sm text-muted-foreground">{t("stability.5dd973e161e1", { defaultValue: "Shared by connection setup and trigger previews. Setup navigation takes over the section sidebar; each step owns a single footer." })}</p>
           <div className="max-w-sm space-y-6">
             <SetupWizardNavigation inline labels={["Choose trigger", "Configure", "Review"]} step={wizardStep} availableStep={2} onSelect={setWizardStep} />
-            <SetupWizardFooter onSaveExit={() => setWizardStep(0)}><Button onClick={() => setWizardStep((wizardStep + 1) % 3)}>Continue</Button></SetupWizardFooter>
+            <SetupWizardFooter onSaveExit={() => setWizardStep(0)}><Button onClick={() => setWizardStep((wizardStep + 1) % 3)}>{t("continue")}</Button></SetupWizardFooter>
           </div>
         </SubSection>
-        <SubSection title="Agent chat picker">
+        <SubSection title={t("stability.25f7f290585c", { defaultValue: "Agent chat picker" })}>
           <AgentChatPickerExample />
-          <SubSection title="Agent conversation sidebar">
+          <SubSection title={t("stability.5ffbcd6491ad", { defaultValue: "Agent conversation sidebar" })}>
             <div className="flex flex-wrap gap-4">
               <div className="h-96 w-60"><AgentConversationSidebar agents={[]} onSelect={() => {}} onBrowse={() => {}} /></div>
               <div className="h-96 w-60"><AgentConversationSidebar agents={[]} loading /></div>
@@ -1721,45 +1703,29 @@ export function DesignGuide() {
             </div>
           </SubSection>
         </SubSection>
-        <SubSection title="Sidebar nav items">
-          <p className="text-sm text-muted-foreground">
-            Layout accepts sidebarSections to compose additional SidebarSection groups inside the shared sidebar.
-            Use SidebarNavItem for each row, with sibling action buttons for starring or menus.
-            The Chats section shows starred agents, the earliest-created agent when unstarred, then four recent agents without duplicates. Compose and star controls share a vertical column. Compose appears on hover or keyboard focus and remains visible on touch; starred icons remain visible. The picker searches all company agents by name or role without a subtitle, count, continuation labels, or footer. Task breadcrumbs support leading identity and trailing actions beside the label, including single-item task headers; see the Agent chat Storybook.
-          </p>
+        <SubSection title={t("sidebar_nav_items")}>
+          <p className="text-sm text-muted-foreground">{t("stability.8a74107ff887", { defaultValue: "Layout accepts sidebarSections to compose additional SidebarSection groups inside the shared sidebar. Use SidebarNavItem for each row, with sibling action buttons for starring or menus. The Chats section shows starred agents, the earliest-created agent when unstarred, then four recent agents without duplicates. Compose and star controls share a vertical column. Compose appears on hover or keyboard focus and remains visible on touch; starred icons remain visible. The picker searches all company agents by name or role without a subtitle, count, continuation labels, or footer. Task breadcrumbs support leading identity and trailing actions beside the label, including single-item task headers; see the Agent chat Storybook." })}</p>
           <Card className="block w-60 p-3 space-y-0.5">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-accent-foreground">
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </div>
+              <LayoutDashboard className="h-4 w-4" />{t("nav.dashboard")}</div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground cursor-pointer">
-              <CircleDot className="h-4 w-4" />
-              Issues
-              <Badge variant="ghost" className="ml-auto bg-primary text-primary-foreground px-1.5">
+              <CircleDot className="h-4 w-4" />{t("issues")}<Badge variant="ghost" className="ml-auto bg-primary text-primary-foreground px-1.5">
                 12
               </Badge>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground cursor-pointer">
-              <Bot className="h-4 w-4" />
-              Agents
-            </div>
+              <Bot className="h-4 w-4" />{t("nav.agents")}</div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground cursor-pointer">
-              <Hexagon className="h-4 w-4" />
-              Projects
-            </div>
+              <Hexagon className="h-4 w-4" />{t("nav.projects")}</div>
           </Card>
         </SubSection>
 
-        <SubSection title="View toggle">
+        <SubSection title={t("view_toggle")}>
           <div className="flex items-center border border-border rounded-md w-fit">
             <button className="px-3 py-1.5 text-xs font-medium bg-accent text-foreground rounded-l-md">
-              <ListTodo className="h-3.5 w-3.5 inline mr-1" />
-              List
-            </button>
+              <ListTodo className="h-3.5 w-3.5 inline mr-1" />{t("list")}</button>
             <button className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent/50 rounded-r-md">
-              <Target className="h-3.5 w-3.5 inline mr-1" />
-              Org
-            </button>
+              <Target className="h-3.5 w-3.5 inline mr-1" />{t("nav.org")}</button>
           </div>
         </SubSection>
       </Section>
@@ -1767,11 +1733,11 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  GROUPED LIST (Issues pattern)                                */}
       {/* ============================================================ */}
-      <Section title="Grouped List (Issues pattern)">
+      <Section title={t("grouped_list_issues_pattern")}>
         <div>
           <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-t-md">
             <StatusIcon status="in_progress" />
-            <span className="text-sm font-medium">In Progress</span>
+            <span className="text-sm font-medium">{t("in_progress")}</span>
             <span className="text-xs text-muted-foreground ml-1">2</span>
           </div>
           <div className="border border-border rounded-b-md">
@@ -1779,13 +1745,13 @@ export function DesignGuide() {
             <EntityRow
               leading={SHOW_TASK_PRIORITY_UI ? <PriorityIcon priority="high" /> : undefined}
               identifier="PAP-101"
-              title="Build agent heartbeat system"
+              title={t("build_agent_heartbeat_system")}
               onClick={() => {}}
             />
             <EntityRow
               leading={SHOW_TASK_PRIORITY_UI ? <PriorityIcon priority="medium" /> : undefined}
               identifier="PAP-102"
-              title="Add cost tracking dashboard"
+              title={t("add_cost_tracking_dashboard")}
               onClick={() => {}}
             />
           </div>
@@ -1795,28 +1761,28 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COMMENT THREAD PATTERN                                       */}
       {/* ============================================================ */}
-      <Section title="Comment Thread Pattern">
+      <Section title={t("comment_thread_pattern")}>
         <div className="space-y-3 max-w-2xl">
-          <h3 className="text-sm font-semibold">Comments (2)</h3>
+          <h3 className="text-sm font-semibold">{t("comments_2")}</h3>
           <div className="space-y-3">
             <div className="rounded-md border border-border p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground">Agent</span>
-                <span className="text-xs text-muted-foreground">Jan 15, 2025</span>
+                <span className="text-xs font-medium text-muted-foreground">{t("agent_5ce2e6")}</span>
+                <span className="text-xs text-muted-foreground">{t("jan_15_2025")}</span>
               </div>
-              <p className="text-sm">Started working on the authentication module. Will need API keys configured.</p>
+              <p className="text-sm">{t("started_working_on_the_authentication_module_wil")}</p>
             </div>
             <div className="rounded-md border border-border p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground">Human</span>
-                <span className="text-xs text-muted-foreground">Jan 16, 2025</span>
+                <span className="text-xs font-medium text-muted-foreground">{t("human")}</span>
+                <span className="text-xs text-muted-foreground">{t("jan_16_2025")}</span>
               </div>
-              <p className="text-sm">API keys have been added to the vault. Please proceed.</p>
+              <p className="text-sm">{t("api_keys_have_been_added_to_the_vault_please_pro")}</p>
             </div>
           </div>
           <div className="space-y-2">
-            <Textarea placeholder="Leave a comment..." rows={3} />
-            <Button size="sm">Comment</Button>
+            <Textarea placeholder={t("leave_a_comment")} rows={3} />
+            <Button size="sm">{t("comment")}</Button>
           </div>
         </div>
       </Section>
@@ -1824,14 +1790,14 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COST TABLE PATTERN                                           */}
       {/* ============================================================ */}
-      <Section title="Cost Table Pattern">
+      <Section title={t("cost_table_pattern")}>
         <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full text-xs">
             <thead className="border-b border-border bg-accent/20">
               <tr>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Model</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Tokens</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Cost</th>
+                <th className="text-left px-3 py-2 font-medium text-muted-foreground">{t("model")}</th>
+                <th className="text-left px-3 py-2 font-medium text-muted-foreground">{t("tokens")}</th>
+                <th className="text-left px-3 py-2 font-medium text-muted-foreground">{t("cost")}</th>
               </tr>
             </thead>
             <tbody>
@@ -1846,7 +1812,7 @@ export function DesignGuide() {
                 <td className="px-3 py-2 font-mono">$1.25</td>
               </tr>
               <tr>
-                <td className="px-3 py-2 font-medium">Total</td>
+                <td className="px-3 py-2 font-medium">{t("total")}</td>
                 <td className="px-3 py-2 font-mono">1.7M</td>
                 <td className="px-3 py-2 font-mono font-medium">$19.25</td>
               </tr>
@@ -1858,8 +1824,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SKELETONS                                                    */}
       {/* ============================================================ */}
-      <Section title="Skeletons">
-        <SubSection title="Individual">
+      <Section title={t("skeletons")}>
+        <SubSection title={t("individual")}>
           <div className="space-y-2">
             <Skeleton className="h-4 w-48" />
             <Skeleton className="h-8 w-full max-w-sm" />
@@ -1867,13 +1833,13 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Page Skeleton (list)">
+        <SubSection title={t("page_skeleton_list")}>
           <div className="border border-border rounded-md p-4">
             <PageSkeleton variant="list" />
           </div>
         </SubSection>
 
-        <SubSection title="Page Skeleton (detail)">
+        <SubSection title={t("page_skeleton_detail")}>
           <div className="border border-border rounded-md p-4">
             <PageSkeleton variant="detail" />
           </div>
@@ -1883,14 +1849,14 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SEPARATOR                                                    */}
       {/* ============================================================ */}
-      <Section title="Separator">
+      <Section title={t("separator")}>
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">Horizontal</p>
+          <p className="text-sm text-muted-foreground">{t("horizontal")}</p>
           <Separator />
           <div className="flex items-center gap-4 h-8">
-            <span className="text-sm">Left</span>
+            <span className="text-sm">{t("left")}</span>
             <Separator orientation="vertical" />
-            <span className="text-sm">Right</span>
+            <span className="text-sm">{t("right")}</span>
           </div>
         </div>
       </Section>
@@ -1900,69 +1866,66 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TEAM CATALOG                                                 */}
       {/* ============================================================ */}
-      <Section title="Team Catalog">
+      <Section title={t("team_catalog")}>
         <p className="text-sm text-muted-foreground">
-          Components from the Team Catalog browse/install surface (<code className="font-mono text-xs">/teams-catalog</code>).
-          Fixtures are shared with the Storybook stories.
+          {t("components_from_the_team_catalog_browse_install")}<code className="font-mono text-xs">/teams-catalog</code>{t("fixtures_are_shared_with_the_storybook_stories")}
         </p>
 
-        <SubSection title="TeamRow (browse list)">
+        <SubSection title={t("teamrow_browse_list")}>
           <div className="w-(--sz-28rem) rounded-md border border-border">
             <div className="px-3 py-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-              Bundled · 1
+              {t("bundled_1")}
             </div>
             <TeamRow team={sampleTeam} selected onSelect={() => {}} />
             <div className="px-3 py-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-              Optional · 2
+              {t("optional_2")}
             </div>
             <TeamRow team={optionalTeam} selected={false} onSelect={() => {}} />
             <div className="px-3 py-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-              Installed · 2
+              {t("installed_2")}
             </div>
             <TeamRow team={sampleTeam} selected={false} onSelect={() => {}} installed={outOfDateInstalledState} />
             <TeamRow team={warnTeam} selected={false} onSelect={() => {}} installed={currentInstalledState} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Installed teams collapse under <code className="font-mono">INSTALLED · N</code>; an out-of-date
-            install (server <code className="font-mono">originHash</code> ≠ catalog <code className="font-mono">contentHash</code>)
-            shows the amber <code className="font-mono">↑</code> badge (PAP-10256).
+            {t("installed_teams_collapse_under")} <code className="font-mono">{t("installed_n")}</code>{t("an_out_of_date_install_server")} <code className="font-mono">{t("originhash")}</code> {t("catalog_5502fc")} <code className="font-mono">{t("contenthash")}</code>{t("shows_the_amber")} <code className="font-mono">↑</code> {t("badge_pap_10256")}
           </p>
         </SubSection>
 
-        <SubSection title="TeamCard (onboarding grid)">
+        <SubSection title={t("teamcard_onboarding_grid")}>
           <p className="text-xs text-muted-foreground">
-            Square tile for the onboarding &ldquo;Pick a starter team&rdquo; grid. Selected tile gets{" "}
-            <code className="font-mono">ring-2 ring-ring</code>. Drives the{" "}
-            <code className="font-mono">useInstallTeamCatalogEntry</code> simplified flow.
+            {t("square_tile_for_the_onboarding_pick_a_starter_te")}{" "}
+            <code className="font-mono">{t("ring_2_ring_ring")}</code>{t("zhPages.9441a41f2111")}{" "}
+            <code className="font-mono">{t("useinstallteamcatalogentry")}</code> {t("simplified_flow")}
           </p>
           <TeamCardShowcase />
         </SubSection>
 
-        <SubSection title="TeamHierarchyPreview">
+        <SubSection title={t("teamhierarchypreview")}>
           <div className="max-w-md">
             <TeamHierarchyPreview team={sampleTeam} />
           </div>
         </SubSection>
 
-        <SubSection title="RequiredSkillsList">
+        <SubSection title={t("requiredskillslist")}>
           <div className="max-w-xl">
             <RequiredSkillsList skills={sampleTeam.requiredSkills} />
           </div>
         </SubSection>
 
-        <SubSection title="EnvInputsList">
+        <SubSection title={t("envinputslist")}>
           <div className="max-w-xl">
             <EnvInputsList inputs={sampleTeam.envInputs} />
           </div>
         </SubSection>
 
-        <SubSection title="ExternalSourcesList">
+        <SubSection title={t("externalsourceslist")}>
           <div className="max-w-xl">
             <ExternalSourcesList sources={sampleTeam.sourceRefs} />
           </div>
         </SubSection>
 
-        <SubSection title="Source policy step (StepSourcePolicy)">
+        <SubSection title={t("source_policy_step_stepsourcepolicy")}>
           <div className="max-w-xl rounded-md border border-border p-4">
             <StepSourcePolicy
               team={warnTeam}
@@ -1978,7 +1941,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Skill plan step (StepSkillPlan)">
+        <SubSection title={t("skill_plan_step_stepskillplan")}>
           <div className="max-w-xl rounded-md border border-border p-4">
             <StepSkillPlan team={sampleTeam} preparations={sampleSkillPreparations} />
           </div>
@@ -1986,26 +1949,26 @@ export function DesignGuide() {
       </Section>
 
       {/* ============================================================ */}
-      <Section title="Common Icons (Lucide)">
+      <Section title={t("common_icons_lucide")}>
         <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
           {[
-            ["Inbox", Inbox],
-            ["ListTodo", ListTodo],
-            ["CircleDot", CircleDot],
-            ["Hexagon", Hexagon],
-            ["Target", Target],
-            ["LayoutDashboard", LayoutDashboard],
-            ["Bot", Bot],
-            ["DollarSign", DollarSign],
-            ["History", History],
-            ["Search", Search],
-            ["Plus", Plus],
-            ["Trash2", Trash2],
-            ["Settings", Settings],
-            ["User", User],
-            ["Mail", Mail],
-            ["Upload", Upload],
-            ["Zap", Zap],
+            [t("inbox"), Inbox],
+            [t("listtodo"), ListTodo],
+            [t("circledot"), CircleDot],
+            [t("hexagon"), Hexagon],
+            [t("target"), Target],
+            [t("layoutdashboard"), LayoutDashboard],
+            [t("bot"), Bot],
+            [t("dollarsign"), DollarSign],
+            [t("history"), History],
+            [t("search"), Search],
+            [t("plus"), Plus],
+            [t("trash2"), Trash2],
+            [t("settings_"), Settings],
+            [t("user"), User],
+            [t("mail"), Mail],
+            [t("upload"), Upload],
+            [t("zap"), Zap],
           ].map(([name, Icon]) => {
             const LucideIcon = Icon as React.FC<{ className?: string }>;
             return (
@@ -2021,15 +1984,15 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  KEYBOARD SHORTCUTS                                           */}
       {/* ============================================================ */}
-      <Section title="Keyboard Shortcuts">
+      <Section title={t("keyboard_shortcuts_b46575")}>
         <div className="border border-border rounded-md divide-y divide-border text-sm">
           {[
-            ["Cmd+K / Ctrl+K", "Open Command Palette"],
-            ["C", "New Issue (outside inputs)"],
-            ["[", "Toggle Sidebar"],
-            ["]", "Toggle Properties Panel"],
+            [t("cmd_k_ctrl_k"), t("open_command_palette_4a2f60")],
+            ["C", t("new_issue_outside_inputs")],
+            ["[", t("toggle_sidebar_dffc47")],
+            ["]", t("toggle_properties_panel")],
 
-            ["Cmd+Enter / Ctrl+Enter", "Submit markdown comment"],
+            [t("cmd_enter_ctrl_enter"), t("submit_markdown_comment")],
           ].map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between px-4 py-2">
               <span className="text-muted-foreground">{desc}</span>
@@ -2041,17 +2004,16 @@ export function DesignGuide() {
         </div>
       </Section>
 
-      <Section title="Issue Output Surface">
-        <SubSection title="Multiple outputs (primary video + 'Also produced')">
+      <Section title={t("issue_output_surface")}>
+        <SubSection title={t("multiple_outputs_primary_video_also_produced")}>
           <IssueOutputSection workProducts={DESIGN_GUIDE_OUTPUTS} />
         </SubSection>
-        <SubSection title="Degraded output (invalid / failed attachment metadata)">
+        <SubSection title={t("degraded_output_invalid_failed_attachment_metada")}>
           <IssueOutputSection workProducts={DESIGN_GUIDE_DEGRADED_OUTPUTS} />
         </SubSection>
-        <SubSection title="Empty state">
+        <SubSection title={t("empty_state_41dac3")}>
           <p className="text-xs text-muted-foreground">
-            When an issue has produced no artifact work products, the Output section renders nothing
-            at all (no placeholder card).
+            {t("when_an_issue_has_produced_no_artifact_work_prod")}
           </p>
         </SubSection>
       </Section>
@@ -2059,61 +2021,58 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TOOLS & ACCESS (PAP-10389)                                   */}
       {/* ============================================================ */}
-      <Section title="Tools & Access">
-        <SubSection title="EnforcementBanner — default / denied-detected">
+      <Section title={t("tools_access")}>
+        <SubSection title={t("enforcementbanner_default_denied_detected")}>
           <div className="space-y-3">
             <EnforcementBanner companyId="" forceVariant="default" recentDenialCount={0} />
             <EnforcementBanner companyId="" forceVariant="denied-detected" recentDenialCount={3} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Persistent at the top of the Tools &amp; Access surface. Tints to <code>denied-detected</code> when
-            governed tool calls were denied or failed in the last hour. Observability only — enforcement lives
-            in the tool gateway.
+            {t("persistent_at_the_top_of_the_tools_access_surfac")} <code>denied-detected</code> {t("when_governed_tool_calls_were_denied_or_failed_i")}
           </p>
         </SubSection>
 
-        <SubSection title="EnforcementBanner — presentational tones (info / warning / error)">
+        <SubSection title={t("enforcementbanner_presentational_tones_info_warn")}>
           <div className="space-y-3">
             <EnforcementBanner
               tone="info"
-              title="Effective access — server resolved."
-              body="This is exactly what the tool gateway will accept. Profile and policy edits reflect within ~5s; the prompt cannot expand it."
+              title={t("effective_access_server_resolved")}
+              body={t("this_is_exactly_what_the_tool_gateway_will_accep")}
             />
             <EnforcementBanner
               tone="warning"
-              title="Local stdio is local code execution, not a security sandbox."
-              body="A local-stdio slot runs with the orchestrator's privileges. Only bind trusted commands; quarantine anything you would not run yourself."
+              title={t("local_stdio_is_local_code_execution_not_a_securi")}
+              body={t("a_local_stdio_slot_runs_with_the_orchestrators_p")}
             />
             <EnforcementBanner
               tone="error"
-              title="Runtime failed closed."
-              body="The supervisor is restarting (attempt 2/3). The gateway returns runtime-error and the agent does not see partial output."
+              title={t("runtime_failed_closed")}
+              body={t("the_supervisor_is_restarting_attempt_2_3_the_gat")}
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Static governance copy with a tone. Used for the PAP-10400 trust-tier banner on Runtime and the
-            effective-access banner on Agent → Tools. Pass <code>title</code>/<code>body</code> and an optional{" "}
+            {t("static_governance_copy_with_a_tone_used_for_the")} <code>title</code>/<code>body</code> {t("and_an_optional")}{" "}
             <code>icon</code>.
           </p>
         </SubSection>
 
-        <SubSection title="Action approval card — pending / stale (surfaces 11/12)">
+        <SubSection title={t("action_approval_card_pending_stale_surfaces_11_1")}>
           <div className="grid gap-4 lg:grid-cols-2">
             <ActionCard
               toolName="slack.post_message"
               risk="medium"
               isWrite
               binding={{
-                application: "Slack",
+                application: t("slack"),
                 manifestVersion: "2.4.1",
                 connection: "https://slack.com/api · acme-workspace",
                 catalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
-              input={{ channel: "#launch", text: "Deploy v2 is live 🎉", unfurl_links: false }}
+              input={{ channel: "#launch", text: t("deploy_v2_is_live"), unfurl_links: false }}
               reason="This tool can write to your workspace, so a human signs off before the agent posts."
               policyNumber={7}
-              expiresInLabel="expires in 23h 51m"
+              expiresInLabel={t("expires_in_23h_51m")}
             />
             <ActionCard
               variant="stale"
@@ -2121,68 +2080,64 @@ export function DesignGuide() {
               risk="medium"
               isWrite
               binding={{
-                application: "Slack",
+                application: t("slack"),
                 manifestVersion: "2.4.1",
                 connection: "https://slack.com/api · acme-workspace",
                 catalogSha256: "sha256:7d793037a0760186574b0282f2f435e7a4b1b2b0b822cd15d6c15b0f00a0e3f1",
                 previousCatalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
-              input={{ channel: "#launch", text: "Deploy v2 is live 🎉", unfurl_links: false }}
+              input={{ channel: "#launch", text: t("deploy_v2_is_live"), unfurl_links: false }}
               reason="This tool can write to your workspace, so a human signs off before the agent posts."
               policyNumber={7}
-              expiresInLabel="expires in 18h 02m"
+              expiresInLabel={t("expires_in_18h_02m")}
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Signed payload sha256 + expiry surface on every variant (PAP-10400). The{" "}
-            <code>stale</code> variant tints the border amber, banners the catalog-hash mismatch, strikes through
-            the previous hash next to the current one, and renders <code>Approve</code> disabled until the request
-            is re-issued.
+            {t("signed_payload_sha256_expiry_surface_on_every_va")}{" "}
+            <code>stale</code> {t("variant_tints_the_border_amber_banners_the_catal")} <code>{t("approve")}</code> {t("disabled_until_the_request_is_re_issued")}
           </p>
         </SubSection>
 
-        <SubSection title="Action approval card — mobile (390×844, surface 99)">
+        <SubSection title={t("action_approval_card_mobile_390_844_surface_99")}>
           <div className="w-(--sz-390px) max-w-full rounded-xl border border-border bg-background p-3">
             <ActionCardMobile
               toolName="slack.post_message"
               risk="medium"
               isWrite
               binding={{
-                application: "Slack",
+                application: t("slack"),
                 manifestVersion: "2.4.1",
                 connection: "https://slack.com/api · acme-workspace",
                 catalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
-              input={{ channel: "#launch", text: "Deploy v2 is live 🎉" }}
+              input={{ channel: "#launch", text: t("deploy_v2_is_live") }}
               reason="This tool can write to your workspace, so a human signs off before the agent posts."
               policyNumber={7}
-              expiresInLabel="expires in 23h 51m"
+              expiresInLabel={t("expires_in_23h_51m")}
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Identical content; the three buttons stack full-width in the order Approve / Deny / Edit &amp; re-sign,
-            and the bindings table uses a 70px label column.
+            {t("identical_content_the_three_buttons_stack_full_w")}
           </p>
         </SubSection>
 
-        <SubSection title="BindingsTable (reused in the audit row drilldown)">
+        <SubSection title={t("bindingstable_reused_in_the_audit_row_drilldown")}>
           <BindingsTable
             rows={[
-              { label: "Application", value: "Slack · manifest v2.4.1" },
-              { label: "Connection", value: "https://slack.com/api · acme-workspace", mono: true },
-              { label: "Catalog", value: "sha256:9f86d081…f00a08", mono: true },
-              { label: "Payload", value: "sha256:2c26b46b…66e7ae", mono: true },
+              { label: t("application"), value: t("slack_manifest_v2_4_1") },
+              { label: t("connection"), value: "https://slack.com/api · acme-workspace", mono: true },
+              { label: t("catalog"), value: "sha256:9f86d081…f00a08", mono: true },
+              { label: t("payload"), value: "sha256:2c26b46b…66e7ae", mono: true },
             ]}
           />
           <p className="mt-2 text-xs text-muted-foreground">
-            Two-column key/value block with mono values. Lives inside <code>ActionCard</code> and is reused
-            standalone in the audit row drilldown.
+            {t("two_column_key_value_block_with_mono_values_live")} <code>{t("actioncard")}</code> {t("and_is_reused_standalone_in_the_audit_row_drilld")}
           </p>
         </SubSection>
 
-        <SubSection title="Tool-access status keys (StatusBadge)">
+        <SubSection title={t("tool_access_status_keys_statusbadge")}>
           <div className="flex flex-wrap items-center gap-2">
             {[
               "allowed", "denied", "block", "require-approval", "redacted", "rate-limit",
@@ -2192,53 +2147,47 @@ export function DesignGuide() {
             ))}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Policy decisions, connection/runtime health, and catalog quarantine all route through the canonical{" "}
-            <code>StatusBadge</code> keys defined in <code>lib/status-colors</code>.
+            {t("policy_decisions_connection_runtime_health_and_c")}{" "}
+            <code>{t("statusbadge")}</code> {t("keys_defined_in")} <code>{t("lib_status_colors")}</code>.
           </p>
         </SubSection>
 
-        <SubSection title="EmptyState (canonical, with description + action)">
+        <SubSection title={t("emptystate_canonical_with_description_action")}>
           <EmptyState
             icon={Inbox}
-            message="No connections yet"
-            description="Add a connection to an application to configure credentials and discover its tools."
-            action="New connection"
+            message={t("no_connections_yet")}
+            description={t("add_a_connection_to_an_application_to_configure")}
+            action={t("new_connection")}
             onAction={() => {}}
           />
         </SubSection>
       </Section>
 
-      <Section title="GitHub skill sources">
-        <p className="text-sm text-muted-foreground">The shared FileTree explorer layout puts disclosure controls beside selection, with compact folder chains, equal-height rows, inline skill descriptions, and trailing status badges. Folders select descendant packages; package checkboxes select only that package, independently of nested skills. Included files use aligned rows without individual checkboxes (`getCheckboxState` returns null); package rows use `renderNodeExtra` for file counts and inspection. Use arrow keys to navigate and Space to select.</p>
+      <Section title={t("stability.9be59f827191", { defaultValue: "GitHub skill sources" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.99e8076f78fe", { defaultValue: "The shared FileTree explorer layout puts disclosure controls beside selection, with compact folder chains, equal-height rows, inline skill descriptions, and trailing status badges. Folders select descendant packages; package checkboxes select only that package, independently of nested skills. Included files use aligned rows without individual checkboxes (`getCheckboxState` returns null); package rows use `renderNodeExtra` for file counts and inspection. Use arrow keys to navigate and Space to select." })}</p>
         <SkillSourceTreeShowcase />
         <SkillBinaryFile file={{ skillId: "example", path: "assets/example.bin", kind: "asset", content: "AAECAw==", encoding: "base64", language: null, markdown: false, editable: false }} />
       </Section>
 
-      <Section title="Source Repositories">
-        <SubSection title="Empty and disconnected">
+      <Section title={t("stability.e0eeae29ab3b", { defaultValue: "Source Repositories" })}>
+        <SubSection title={t("stability.bbc2c7c5589e", { defaultValue: "Empty and disconnected" })}>
           <RepositoryEditor selected={[]} onChange={() => {}} state="disconnected" onConnect={() => {}} onRetry={() => {}} />
         </SubSection>
-        <SubSection title="Selected and searchable">
+        <SubSection title={t("stability.8cc1dc4e70ae", { defaultValue: "Selected and searchable" })}>
           <RepositoryEditor selected={[{ id: "1", fullName: "paperclipai/paperclip", url: "https://github.com/paperclipai/paperclip", connections: ["Your GitHub"] }]}
             available={[{ id: "2", fullName: "paperclipai/docs", url: "https://github.com/paperclipai/docs", connections: ["Company GitHub"] }]}
             onChange={() => {}} onConnect={() => {}} onRetry={() => {}} />
         </SubSection>
-        <p className="text-sm text-muted-foreground">Loading, errors, empty search, mobile, and short viewports are covered in the Project repos Storybook stories.</p>
+        <p className="text-sm text-muted-foreground">{t("stability.32c000752b55", { defaultValue: "Loading, errors, empty search, mobile, and short viewports are covered in the Project repos Storybook stories." })}</p>
       </Section>
 
-      <Section title="Environment Variables Editor">
-        <p className="text-sm text-muted-foreground">
-          Reusable env-var editor (agents, projects, environments, routines). One shared grid, an
-          in-field Text/Secret source switch, a fuzzy secret picker with a pinned “Create secret”
-          item, automatic sensitive-value detection, and inline secret-health warnings. See the
-          Storybook <span className="font-mono">Product/Environment Variables Editor</span> stories
-          for all 10 states.
-        </p>
+      <Section title={t("environment_variables_editor")}>
+        <p className="text-sm text-muted-foreground">{t("reusable_env_var_editor_agents_projects_environm")}{" "}<span className="font-mono">{t("product_environment_variables_editor")}</span>{" "}{t("stories_for_all_10_states")}</p>
         <EnvironmentVariablesEditorShowcase />
       </Section>
 
-      <Section title="Tasks created from a task">
-        <SubSection title="Subtasks and created work are independent">
+      <Section title={t("stability.74fdf58160e6", { defaultValue: "Tasks created from a task" })}>
+        <SubSection title={t("stability.7ba2ef0819d4", { defaultValue: "Subtasks and created work are independent" })}>
           <div className="max-w-xl">
             <TaskDetailTasksPanel
               subtasks={[DESIGN_GUIDE_TASK]}
@@ -2250,59 +2199,46 @@ export function DesignGuide() {
             />
           </div>
         </SubSection>
-        <SubSection title="Empty, loading and failed">
+        <SubSection title={t("stability.a89ee7969a82", { defaultValue: "Empty, loading and failed" })}>
           <TaskDetailTasksPanel subtasks={[]} createdTasks={[]} projects={[]} />
           <TaskDetailTasksPanel subtasks={[]} createdTasks={[]} projects={[]} isLoading />
           <TaskDetailTasksPanel subtasks={[]} createdTasks={[]} projects={[]} hasError onRetry={() => {}} />
         </SubSection>
       </Section>
 
-      <Section title="Disposition recovery notice">
-        <SubSection title="Needs attention, with inspectable details">
+      <Section title={t("stability.f5531c48a844", { defaultValue: "Disposition recovery notice" })}>
+        <SubSection title={t("stability.52fc3c071e2c", { defaultValue: "Needs attention, with inspectable details" })}>
           <DispositionRecoveryNotice snapshot={{ kind: "disposition_repair_escalated", actionId: "design-recovery", attemptCount: 2, maxAttempts: 2, reason: "unchanged_source_state_exhausted", assigneeAgentId: null }} defaultExpanded />
         </SubSection>
-        <p className="text-sm text-muted-foreground">Storybook’s Recovery notice stories show the actionable, pending, acknowledged, unavailable, failed, and mobile states using this production component.</p>
+        <p className="text-sm text-muted-foreground">{t("stability.858d3253afbc", { defaultValue: "Storybook’s Recovery notice stories show the actionable, pending, acknowledged, unavailable, failed, and mobile states using this production component." })}</p>
       </Section>
 
-      <Section title="Pending task input above composer">
-        <p className="mb-3 text-sm text-muted-foreground">A decision card sits above the ordinary message composer. Dismiss the card to keep a reopen control, or resolve it to clear the pending state.</p>
+      <Section title={t("stability.3872a125fb4e", { defaultValue: "Pending task input above composer" })}>
+        <p className="mb-3 text-sm text-muted-foreground">{t("stability.96038173717f", { defaultValue: "A decision card sits above the ordinary message composer. Dismiss the card to keep a reopen control, or resolve it to clear the pending state." })}</p>
         <TaskPendingInputExample />
       </Section>
 
-      <Section title="Execution recovery">
-        <p className="text-sm text-muted-foreground">
-          Recovery runs in the background. Task lists keep their ordinary status without
-          execution badges. Active transcript headers keep saying Working during automatic
-          recovery. Recovery decisions and attempts belong in the run log;
-          there is no execution status card or reconciliation form.
-        </p>
+      <Section title={t("stability.ce899bed4548", { defaultValue: "Execution recovery" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.64269568efe1", { defaultValue: "Recovery runs in the background. Task lists keep their ordinary status without execution badges. Active transcript headers keep saying Working during automatic recovery. Recovery decisions and attempts belong in the run log; there is no execution status card or reconciliation form." })}</p>
       </Section>
 
-      <Section title="Cloud sign-in unavailable">
+      <Section title={t("stability.2253af974ba1", { defaultValue: "Cloud sign-in unavailable" })}>
         <CloudSignIn cloud={{ managed: true, managedBy: "paperclip-cloud", cloudBaseUrl: null, stackSlug: null }} returnTo="/" />
       </Section>
 
-      <Section title="Saved provider API keys">
-        <SavedProviderKeySelect options={[{ id: "example", label: "Claude API key (Your key)", binding: { type: "user_secret_ref", key: "ANTHROPIC_API_KEY", version: "latest" } }]} value="example" onChange={() => {}} loading={false} error={false} />
+      <Section title={t("stability.90ca15689b00", { defaultValue: "Saved provider API keys" })}>
+        <SavedProviderKeySelect options={[{ id: "example", label: t("stability.fa51d00e7b5a", { defaultValue: "Claude API key (Your key)" }), binding: { type: "user_secret_ref", key: "ANTHROPIC_API_KEY", version: "latest" } }]} value="example" onChange={() => {}} loading={false} error={false} />
         <SavedProviderKeySelect options={[]} value="" onChange={() => {}} loading error={false} />
         <SavedProviderKeySelect options={[]} value="" onChange={() => {}} loading={false} error />
       </Section>
 
-      <Section title="Browser setup prompt">
-        <p className="text-sm text-muted-foreground">Use AgentSetupPrompt for prompts handed to an external agent: connections, webhook setup, onboarding, and task handoffs. One click copies the complete prompt, opens its preview, and confirms success inline; clipboard failures offer selectable text.</p>
+      <Section title={t("stability.c5b0da71a024", { defaultValue: "Browser setup prompt" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.f0b47f759995", { defaultValue: "Use AgentSetupPrompt for prompts handed to an external agent: connections, webhook setup, onboarding, and task handoffs. One click copies the complete prompt, opens its preview, and confirms success inline; clipboard failures offer selectable text." })}</p>
         <SetupPrompt prompt="Design guide example. This is a preview, not a real provider setup request." />
       </Section>
 
-      <Section title="Connection Intent">
-        <p className="text-sm text-muted-foreground">
-          The task card is the dialog host for the shared connection setup flow. Provider forms,
-          validation, OAuth, access selection, and completion come from the same feature module as
-          the full-page Apps setup; this card owns only audience, dialog, and task refresh behavior.
-          Pending connections stay in the timeline beside a usable composer. The independently
-          addressable Connections/In-task connections stories cover access, OAuth recovery, narrow
-          layouts, completion, and historical outcomes. AgentMail uses an inline API-key field
-          with fixed access defaults; its field and direct key-page link are shared with Apps setup.
-        </p>
+      <Section title={t("connection_intent")}>
+        <p className="text-sm text-muted-foreground">{t("stability.54ec49737a9d", { defaultValue: "The task card is the dialog host for the shared connection setup flow. Provider forms, validation, OAuth, access selection, and completion come from the same feature module as the full-page Apps setup; this card owns only audience, dialog, and task refresh behavior. Pending connections stay in the timeline beside a usable composer. The independently addressable Connections/In-task connections stories cover access, OAuth recovery, narrow layouts, completion, and historical outcomes. AgentMail uses an inline API-key field with fixed access defaults; its field and direct key-page link are shared with Apps setup." })}</p>
         <div className="grid gap-4 xl:grid-cols-3">
           <IssueThreadInteractionCard
             interaction={pendingConnectionIntentInteraction}
@@ -2319,39 +2255,28 @@ export function DesignGuide() {
         </div>
       </Section>
 
-      <Section title="AgentMail API key">
-        <p className="text-sm text-muted-foreground">AgentMail setup has two steps: pick an agent, then pick an email address. Ask for the API key alongside the agent only when needed. Keep address errors beside the field and additional settings under Advanced options.</p>
-        <p className="text-sm text-muted-foreground">Preview only. This field does not save or submit a credential.</p>
+      <Section title={t("stability.87b0e5101fd8", { defaultValue: "AgentMail API key" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.385e9cc25b93", { defaultValue: "AgentMail setup has two steps: pick an agent, then pick an email address. Ask for the API key alongside the agent only when needed. Keep address errors beside the field and additional settings under Advanced options." })}</p>
+        <p className="text-sm text-muted-foreground">{t("stability.33fa45f59f80", { defaultValue: "Preview only. This field does not save or submit a credential." })}</p>
         <div className="max-w-md">
           <AgentMailApiKeyField value={agentmailDemoKey} onChange={setAgentmailDemoKey} />
         </div>
       </Section>
 
-      <Section title="Resizable Panels">
-        <p className="text-sm text-muted-foreground">
-          Design-system wrapper over <span className="font-mono">react-resizable-panels</span>{" "}
-          (Skill Studio D2). Drag a handle to resize; panels accept percentage or pixel
-          (<span className="font-mono">minSize="240px"</span>) constraints and the middle panel is
-          collapsible. Use anywhere a split view is needed.
-        </p>
+      <Section title={t("resizable_panels")}>
+        <p className="text-sm text-muted-foreground">{t("design_system_wrapper_over")}{" "}<span className="font-mono">react-resizable-panels</span>{" "}{t("skill_studio_d2_drag_a_handle_to_resize_panels_a")}<span className="font-mono">{t("minsize_240px")}</span>{t("constraints_and_the_middle_panel_is_collapsible")}</p>
         <div className="h-48 max-w-2xl overflow-hidden rounded-md border border-border">
           <ResizablePanelGroup>
             <ResizablePanel id="a" minSize="120px" className="bg-muted/30">
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                Panel A
-              </div>
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">{t("panel_a")}</div>
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel id="b" minSize="120px" collapsible collapsedSize="40px" className="bg-muted/10">
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                Panel B (collapsible)
-              </div>
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">{t("panel_b_collapsible")}</div>
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel id="c" minSize="120px" className="bg-muted/30">
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                Panel C
-              </div>
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">{t("panel_c")}</div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
@@ -2360,78 +2285,67 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  INLINE BANNER + BUILT-IN AGENTS                              */}
       {/* ============================================================ */}
-      <Section title="Webhook URL warnings">
+      <Section title={t("stability.dd8bebbbdd1c", { defaultValue: "Webhook URL warnings" })}>
         <div className="space-y-3">
           {["http://localhost:3100", "https://paperclip.internal", "https://paperclip.example-tailnet.ts.net", "http://paperclip.example.com", "not-a-url"].map((url) => <WebhookUrlWarning key={url} url={url} />)}
         </div>
       </Section>
 
-      <Section title="Inline Banner">
-        <p className="text-sm text-muted-foreground">
-          Token-backed full-width notice (<span className="font-mono">brandBanner</span> tones). Use{" "}
-          <span className="font-mono">info</span> for provenance/context and{" "}
-          <span className="font-mono">warning</span> for paused/attention. Supports an optional bold
-          title and a trailing actions slot. Replaces hand-rolled{" "}
-          <span className="font-mono">bg-yellow-*</span>/<span className="font-mono">bg-blue-*</span>{" "}
-          banners.
-        </p>
+      <Section title={t("inline_banner")}>
+        <p className="text-sm text-muted-foreground">{t("token_backed_full_width_notice")}<span className="font-mono">{t("brandbanner")}</span>{" "}{t("tones_use")}{" "}
+          <span className="font-mono">{t("zhPages.06271baf4953")}</span>{" "}{t("for_provenance_context_and")}{" "}
+          <span className="font-mono">{t("stability.4bd9354bb652", { defaultValue: "warning" })}</span>{" "}{t("for_paused_attention_supports_an_optional_bold_t")}{" "}
+          <span className="font-mono">{t("bg_yellow")}</span>/<span className="font-mono">{t("bg_blue")}</span>{" "}{t("zhPages.20f31d31bfdc")}</p>
         <div className="space-y-3">
           <InlineBanner
             tone="info"
-            title="Built-in agent"
-            actions={<Button variant="outline" size="sm">Reset to defaults</Button>}
-          >
-            Ships with Paperclip and powers <strong>Briefs</strong>. It can be paused but not deleted.
+            title={t("built_in_agent")}
+            actions={<Button variant="outline" size="sm">{t("reset_to_defaults")}</Button>}
+          >{t("ships_with_paperclip_and_powers")}{" "}<strong>{t("briefs")}</strong>. It can be paused but not deleted.
           </InlineBanner>
           <InlineBanner
             tone="warning"
-            title="Briefs is paused."
+            title={t("briefs_is_paused")}
             actions={
               <>
-                <Button variant="ghost" size="sm">View agent</Button>
-                <Button size="sm">Resume agent</Button>
+                <Button variant="ghost" size="sm">{t("view_agent")}</Button>
+                <Button size="sm">{t("resume_agent")}</Button>
               </>
             }
-          >
-            Its built-in agent was paused 2 days ago, so new briefs aren't being generated.
-          </InlineBanner>
+          >{t("its_built_in_agent_was_paused_2_days_ago_so_new")}</InlineBanner>
           <InlineBanner
             tone="danger"
-            title="Summary generation failed."
-            actions={<Button size="sm">Retry</Button>}
-          >
-            The linked issue reached a terminal state before a summary was written.
-          </InlineBanner>
-          <InlineBanner tone="info" compact>
-            Compact variant for embedding inside dialogs and modals.
-          </InlineBanner>
+            title={t("summary_generation_failed_80317a")}
+            actions={<Button size="sm">{t("common.retry")}</Button>}
+          >{t("the_linked_issue_reached_a_terminal_state_before")}</InlineBanner>
+          <InlineBanner tone="info" compact>{t("compact_variant_for_embedding_inside_dialogs_and")}</InlineBanner>
         </div>
       </Section>
 
-      <Section title="Text attachment tabs">
-        <p className="text-sm text-muted-foreground">Uploaded text opens in a named task tab. Markdown offers Rendered and Raw icon controls; every text file has a download action.</p>
+      <Section title={t("stability.6084f11d353e", { defaultValue: "Text attachment tabs" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.12bd8a573dd6", { defaultValue: "Uploaded text opens in a named task tab. Markdown offers Rendered and Raw icon controls; every text file has a download action." })}</p>
         <div className="grid gap-4 md:grid-cols-2">
           <TextAttachmentPreview title="README.md" text={"# Project notes\n\nReview the **original** file."} markdown downloadUrl="data:text/markdown,%23%20Project%20notes" />
           <TextAttachmentPreview title="notes.txt" text="Plain text stays literal: <example>" markdown={false} downloadUrl="data:text/plain,Plain%20text" />
         </div>
       </Section>
 
-      <Section title="Connection recovery">
-        <SubSection title="Waiting for server">
+      <Section title={t("stability.0840088e36fd", { defaultValue: "Connection recovery" })}>
+        <SubSection title={t("stability.86d02ea3052e", { defaultValue: "Waiting for server" })}>
           <CloudAccessError temporary retrying={false} onRetry={() => undefined} />
         </SubSection>
-        <SubSection title="Checking connection">
+        <SubSection title={t("stability.537585d95f4e", { defaultValue: "Checking connection" })}>
           <CloudAccessError temporary retrying onRetry={() => undefined} />
         </SubSection>
-        <SubSection title="Access check failed">
+        <SubSection title={t("stability.302bc4e861ba", { defaultValue: "Access check failed" })}>
           <CloudAccessError temporary={false} retrying={false} onRetry={() => undefined} />
         </SubSection>
       </Section>
 
-      <Section title="Browser session footer">
-        <p className="text-sm text-muted-foreground">Fit to pane follows the visible panel. Fixed viewport presets and session actions live in the footer menu. Costs stay in task reporting. The idle countdown appears only in the final five minutes. Full panel, activity, and settings states are in Storybook under Browser Use.</p>
+      <Section title={t("stability.06b12133364c", { defaultValue: "Browser session footer" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.48b5fbf23796", { defaultValue: "Fit to pane follows the visible panel. Fixed viewport presets and session actions live in the footer menu. Costs stay in task reporting. The idle countdown appears only in the final five minutes. Full panel, activity, and settings states are in Storybook under Browser Use." })}</p>
         {(["running", "idle", "closing-soon", "closed"] as const).map((state) => (
-          <SubSection key={state} title={state === "closing-soon" ? "Closing soon" : state}>
+          <SubSection key={state} title={state === "closing-soon" ? t("stability.79d9b7bcd569", { defaultValue: "Closing soon" }) : state}>
             <TaskBrowserFooter
               browser={{
                 id: "design-browser", sessionId: "design-session", issueId: "design-task",
@@ -2449,8 +2363,8 @@ export function DesignGuide() {
         ))}
       </Section>
 
-      <Section title="Browser activity in the task feed">
-        <p className="text-sm text-muted-foreground">Each browser appears once at its opening time among the task messages. Its status updates in place; the action opens its side-panel tab.</p>
+      <Section title={t("stability.b2b55b0b2d3c", { defaultValue: "Browser activity in the task feed" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.e5f9327b25a7", { defaultValue: "Each browser appears once at its opening time among the task messages. Its status updates in place; the action opens its side-panel tab." })}</p>
         {(["starting", "running", "idle", "closed", "failed"] as const).map((status) => (
           <SubSection key={status} title={status}>
             <TaskBrowserActivity browser={{
@@ -2462,22 +2376,20 @@ export function DesignGuide() {
         ))}
       </Section>
 
-      <Section title="Media artifacts">
-        <p className="text-sm text-muted-foreground">Images and videos use gallery tiles. The whole tile opens the task gallery; files and links keep compact, fully clickable rows. Task/Artifact Gallery in Storybook covers playable videos, mixed files, narrow panels, and unavailable previews.</p>
+      <Section title={t("stability.d7a87fbd17df", { defaultValue: "Media artifacts" })}>
+        <p className="text-sm text-muted-foreground">{t("stability.22e9e02285f7", { defaultValue: "Images and videos use gallery tiles. The whole tile opens the task gallery; files and links keep compact, fully clickable rows. Task/Artifact Gallery in Storybook covers playable videos, mixed files, narrow panels, and unavailable previews." })}</p>
         <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
-          <MediaArtifactCard id="design-image" title="Launch artwork" contentPath="/announcement-preview.svg" contentType="image/svg+xml" originalFilename="launch.svg" detail="Image" />
-          <MediaArtifactCard id="design-video" title="Video preview unavailable" contentPath="" contentType="video/mp4" originalFilename="preview.mp4" detail="Video" />
+          <MediaArtifactCard id="design-image" title={t("stability.c361304ec79b", { defaultValue: "Launch artwork" })} contentPath="/announcement-preview.svg" contentType="image/svg+xml" originalFilename="launch.svg" detail="Image" />
+          <MediaArtifactCard id="design-video" title={t("video_preview_unavailable")} contentPath="" contentType="video/mp4" originalFilename="preview.mp4" detail="Video" />
         </div>
       </Section>
 
-      <Section title="AI Connections">
+      <Section title={t("stability.7d8087278dd6", { defaultValue: "AI Connections" })}>
         <AiConnectionDesignExamples />
       </Section>
 
-      <Section title="Built-in Agent Lifecycle Chips">
-        <p className="text-sm text-muted-foreground">
-          A derived lifecycle chip (amber) for attention states. The lifecycle chip is separate from
-          the agent status vocabulary and only shows for{" "}
+      <Section title={t("built_in_agent_lifecycle_chips")}>
+        <p className="text-sm text-muted-foreground">{t("a_derived_lifecycle_chip_amber_for_attention_sta")}{" "}
           <span className="font-mono">needs_setup</span> / <span className="font-mono">pending_approval</span>.
         </p>
         <div className="flex flex-wrap items-center gap-4">
@@ -2486,11 +2398,9 @@ export function DesignGuide() {
           <BuiltInLifecycleChip status="needs_setup" compact />
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          <span className="font-mono">&lt;BuiltInAgentGate agentKey&gt;</span> composes{" "}
-          <span className="font-mono">PageSkeleton</span> + <span className="font-mono">EmptyState</span>{" "}
-          + <span className="font-mono">InlineBanner</span> to render the loading / setup /
-          pending-approval / paused / ready states of a feature that depends on a built-in agent.
-        </p>
+          <span className="font-mono">{t("builtinagentgate_agentkey")}</span>{" "}{t("stability.52c3473e4df8", { defaultValue: "composes" })}{" "}
+          <span className="font-mono">{t("pageskeleton")}</span> + <span className="font-mono">{t("emptystate")}</span>{" "}
+          + <span className="font-mono">{t("inlinebanner")}</span>{" "}{t("to_render_the_loading_setup_pending_approval_pau")}</p>
       </Section>
     </div>
   );
@@ -2498,11 +2408,11 @@ export function DesignGuide() {
 
 function SkillSourceTreeShowcase() {
   const candidates = [
-    { path: ".agents/review/SKILL.md", name: "Review", description: "Review changes before release.", error: null, inspection: { requirements: null, references: [], warnings: [], files: [
+    { path: ".agents/review/SKILL.md", name: "Review", description: t("stability.65f8d96beb99", { defaultValue: "Review changes before release." }), error: null, inspection: { requirements: null, references: [], warnings: [], files: [
       { path: "SKILL.md", kind: "skill", sizeBytes: 120, encoding: "utf8" as const, executable: false },
       { path: "scripts/check.sh", kind: "script", sizeBytes: 45, encoding: "utf8" as const, executable: true },
     ] } },
-    { path: ".agents/review/nested/SKILL.md", name: "Nested skill", description: "An independently selected package.", error: null, note: "New skill" },
+    { path: ".agents/review/nested/SKILL.md", name: "Nested skill", description: t("stability.9176d0596046", { defaultValue: "An independently selected package." }), error: null, note: "New skill" },
     { path: "broken/SKILL.md", name: "Needs attention", description: null, error: "Missing required description." },
   ];
   const [selected, setSelected] = useState(new Set(candidates.map(skill => skill.path)));

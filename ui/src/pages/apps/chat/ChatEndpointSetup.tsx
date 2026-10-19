@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { SLACK_BOT_TOOL_SCOPES } from "@paperclipai/shared";
 import { defaultSlackAppName, slackBotNameForAgent } from "./slack-app-name";
 import { GitHubChatSetup } from "./GitHubChatSetup";
@@ -112,17 +113,15 @@ function ChatConnectionPurpose({ provider, onChat, onTools }: {
 }) {
   const { setBreadcrumbs } = useBreadcrumbs();
   useEffect(() => {
-    setBreadcrumbs([{ label: "Connectors", href: "/apps" }, { label: "Choose connection" }]);
+    setBreadcrumbs([{ label: t("connectors"), href: "/apps" }, { label: t("choose_connection") }]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs]);
   return (
       <div className="max-w-2xl space-y-6">
         <ChatSetupNavigation labels={provider === "slack" ? ["Choose agent", "Create Slack app", "Add credentials", "Verify Slack connection", "Add avatar", "Connect your Slack account", "Try it"] : undefined} step={0} availableStep={0} onSelect={onChat} />
         <div>
-          <h1 className="text-xl font-bold">Choose how to connect</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            What should this {providerNames[provider]} connection do?
-          </p>
+          <h1 className="text-xl font-bold">{t("stability.aeb54e4ff3f1", { defaultValue: "Choose how to connect" })}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("stability.f17f11fbc96a", { defaultValue: "What should this" })}{" "}{providerNames[provider]}{" "}{t("stability.f600c545bb2c", { defaultValue: "connection do?" })}</p>
         </div>
         <div className="grid gap-3">
           <button
@@ -130,26 +129,16 @@ function ChatConnectionPurpose({ provider, onChat, onTools }: {
             className="rounded-xl border border-border p-4 text-left hover:bg-accent/40"
             onClick={onChat}
           >
-            <span className="block text-sm font-semibold">
-              Chat with an agent
-            </span>
-            <span className="mt-1 block text-sm text-muted-foreground">
-              People in {providerNames[provider]} can start and continue
-              Paperclip tasks.
-            </span>
+            <span className="block text-sm font-semibold">{t("stability.73adffe32a9a", { defaultValue: "Chat with an agent" })}</span>
+            <span className="mt-1 block text-sm text-muted-foreground">{t("stability.4c1b657174b9", { defaultValue: "People in" })}{" "}{providerNames[provider]}{" "}{t("stability.d9f0d77ffd1c", { defaultValue: "can start and continue Paperclip tasks." })}</span>
           </button>
           <button
             type="button"
             className="rounded-xl border border-border p-4 text-left hover:bg-accent/40"
             onClick={onTools}
           >
-            <span className="block text-sm font-semibold">
-              Use this connection as an agent tool
-            </span>
-            <span className="mt-1 block text-sm text-muted-foreground">
-              Let agents use {providerNames[provider]} actions and data while
-              they work.
-            </span>
+            <span className="block text-sm font-semibold">{t("stability.3035ada6aaeb", { defaultValue: "Use this connection as an agent tool" })}</span>
+            <span className="mt-1 block text-sm text-muted-foreground">{t("stability.0ac3fd20ac4f", { defaultValue: "Let agents use" })}{" "}{providerNames[provider]}{" "}{t("stability.4ce646679a23", { defaultValue: "actions and data while they work." })}</span>
           </button>
         </div>
       </div>
@@ -190,8 +179,8 @@ function ChatSdkEndpointSetup() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Connectors", href: "/apps" },
-      { label: "Connect chat" },
+      { label: t("connectors"), href: "/apps" },
+      { label: t("stability.611395e6c8c3", { defaultValue: "Connect chat" }) },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs]);
@@ -453,15 +442,11 @@ function ChatSdkEndpointSetup() {
 
   if (!provider)
     return (
-      <p className="text-sm text-destructive">
-        This chat provider is not supported.
-      </p>
+      <p className="text-sm text-destructive">{t("stability.4998d8ff4ac6", { defaultValue: "This chat provider is not supported." })}</p>
     );
   if (!selectedCompanyId)
     return (
-      <p className="text-sm text-muted-foreground">
-        Select an organization to connect chat.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("stability.7bd1f24bd51d", { defaultValue: "Select an organization to connect chat." })}</p>
     );
 
   if (purpose === "choice") {
@@ -482,23 +467,18 @@ function ChatSdkEndpointSetup() {
         {step === 0 ? (
           <>
             <div>
-              <h1 className="text-xl font-bold">
-                Which agent do you want to chat with?
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                This agent is permanent for the connection. Connect another
-                channel to represent a different agent.
-              </p>
+              <h1 className="text-xl font-bold">{t("stability.14eb4b2e20d3", { defaultValue: "Which agent do you want to chat with?" })}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{t("stability.7f8764580946", { defaultValue: "This agent is permanent for the connection. Connect another channel to represent a different agent." })}</p>
             </div>
             {isSlack && <SlackSetupPrompt />}
             {endpoint ? (
-              <Input aria-label="Assigned agent" value={endpoint.assignedAgentName ?? selectedAgent?.name ?? agentId} readOnly />
+              <Input aria-label={t("stability.f96135acf40c", { defaultValue: "Assigned agent" })} value={endpoint.assignedAgentName ?? selectedAgent?.name ?? agentId} readOnly />
             ) : <AgentSelect
               agents={activeAgents}
               value={agentId}
               onChange={setAgentId}
-              placeholder="Choose an active agent"
-              emptyMessage="No active agents are available."
+              placeholder={t("stability.e6be8c7a1d2b", { defaultValue: "Choose an active agent" })}
+              emptyMessage={t("stability.972bd5aefeb8", { defaultValue: "No active agents are available." })}
             />}
             {provider === "github" && <GitHubAgentTrustWarning agent={selectedAgent} />}
             <SetupWizardFooter onSaveExit={() => navigate("/apps")}>
@@ -508,9 +488,7 @@ function ChatSdkEndpointSetup() {
               >
                 {createEndpoint.isPending && (
                   <Loader2 className="h-4 w-4 animate-spin" />
-                )}
-                Continue
-              </Button>
+                )}{t("continue")}</Button>
             </SetupWizardFooter>
           </>
         ) : null}
@@ -521,7 +499,7 @@ function ChatSdkEndpointSetup() {
                 role="alert"
                 className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
               >
-                <p className="font-medium">Connection failed</p>
+                <p className="font-medium">{t("connection_failed")}</p>
                 <p className="mt-1">{setupError}</p>
               </div>
             ) : null}
@@ -558,8 +536,8 @@ function ChatSdkEndpointSetup() {
         )}
         {endpoint && isSlack && step === 4 && (
           <div className="space-y-4">
-            {avatarAgent.isPending ? <p role="status" className="text-sm text-muted-foreground">Loading agent avatar…</p>
-              : avatarAgent.isError ? <p role="alert" className="text-sm text-destructive">Couldn’t load the agent’s avatar. <button className="underline" onClick={() => void avatarAgent.refetch()}>Try again</button></p>
+            {avatarAgent.isPending ? <p role="status" className="text-sm text-muted-foreground">{t("stability.0a92b68354ac", { defaultValue: "Loading agent avatar…" })}</p>
+              : avatarAgent.isError ? <p role="alert" className="text-sm text-destructive">{t("stability.984c743c4683", { defaultValue: "Couldn’t load the agent’s avatar." })}{" "}<button className="underline" onClick={() => void avatarAgent.refetch()}>{t("try_again")}</button></p>
               : <SlackAvatarStep
                   agentName={avatarAgent.data?.name ?? endpoint.assignedAgentName}
                   appName={endpoint.setup?.slackApp?.appName ?? defaultSlackAppName(avatarAgent.data?.name ?? endpoint.assignedAgentName)}
@@ -569,7 +547,7 @@ function ChatSdkEndpointSetup() {
                   onSkip={() => { if (!avatarProgress.progress) avatarProgress.save("skipped"); setViewedStep(5); }}
                   onSaveExit={() => navigate("/apps")}
                 />}
-            {(avatarAgent.isPending || avatarAgent.isError) && <SetupWizardFooter onSaveExit={() => navigate("/apps")}><Button onClick={() => { avatarProgress.save("skipped"); setViewedStep(5); }}>Skip for now</Button></SetupWizardFooter>}
+            {(avatarAgent.isPending || avatarAgent.isError) && <SetupWizardFooter onSaveExit={() => navigate("/apps")}><Button onClick={() => { avatarProgress.save("skipped"); setViewedStep(5); }}>{t("stability.b58eb52c8810", { defaultValue: "Skip for now" })}</Button></SetupWizardFooter>}
           </div>
         )}
         {endpoint && isSlack && step === 5 && (
@@ -610,9 +588,7 @@ function ChatSdkEndpointSetup() {
           />
         )}
         {step !== 0 && !(isSlack && (step === 1 || step === 2 || step === 3 || step === 4 || step === 5 || step === 6)) && <div className="flex justify-start">
-          <Button className="text-muted-foreground" variant="ghost" onClick={() => navigate("/apps")}>
-            Save &amp; exit
-          </Button>
+          <Button className="text-muted-foreground" variant="ghost" onClick={() => navigate("/apps")}>{t("stability.0bd63bf3d32e", { defaultValue: "Save & exit" })}</Button>
         </div>}
       </div>
     </div>
@@ -700,7 +676,7 @@ function ProviderConnectStep({
       <p className="text-sm font-medium">{label}</p>
       <div className="rounded-lg border border-border bg-muted p-3 font-mono text-xs break-all">
         {value ??
-          "This endpoint is unavailable. Check the server's public URL."}
+          t("stability.b74970067135", { defaultValue: "This endpoint is unavailable. Check the server's public URL." })}
       </div>
     </div>
   );
@@ -892,15 +868,15 @@ settings:
               commands: [
                 {
                   title: "/status",
-                  description: "Show the active Paperclip task status",
+                  description: t("stability.5475e33e2aa2", { defaultValue: "Show the active Paperclip task status" }),
                 },
                 {
                   title: "/new",
-                  description: "Start a new Paperclip task in this chat",
+                  description: t("stability.7986d3fbf140", { defaultValue: "Start a new Paperclip task in this chat" }),
                 },
                 {
                   title: "/close",
-                  description: "Close the active chat conversation",
+                  description: t("stability.0ac684eee59d", { defaultValue: "Close the active chat conversation" }),
                 },
               ],
             },
@@ -933,55 +909,36 @@ settings:
     return (
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-bold">Connect {agentName} to Discord</h1>
+          <h1 className="text-xl font-bold">{t("connect")}{" "}{agentName}{" "}{t("stability.3bd0fc6ae387", { defaultValue: "to Discord" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {repairing
-              ? "Reconnect verifies this same Discord application and server installation. It does not add or remove the bot from the server. Leave fields blank to reuse saved credentials."
-              : "Create one dedicated Discord application and bot for this Paperclip agent."}
+              ? t("stability.526a3c187748", { defaultValue: "Reconnect verifies this same Discord application and server installation. It does not add or remove the bot from the server. Leave fields blank to reuse saved credentials." })
+              : t("stability.addb1ae38e9f", { defaultValue: "Create one dedicated Discord application and bot for this Paperclip agent." })}
           </p>
         </div>
       <ol className="list-decimal space-y-2 pl-5 text-sm">
-          <li>
-            In Discord Developer Portal, create an application. Copy its
-            Application ID from General Information.
-          </li>
-          <li>
-            Open Bot, create the bot, enable Message Content Intent, then reset
-            and copy its token.
-          </li>
-          <li>
-            Enable Developer Mode in Discord, right-click the target server, and
-            copy its Server ID.
-          </li>
-          <li>
-            Enter those values below, then use the generated install link to add
-            the bot to that server.
-          </li>
+          <li>{t("stability.c64fd948d699", { defaultValue: "In Discord Developer Portal, create an application. Copy its Application ID from General Information." })}</li>
+          <li>{t("stability.de4d6d6f472a", { defaultValue: "Open Bot, create the bot, enable Message Content Intent, then reset and copy its token." })}</li>
+          <li>{t("stability.65acc2a71fa0", { defaultValue: "Enable Developer Mode in Discord, right-click the target server, and copy its Server ID." })}</li>
+          <li>{t("stability.552ecc346b27", { defaultValue: "Enter those values below, then use the generated install link to add the bot to that server." })}</li>
         </ol>
         <Button
           variant="outline"
           onClick={() =>
             openProviderSetup("https://discord.com/developers/applications")
           }
-        >
-          Open Discord Developer Portal <ExternalLink />
+        >{t("stability.090b2a59325a", { defaultValue: "Open Discord Developer Portal" })}{" "}<ExternalLink />
         </Button>
         {field("applicationId", "Application ID", "text")}
         {field("guildId", "Server ID", "text")}
         {field("botToken", "Bot token")}
         {installUrl && (
           <Button asChild variant="outline">
-            <a href={installUrl} target="_blank" rel="noreferrer">
-              Install bot in this server <ExternalLink />
+            <a href={installUrl} target="_blank" rel="noreferrer">{t("stability.8f6e4fbe8635", { defaultValue: "Install bot in this server" })}{" "}<ExternalLink />
             </a>
           </Button>
         )}
-        <p className="text-sm text-muted-foreground">
-          The install link grants only View Channels, Send Messages, Create
-          Public Threads, Send Messages in Threads, Read Message History, Add
-          Reactions, Embed Links, and Attach Files. Paperclip still requires
-          each discovered channel to be enabled in Access.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("stability.1f80c95a2cdb", { defaultValue: "The install link grants only View Channels, Send Messages, Create Public Threads, Send Messages in Threads, Read Message History, Add Reactions, Embed Links, and Attach Files. Paperclip still requires each discovered channel to be enabled in Access." })}</p>
         <Button
           disabled={
             (!repairing &&
@@ -995,7 +952,7 @@ settings:
           }
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-          {repairing ? "Reconnect Discord bot" : "Connect Discord bot"}
+          {repairing ? t("stability.5abd85c1e3e9", { defaultValue: "Reconnect Discord bot" }) : t("stability.e2cc4408ae0a", { defaultValue: "Connect Discord bot" })}
         </Button>
       </div>
     );
@@ -1004,41 +961,30 @@ settings:
     return (
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-bold">Create {agentName} in Telegram</h1>
+          <h1 className="text-xl font-bold">{t("common.create")}{" "}{agentName}{" "}{t("stability.df102afbe84a", { defaultValue: "in Telegram" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {repairing
-              ? "Reconnect verifies this same BotFather bot and automatically refreshes its Paperclip webhook and command menu. It does not recreate the bot or change its chat memberships. Leave the token blank to reuse the saved credential."
-              : "Create a bot with BotFather, then paste the token it gives you."}
+              ? t("stability.ac88d22bb2f5", { defaultValue: "Reconnect verifies this same BotFather bot and automatically refreshes its Paperclip webhook and command menu. It does not recreate the bot or change its chat memberships. Leave the token blank to reuse the saved credential." })
+              : t("stability.e7cbd41ef13c", { defaultValue: "Create a bot with BotFather, then paste the token it gives you." })}
           </p>
         </div>
         <ol className="list-decimal space-y-2 pl-5 text-sm">
-          <li>
-            Open BotFather and send <code>/newbot</code>.
+          <li>{t("stability.42448ecad5a4", { defaultValue: "Open BotFather and send" })}{" "}<code>/newbot</code>.
           </li>
-          <li>Enter the bot display name.</li>
-          <li>
-            Choose an available username ending in <code>bot</code>.
+          <li>{t("stability.4feda6797085", { defaultValue: "Enter the bot display name." })}</li>
+          <li>{t("stability.07917390b1ad", { defaultValue: "Choose an available username ending in" })}{" "}<code>bot</code>.
           </li>
         </ol>
-        <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-          Paperclip works with Telegram&apos;s default bot privacy mode and
-          registers its command menu automatically. In a group, ordinary
-          mentions are not delivered to bots: start or continue work with{" "}
-          <code>/task@bot_username &lt;request&gt;</code>, or reply directly to
-          a message from the bot.
-        </p>
+        <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">{t("stability.b6d27e053db8", { defaultValue: "Paperclip works with Telegram's default bot privacy mode and registers its command menu automatically. In a group, ordinary mentions are not delivered to bots: start or continue work with" })}{" "}
+          <code>/task@bot_username &lt;request&gt;</code>{t("stability.56c4e6eb881d", { defaultValue: ", or reply directly to a message from the bot." })}</p>
         <Button
           variant="outline"
           onClick={() => openProviderSetup("https://t.me/BotFather")}
-        >
-          Open BotFather <ExternalLink />
+        >{t("stability.a099b632035d", { defaultValue: "Open BotFather" })}{" "}<ExternalLink />
         </Button>
         {field("botToken", "Bot token")}
         {!endpoint.setup?.webhookUrl && (
-          <p className="text-sm text-destructive">
-            Configure a public HTTPS URL for this Paperclip instance before
-            connecting Telegram.
-          </p>
+          <p className="text-sm text-destructive">{t("stability.be61462c26cf", { defaultValue: "Configure a public HTTPS URL for this Paperclip instance before connecting Telegram." })}</p>
         )}
         <Button
           disabled={
@@ -1051,7 +997,7 @@ settings:
           }
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-          {repairing ? "Reconnect bot" : "Connect bot"}
+          {repairing ? t("stability.56693e2eab78", { defaultValue: "Reconnect bot" }) : t("stability.301e424325f3", { defaultValue: "Connect bot" })}
         </Button>
       </div>
     );
@@ -1059,44 +1005,18 @@ settings:
     return (
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-bold">
-            Connect {agentName} to Microsoft Teams
-          </h1>
+          <h1 className="text-xl font-bold">{t("connect")}{" "}{agentName}{" "}{t("stability.75550de60263", { defaultValue: "to Microsoft Teams" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {repairing
-              ? "Reconnect verifies this same Microsoft app, tenant, and bot identity. It does not upload or reinstall the Teams app. Leave fields blank to reuse saved credentials."
-              : "Use your own Microsoft app credentials for this bot."}
+              ? t("stability.328b17aa045e", { defaultValue: "Reconnect verifies this same Microsoft app, tenant, and bot identity. It does not upload or reinstall the Teams app. Leave fields blank to reuse saved credentials." })
+              : t("stability.556108c3f440", { defaultValue: "Use your own Microsoft app credentials for this bot." })}
           </p>
         </div>
-        <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-          This setup requires a Microsoft 365 work or school organization where
-          you can register an Entra app, create an Azure Bot, and upload or
-          install a Teams app. Personal or free Teams accounts at teams.live.com
-          cannot complete this setup. This release supports Microsoft 365
-          commercial cloud tenants only; GCC, GCC High, DoD, and Microsoft 365
-          operated by 21Vianet are not supported yet.
-        </p>
+        <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">{t("stability.ec9dc0bc11c1", { defaultValue: "This setup requires a Microsoft 365 work or school organization where you can register an Entra app, create an Azure Bot, and upload or install a Teams app. Personal or free Teams accounts at teams.live.com cannot complete this setup. This release supports Microsoft 365 commercial cloud tenants only; GCC, GCC High, DoD, and Microsoft 365 operated by 21Vianet are not supported yet." })}</p>
         <ol className="list-decimal space-y-2 pl-5 text-sm">
-          <li>
-            In Microsoft Entra, create a single-tenant app registration. Copy
-            its Application (client) ID and Directory (tenant) ID, then create a
-            client secret and copy its value.
-          </li>
-          <li>
-            In Azure, create an Azure Bot. Choose Single Tenant, use that
-            Application ID, set its messaging endpoint to the Paperclip URL
-            below, and add the Microsoft Teams channel.
-          </li>
-          <li>
-            In Teams Developer Portal, create an app, add a bot with the same
-            Application ID, then apply the manifest settings shown below. The
-            block binds the Teams resource-specific consent permissions to that
-            Entra app; these are not Microsoft Graph permissions in Entra. These
-            permissions let the installed app receive every message in a team or
-            group chat without an @mention, so describe that access to
-            installers. Download the package and install it in the target team
-            or group chat.
-          </li>
+          <li>{t("stability.4a2aace30449", { defaultValue: "In Microsoft Entra, create a single-tenant app registration. Copy its Application (client) ID and Directory (tenant) ID, then create a client secret and copy its value." })}</li>
+          <li>{t("stability.cf68483b5e00", { defaultValue: "In Azure, create an Azure Bot. Choose Single Tenant, use that Application ID, set its messaging endpoint to the Paperclip URL below, and add the Microsoft Teams channel." })}</li>
+          <li>{t("stability.d8d35eddf756", { defaultValue: "In Teams Developer Portal, create an app, add a bot with the same Application ID, then apply the manifest settings shown below. The block binds the Teams resource-specific consent permissions to that Entra app; these are not Microsoft Graph permissions in Entra. These permissions let the installed app receive every message in a team or group chat without an @mention, so describe that access to installers. Download the package and install it in the target team or group chat." })}</li>
         </ol>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
@@ -1104,8 +1024,7 @@ settings:
               href="https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade"
               target="_blank"
               rel="noreferrer"
-            >
-              Open Microsoft Entra <ExternalLink />
+            >{t("stability.f23b82e1cdd0", { defaultValue: "Open Microsoft Entra" })}{" "}<ExternalLink />
             </a>
           </Button>
           <Button asChild variant="outline">
@@ -1113,8 +1032,7 @@ settings:
               href="https://portal.azure.com/#create/Microsoft.AzureBot"
               target="_blank"
               rel="noreferrer"
-            >
-              Create Azure Bot <ExternalLink />
+            >{t("stability.adaaf3aeb941", { defaultValue: "Create Azure Bot" })}{" "}<ExternalLink />
             </a>
           </Button>
           <Button asChild variant="outline">
@@ -1122,8 +1040,7 @@ settings:
               href="https://dev.teams.microsoft.com/apps"
               target="_blank"
               rel="noreferrer"
-            >
-              Open Teams Developer Portal <ExternalLink />
+            >{t("stability.8606db85ec8a", { defaultValue: "Open Teams Developer Portal" })}{" "}<ExternalLink />
             </a>
           </Button>
         </div>
@@ -1136,67 +1053,40 @@ settings:
         {field("clientSecret", "Client secret value")}
         <section className="space-y-3 rounded-lg border border-border p-4">
           <div>
-            <h2 className="text-sm font-semibold">
-              Microsoft portal field map
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Use these exact portal sections and reuse the same Application ID
-              in all three places.
-            </p>
+            <h2 className="text-sm font-semibold">{t("stability.6a0f1431be43", { defaultValue: "Microsoft portal field map" })}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("stability.8bea85095ea9", { defaultValue: "Use these exact portal sections and reuse the same Application ID in all three places." })}</p>
           </div>
           <ol className="list-decimal space-y-3 pl-5 text-sm">
             <li>
-              <strong>Microsoft Entra admin center · App registrations</strong>:
-              select <strong>New registration</strong>, choose{" "}
-              <strong>
-                Accounts in this organizational directory only (Single tenant)
-              </strong>
-              , then select <strong>Register</strong>. Copy{" "}
-              <strong>Application (client) ID</strong> and{" "}
-              <strong>Directory (tenant) ID</strong>. Under{" "}
-              <strong>Certificates &amp; secrets · Client secrets</strong>,
-              select <strong>New client secret</strong> and copy its{" "}
-              <strong>Value</strong>, not its Secret ID.
+              <strong>{t("stability.b4935613ed46", { defaultValue: "Microsoft Entra admin center · App registrations" })}</strong>{t("stability.597e831fa5ee", { defaultValue: ": select" })}{" "}<strong>{t("stability.5c35cd89e8c7", { defaultValue: "New registration" })}</strong>{t("choose_1b24a7")}{" "}
+              <strong>{t("stability.5c39323e4caf", { defaultValue: "Accounts in this organizational directory only (Single tenant)" })}</strong>{t("stability.6dc948aa5cfd", { defaultValue: ", then select" })}{" "}<strong>{t("stability.bb7234ec1245", { defaultValue: "Register" })}</strong>. Copy{" "}
+              <strong>{t("stability.576111a7aee1", { defaultValue: "Application (client) ID" })}</strong>{" "}{t("zhComponents.text_cffa50a32c")}{" "}
+              <strong>{t("stability.1dc4abe27594", { defaultValue: "Directory (tenant) ID" })}</strong>. Under{" "}
+              <strong>{t("stability.5e4694835839", { defaultValue: "Certificates & secrets · Client secrets" })}</strong>{t("stability.ed6fac98cfbe", { defaultValue: ", select" })}{" "}<strong>{t("stability.02aac1d82e3a", { defaultValue: "New client secret" })}</strong>{" "}{t("stability.dda8c2c133fb", { defaultValue: "and copy its" })}{" "}
+              <strong>{t("value")}</strong>{t("stability.98bac72b5d69", { defaultValue: ", not its Secret ID." })}</li>
+            <li>
+              <strong>{t("stability.245287276b83", { defaultValue: "Azure · Create Azure Bot" })}</strong>{t("stability.b28d625a3d71", { defaultValue: ": set" })}{" "}
+              <strong>{t("stability.689f79d2ff9d", { defaultValue: "Microsoft App ID" })}</strong>{" "}{t("zhComponents.text_4374aaee24")}{" "}
+              <strong>{t("stability.32517762f806", { defaultValue: "Single Tenant" })}</strong>{t("stability.1a7f496dc865", { defaultValue: ", set" })}{" "}<strong>{t("stability.a90668dbd91b", { defaultValue: "Creation type" })}</strong>{" "}{t("zhComponents.text_4374aaee24")}{" "}<strong>{t("stability.e7a8befdbbcd", { defaultValue: "Use existing app registration" })}</strong>{t("stability.6e689f279e25", { defaultValue: ", and enter the Application ID and Tenant ID above. After creation, open" })}{" "}
+              <strong>{t("stability.15674b2bdd65", { defaultValue: "Settings · Configuration" })}</strong>{" "}{t("stability.480442a4fa1f", { defaultValue: "and paste the Paperclip" })}{" "}
+              <strong>{t("stability.8dcb943dc3b2", { defaultValue: "Messaging endpoint" })}</strong>{t("stability.df051281e813", { defaultValue: "; then open" })}{" "}
+              <strong>{t("stability.010583e236aa", { defaultValue: "Settings · Channels" })}</strong>{" "}{t("stability.e3adc62241ea", { defaultValue: "and enable" })}{" "}
+              <strong>{t("stability.a7b52b269a23", { defaultValue: "Microsoft Teams" })}</strong>.
             </li>
             <li>
-              <strong>Azure · Create Azure Bot</strong>: set{" "}
-              <strong>Microsoft App ID</strong> to{" "}
-              <strong>Single Tenant</strong>, set <strong>Creation type</strong>{" "}
-              to <strong>Use existing app registration</strong>, and enter the
-              Application ID and Tenant ID above. After creation, open{" "}
-              <strong>Settings · Configuration</strong> and paste the Paperclip{" "}
-              <strong>Messaging endpoint</strong>; then open{" "}
-              <strong>Settings · Channels</strong> and enable{" "}
-              <strong>Microsoft Teams</strong>.
-            </li>
+              <strong>{t("stability.ee4c150d1f05", { defaultValue: "Teams Developer Portal · Apps" })}</strong>{t("stability.597e831fa5ee", { defaultValue: ": select" })}{" "}
+              <strong>{t("stability.747f1473fa17", { defaultValue: "New app" })}</strong>. Under{" "}
+              <strong>{t("stability.e7d5d293927d", { defaultValue: "Configure · App features · Bot" })}</strong>{t("stability.84e44cfc4eb3", { defaultValue: ", add an existing bot using the same Application ID; enable" })}{" "}
+              <strong>{t("personal")}</strong>, <strong>{t("team")}</strong>{t("and")}{" "}
+              <strong>{t("stability.28c7d3f8b75d", { defaultValue: "Group chat" })}</strong>{" "}{t("stability.9fae582a60b8", { defaultValue: "scopes plus file support. Under" })}{" "}
+              <strong>{t("stability.f45a200a679d", { defaultValue: "Configure · Permissions" })}</strong>{t("stability.d615211ffd20", { defaultValue: ", add the two RSC" })}{" "}
+              <strong>{t("application")}</strong>{" "}{t("stability.48996c48fd6a", { defaultValue: "permissions shown below. Complete the required app details and icons, explain that the app can receive every message in an installed team or group chat, then download the app package." })}</li>
             <li>
-              <strong>Teams Developer Portal · Apps</strong>: select{" "}
-              <strong>New app</strong>. Under{" "}
-              <strong>Configure · App features · Bot</strong>, add an existing
-              bot using the same Application ID; enable{" "}
-              <strong>Personal</strong>, <strong>Team</strong>, and{" "}
-              <strong>Group chat</strong> scopes plus file support. Under{" "}
-              <strong>Configure · Permissions</strong>, add the two RSC{" "}
-              <strong>Application</strong> permissions shown below. Complete the
-              required app details and icons, explain that the app can receive
-              every message in an installed team or group chat, then download
-              the app package.
-            </li>
-            <li>
-              <strong>Microsoft Teams · Apps · Manage your apps</strong>: select{" "}
-              <strong>Upload an app · Upload a custom app</strong>, choose the
-              downloaded package, and install it in each intended personal chat,
-              group chat, or team. One team install covers its standard
-              channels. Private and shared channels require a separate app
-              installation and are not supported by this release. If upload is
-              unavailable, a Teams administrator must enable or approve custom
-              apps.
-            </li>
+              <strong>{t("stability.97fd174b0d1f", { defaultValue: "Microsoft Teams · Apps · Manage your apps" })}</strong>{t("stability.597e831fa5ee", { defaultValue: ": select" })}{" "}
+              <strong>{t("stability.08d248a066d9", { defaultValue: "Upload an app · Upload a custom app" })}</strong>{t("stability.d04906007941", { defaultValue: ", choose the downloaded package, and install it in each intended personal chat, group chat, or team. One team install covers its standard channels. Private and shared channels require a separate app installation and are not supported by this release. If upload is unavailable, a Teams administrator must enable or approve custom apps." })}</li>
           </ol>
         </section>
-        <label className="grid gap-2 text-sm font-medium">
-          Required Teams app manifest block
-          <Textarea
+        <label className="grid gap-2 text-sm font-medium">{t("stability.55ea4fc31a9f", { defaultValue: "Required Teams app manifest block" })}<Textarea
             className="min-h-80 font-mono text-xs"
             readOnly
             value={teamsManifestSettings}
@@ -1214,44 +1104,16 @@ settings:
             }}
           >
             {manifestCopied
-              ? "Manifest settings copied"
-              : "Copy manifest settings"}
+              ? t("stability.c8f17ea36180", { defaultValue: "Manifest settings copied" })
+              : t("stability.b0b424ee3483", { defaultValue: "Copy manifest settings" })}
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Enter the Application / Client ID above before copying so the block
-          contains the real bot identity. This block contains the
-          Paperclip-specific fields to verify in Developer Portal or merge into
-          a complete Teams app manifest. It is not a complete app package;
-          Developer Portal supplies the remaining required metadata and packages
-          the manifest with your app icons.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Paperclip does not use Teams single sign-on in this release. The
-          copied <code>webApplicationInfo</code> entry only associates the RSC
-          permissions with the same Entra Application ID. Its nonempty resource
-          is an RSC placeholder; you do not need to register an Entra
-          Application ID URI or add delegated Microsoft Graph permissions.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          The two application RSC permissions let the bot receive every message,
-          without an @mention, in each team or group chat where it is installed.
-          Paperclip retains and acts only on messages admitted by your Paperclip
-          reach and access rules. Make this provider access clear in the app
-          description shown to installers.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          This release supports personal chats, group chats, and standard team
-          channels—not private channels. <code>supportsFiles: true</code>{" "}
-          enables native file receipt and consent-based sending in personal
-          chats; channel and group-chat files need a separate Microsoft Graph
-          connection and are not ingested here.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("stability.bb8a73b9fd79", { defaultValue: "Enter the Application / Client ID above before copying so the block contains the real bot identity. This block contains the Paperclip-specific fields to verify in Developer Portal or merge into a complete Teams app manifest. It is not a complete app package; Developer Portal supplies the remaining required metadata and packages the manifest with your app icons." })}</p>
+        <p className="text-sm text-muted-foreground">{t("stability.3f37c908d903", { defaultValue: "Paperclip does not use Teams single sign-on in this release. The copied" })}{" "}<code>webApplicationInfo</code>{" "}{t("stability.797eed85ecf1", { defaultValue: "entry only associates the RSC permissions with the same Entra Application ID. Its nonempty resource is an RSC placeholder; you do not need to register an Entra Application ID URI or add delegated Microsoft Graph permissions." })}</p>
+        <p className="text-sm text-muted-foreground">{t("stability.7578d0670188", { defaultValue: "The two application RSC permissions let the bot receive every message, without an @mention, in each team or group chat where it is installed. Paperclip retains and acts only on messages admitted by your Paperclip reach and access rules. Make this provider access clear in the app description shown to installers." })}</p>
+        <p className="text-sm text-muted-foreground">{t("stability.96f2af1eab60", { defaultValue: "This release supports personal chats, group chats, and standard team channels—not private channels." })}{" "}<code>supportsFiles: true</code>{" "}{t("stability.57ef82b7288c", { defaultValue: "enables native file receipt and consent-based sending in personal chats; channel and group-chat files need a separate Microsoft Graph connection and are not ingested here." })}</p>
         {!endpoint.setup?.messagingEndpoint && (
-          <p className="text-sm text-destructive">
-            Configure a public HTTPS URL for this Paperclip instance before
-            connecting Microsoft Teams.
-          </p>
+          <p className="text-sm text-destructive">{t("stability.64624acecca1", { defaultValue: "Configure a public HTTPS URL for this Paperclip instance before connecting Microsoft Teams." })}</p>
         )}
         <Button
           disabled={
@@ -1268,8 +1130,8 @@ settings:
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           {repairing
-            ? "Reconnect Microsoft app"
-            : "Verify Microsoft credentials"}
+            ? t("stability.c3748cd7cef4", { defaultValue: "Reconnect Microsoft app" })
+            : t("stability.716e44d2da79", { defaultValue: "Verify Microsoft credentials" })}
         </Button>
       </div>
     );
@@ -1279,47 +1141,31 @@ settings:
         <div>
           <h1 className="text-xl font-bold">
             {repairing
-              ? "Reconnect GitHub App"
-              : "Create or connect a GitHub App"}
+              ? t("stability.39ee43bf25a1", { defaultValue: "Reconnect GitHub App" })
+              : t("stability.2ede47afae3b", { defaultValue: "Create or connect a GitHub App" })}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {repairing
-              ? "Reconnect verifies this same App and installation, then updates its webhook URL, secret, and secure delivery settings. It does not reinstall the App or change repository access. Leave App ID and private key blank to reuse saved credentials. Keep Webhooks · Active enabled in GitHub; send a test conversation after reconnecting."
-              : "Configure its webhook and permissions, then verify the App with Paperclip."}
+              ? t("stability.e9a6cd4ea18b", { defaultValue: "Reconnect verifies this same App and installation, then updates its webhook URL, secret, and secure delivery settings. It does not reinstall the App or change repository access. Leave App ID and private key blank to reuse saved credentials. Keep Webhooks · Active enabled in GitHub; send a test conversation after reconnecting." })
+              : t("stability.42a6576f1c19", { defaultValue: "Configure its webhook and permissions, then verify the App with Paperclip." })}
           </p>
         </div>
         {!repairing && (
           <ol className="list-decimal space-y-2 pl-5 text-sm">
-            <li>
-              Under the target user or organization, create a new GitHub App.
-              Give it a globally unique name (34 characters or fewer), use the
-              Paperclip homepage URL below, and leave user authorization off.
-            </li>
-            <li>
-              Keep <strong>Webhooks · Active</strong> on. Enter the Paperclip
-              webhook URL and the Paperclip-generated webhook secret below, and
-              keep <strong>Enable SSL verification</strong> selected.
-            </li>
-            <li>
-              Under Repository permissions, set <strong>Issues</strong> and{" "}
-              <strong>Pull requests</strong> to{" "}
-              <strong>Read &amp; write</strong>. Leave every other permission at
+            <li>{t("stability.d17f40b3ba27", { defaultValue: "Under the target user or organization, create a new GitHub App. Give it a globally unique name (34 characters or fewer), use the Paperclip homepage URL below, and leave user authorization off." })}</li>
+            <li>{t("stability.183f00f483d3", { defaultValue: "Keep" })}{" "}<strong>{t("stability.dde916ab7121", { defaultValue: "Webhooks · Active" })}</strong>{" "}{t("stability.5804a582a16d", { defaultValue: "on. Enter the Paperclip webhook URL and the Paperclip-generated webhook secret below, and keep" })}{" "}<strong>{t("stability.b817ccfbf8e6", { defaultValue: "Enable SSL verification" })}</strong>{" "}{t("stability.a1260b5d5a03", { defaultValue: "selected." })}</li>
+            <li>{t("stability.6874414a6b5e", { defaultValue: "Under Repository permissions, set" })}{" "}<strong>{t("issues")}</strong>{" "}{t("zhComponents.text_cffa50a32c")}{" "}
+              <strong>{t("pull_requests")}</strong>{" "}{t("zhComponents.text_4374aaee24")}{" "}
+              <strong>{t("stability.5cf0e8247f39", { defaultValue: "Read & write" })}</strong>. Leave every other permission at
               its default; Metadata remains read-only.
             </li>
-            <li>
-              Subscribe to <strong>Issue comment</strong> (
+            <li>{t("stability.a067f416cd57", { defaultValue: "Subscribe to" })}{" "}<strong>{t("stability.b58fb1935afc", { defaultValue: "Issue comment" })}</strong> (
               <code>issue_comment</code>),{" "}
-              <strong>Pull request review comment</strong> (
-              <code>pull_request_review_comment</code>). GitHub sends{" "}
-              <code>installation</code> and{" "}
-              <code>installation_repositories</code> to every GitHub App
-              automatically; they are not selectable here.
-            </li>
-            <li>
-              Choose <strong>Only on this account</strong>, create the App, copy
-              its App ID, generate one private key, then install it on the
-              selected repositories.
-            </li>
+              <strong>{t("stability.a480a0e12be3", { defaultValue: "Pull request review comment" })}</strong> (
+              <code>pull_request_review_comment</code>{t("stability.c85ce75b2982", { defaultValue: "). GitHub sends" })}{" "}
+              <code>installation</code>{" "}{t("zhComponents.text_cffa50a32c")}{" "}
+              <code>installation_repositories</code>{" "}{t("stability.688aa7ac60e8", { defaultValue: "to every GitHub App automatically; they are not selectable here." })}</li>
+            <li>{t("choose")}{" "}<strong>{t("stability.bc291e525c9f", { defaultValue: "Only on this account" })}</strong>{t("stability.2c6514564cec", { defaultValue: ", create the App, copy its App ID, generate one private key, then install it on the selected repositories." })}</li>
           </ol>
         )}
         {endpointValue(
@@ -1340,12 +1186,12 @@ settings:
             )
           }
         >
-          {repairing ? "Open GitHub App settings" : "Open new GitHub App form"}{" "}
+          {repairing ? t("stability.1395525a0077", { defaultValue: "Open GitHub App settings" }) : t("stability.09512a8dd1e1", { defaultValue: "Open new GitHub App form" })}{" "}
           <ExternalLink />
         </Button>
         {field("appId", "GitHub App ID", "text")}
         <div className="grid gap-2 text-sm font-medium">
-          <label htmlFor="github-private-key">Private key (PEM)</label>
+          <label htmlFor="github-private-key">{t("stability.1a5ad9860afa", { defaultValue: "Private key (PEM)" })}</label>
           <div className="relative">
             {privateKeyVisible ? (
               <Textarea
@@ -1373,7 +1219,7 @@ settings:
               size="icon"
               className="absolute right-1 top-1"
               aria-label={
-                privateKeyVisible ? "Hide private key" : "Show private key"
+                privateKeyVisible ? t("stability.6ffb67bcf58a", { defaultValue: "Hide private key" }) : t("stability.adde31d83a71", { defaultValue: "Show private key" })
               }
               onClick={() => setPrivateKeyVisible((visible) => !visible)}
             >
@@ -1385,7 +1231,7 @@ settings:
             type="file"
             accept=".pem,.key,application/x-pem-file,application/pkcs8,text/plain"
             className="hidden"
-            aria-label="Choose GitHub App private key file"
+            aria-label={t("stability.67623763440d", { defaultValue: "Choose GitHub App private key file" })}
             onChange={loadPrivateKeyFile}
           />
           <div>
@@ -1393,9 +1239,7 @@ settings:
               type="button"
               variant="outline"
               onClick={() => privateKeyFileInputRef.current?.click()}
-            >
-              Choose .pem file
-            </Button>
+            >{t("stability.bd08402ee940", { defaultValue: "Choose .pem file" })}</Button>
           </div>
           {privateKeyFileError ? (
             <p role="alert" className="text-sm text-destructive">
@@ -1407,25 +1251,21 @@ settings:
               role="status"
               aria-live="polite"
               className="text-sm text-muted-foreground"
-            >
-              Reading private key file…
-            </p>
+            >{t("stability.c5c9855e5cc2", { defaultValue: "Reading private key file…" })}</p>
           ) : privateKeyFileLoaded ? (
             <p
               role="status"
               aria-live="polite"
               className="text-sm text-muted-foreground"
-            >
-              Private key loaded. It stays in this form until you connect.
-            </p>
+            >{t("stability.13a97342ac87", { defaultValue: "Private key loaded. It stays in this form until you connect." })}</p>
           ) : null}
         </div>
         <div className="grid gap-2">
-          <p className="text-sm font-medium">Webhook secret</p>
+          <p className="text-sm font-medium">{t("webhook_secret")}</p>
           {generatedWebhookSecret ? (
             <>
               <Input
-                aria-label="Generated webhook secret"
+                aria-label={t("stability.90e15bc010e3", { defaultValue: "Generated webhook secret" })}
                 className="font-mono text-xs"
                 readOnly
                 value={generatedWebhookSecret}
@@ -1449,21 +1289,19 @@ settings:
                   }}
                 >
                   {webhookSecretCopy.copied
-                    ? "Webhook secret copied"
+                    ? t("stability.444c369db768", { defaultValue: "Webhook secret copied" })
                     : webhookSecretCopy.failed
-                      ? "Couldn’t copy — select it manually"
-                      : "Copy webhook secret"}
+                      ? t("stability.368f602dd21e", { defaultValue: "Couldn’t copy — select it manually" })
+                      : t("stability.a6635b8ce037", { defaultValue: "Copy webhook secret" })}
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Copy this value now. Paperclip will not show it again.
-              </p>
+              <p className="text-sm text-muted-foreground">{t("stability.32126b2c9c47", { defaultValue: "Copy this value now. Paperclip will not show it again." })}</p>
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {endpoint.setup?.webhookSecretConfigured
-                ? "A webhook secret is configured and cannot be shown again."
-                : "Generate the secret in Paperclip, then paste it into the GitHub App."}
+                ? t("stability.60ae90908849", { defaultValue: "A webhook secret is configured and cannot be shown again." })
+                : t("stability.7651731df577", { defaultValue: "Generate the secret in Paperclip, then paste it into the GitHub App." })}
             </p>
           )}
           <div>
@@ -1477,15 +1315,15 @@ settings:
                 <Loader2 className="h-4 w-4 animate-spin" />
               )}
               {endpoint.setup?.webhookSecretConfigured
-                ? "Regenerate webhook secret"
-                : "Generate webhook secret"}
+                ? t("stability.8256661f3875", { defaultValue: "Regenerate webhook secret" })
+                : t("stability.cfbc14dea167", { defaultValue: "Generate webhook secret" })}
             </Button>
           </div>
           {endpoint.setup?.webhookSecretConfigured && (
             <p className="text-sm text-muted-foreground">
               {endpoint.providerAccountId || endpoint.botExternalId
-                ? "Regenerating immediately invalidates GitHub webhook signatures until you replace the secret in the GitHub App settings."
-                : "Generating another secret replaces the previous value. Paste the newest value into GitHub before continuing."}
+                ? t("stability.ca9e3b5f05a8", { defaultValue: "Regenerating immediately invalidates GitHub webhook signatures until you replace the secret in the GitHub App settings." })
+                : t("stability.7ac93157fe0e", { defaultValue: "Generating another secret replaces the previous value. Paste the newest value into GitHub before continuing." })}
             </p>
           )}
           {endpoint.setup?.webhookSecretConfigured && (
@@ -1493,16 +1331,13 @@ settings:
               className={`text-sm ${endpoint.setup.webhookVerifiedAt ? "text-foreground" : "text-muted-foreground"}`}
             >
               {endpoint.setup.webhookVerifiedAt
-                ? "GitHub has verified this webhook."
-                : "Waiting for GitHub to deliver its signed webhook ping…"}
+                ? t("stability.f7c4fecf9183", { defaultValue: "GitHub has verified this webhook." })
+                : t("stability.4255e14b0fa2", { defaultValue: "Waiting for GitHub to deliver its signed webhook ping…" })}
             </p>
           )}
         </div>
         {!endpoint.setup?.webhookUrl && (
-          <p className="text-sm text-destructive">
-            Configure a public HTTPS URL for this Paperclip instance before
-            connecting GitHub.
-          </p>
+          <p className="text-sm text-destructive">{t("stability.54b7183f5911", { defaultValue: "Configure a public HTTPS URL for this Paperclip instance before connecting GitHub." })}</p>
         )}
         <Button
           disabled={
@@ -1519,7 +1354,7 @@ settings:
           }
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-          {repairing ? "Reconnect and verify" : "Connect and verify"}
+          {repairing ? t("stability.9487232d7a68", { defaultValue: "Reconnect and verify" }) : t("stability.a2bfc0e223ae", { defaultValue: "Connect and verify" })}
         </Button>
       </div>
     );
@@ -1527,43 +1362,37 @@ settings:
     return (
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-bold">Verify Slack connection</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Slack needs to confirm that it can reach your Paperclip instance.
-          </p>
+          <h1 className="text-xl font-bold">{t("stability.f64c0a1d9ba6", { defaultValue: "Verify Slack connection" })}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("stability.a2c02d935486", { defaultValue: "Slack needs to confirm that it can reach your Paperclip instance." })}</p>
         </div>
         <ol className="list-decimal space-y-2 pl-5 text-sm">
-          <li><a className="underline underline-offset-4" href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer">Open Slack app Settings <ExternalLink className="inline size-3" /></a> and choose <strong>{slackApp.appName}</strong>.</li>
-          <li>Choose <strong>Event Subscriptions</strong>.</li>
-          <li>Beside the prefilled <strong>Request URL</strong>, click <strong>Retry</strong> if it isn&apos;t verified. Save changes if Slack asks.</li>
+          <li><a className="underline underline-offset-4" href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer">{t("stability.30cfde1ec067", { defaultValue: "Open Slack app Settings" })}{" "}<ExternalLink className="inline size-3" /></a>{" "}{t("stability.566c1f30e50c", { defaultValue: "and choose" })}{" "}<strong>{slackApp.appName}</strong>.</li>
+          <li>{t("choose")}{" "}<strong>{t("stability.664326174c32", { defaultValue: "Event Subscriptions" })}</strong>.</li>
+          <li>{t("stability.3b8a3f4a85ef", { defaultValue: "Beside the prefilled" })}{" "}<strong>{t("stability.dafbe40ca8b7", { defaultValue: "Request URL" })}</strong>{t("stability.254b3f7ae378", { defaultValue: ", click" })}{" "}<strong>{t("common.retry")}</strong>{" "}{t("stability.6f3f6848db0b", { defaultValue: "if it isn't verified. Save changes if Slack asks." })}</li>
         </ol>
         {endpoint.setup?.webhookVerifiedAt ? (
           <p role="status" className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className="size-4 text-(--status-task-done)" />
-            Slack verified your connection.{pending ? " Opening the message test…" : ""}
+            <CheckCircle2 className="size-4 text-(--status-task-done)" />{t("stability.5bb1e424795b", { defaultValue: "Slack verified your connection." })}{pending ? t("stability.e9fc8991ab02", { defaultValue: " Opening the message test…" }) : ""}
           </p>
         ) : slackVerificationError ? (
-          <p role="alert" className="text-sm text-destructive">Couldn&apos;t check verification. We&apos;ll keep trying; check your connection if this continues.</p>
+          <p role="alert" className="text-sm text-destructive">{t("stability.e9747d854a92", { defaultValue: "Couldn't check verification. We'll keep trying; check your connection if this continues." })}</p>
         ) : (
           <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Waiting for Slack to verify. We&apos;ll continue automatically.
-          </p>
+            <Loader2 className="size-4 animate-spin" />{" "}{t("stability.340004ee6ab1", { defaultValue: "Waiting for Slack to verify. We'll continue automatically." })}</p>
         )}
         <details className="text-sm">
-          <summary className="cursor-pointer text-muted-foreground">Troubleshooting</summary>
+          <summary className="cursor-pointer text-muted-foreground">{t("stability.c3af076f92c5", { defaultValue: "Troubleshooting" })}</summary>
           <div className="mt-3 space-y-3">
-            <p className="text-muted-foreground">If the Request URL is missing or different, paste this URL into Event Subscriptions. If verification fails, check that your public HTTPS server is reachable and your Signing Secret is correct.</p>
+            <p className="text-muted-foreground">{t("stability.f35fe901dc55", { defaultValue: "If the Request URL is missing or different, paste this URL into Event Subscriptions. If verification fails, check that your public HTTPS server is reachable and your Signing Secret is correct." })}</p>
             {endpointValue("Paperclip webhook URL", endpoint.setup?.webhookUrl)}
           </div>
         </details>
         <div className="flex items-center justify-between gap-3">
-          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/apps")}>Save &amp; exit</Button>
+          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/apps")}>{t("stability.0bd63bf3d32e", { defaultValue: "Save & exit" })}</Button>
           <Button disabled={pending || !endpoint.setup?.webhookVerifiedAt} onClick={() =>
             endpoint.setup?.step === "provider_setup" ? onAction("verify") : onSlackVerificationContinue()
           }>
-            {pending && <Loader2 className="size-4 animate-spin" />}
-            Continue
-          </Button>
+            {pending && <Loader2 className="size-4 animate-spin" />}{t("continue")}</Button>
         </div>
       </div>
     );
@@ -1574,28 +1403,21 @@ settings:
         <div role="alert" className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
           <AlertTriangle className="size-5 shrink-0 text-destructive" />
           <div className="space-y-1">
-            <p className="text-sm font-semibold">Public HTTPS URL required</p>
-            <p className="text-sm">
-              Slack needs a public HTTPS URL to send messages to Paperclip.
-              Configure one for this instance before creating or connecting your Slack app.
-            </p>
+            <p className="text-sm font-semibold">{t("stability.e211fdbdad86", { defaultValue: "Public HTTPS URL required" })}</p>
+            <p className="text-sm">{t("stability.4d8a53f19a1f", { defaultValue: "Slack needs a public HTTPS URL to send messages to Paperclip. Configure one for this instance before creating or connecting your Slack app." })}</p>
             <a
               href="https://docs.paperclip.ing/reference/deploy/https/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm underline underline-offset-4"
-            >
-              Learn how to set up HTTPS
-            </a>
+            >{t("stability.d73f790b1709", { defaultValue: "Learn how to set up HTTPS" })}</a>
           </div>
         </div>
       )}
       <div>
-        <h1 className="text-xl font-bold">{slackStage === "app" ? "Create a Slack app" : "Add Slack credentials"}</h1>
+        <h1 className="text-xl font-bold">{slackStage === "app" ? t("stability.80a0f951288b", { defaultValue: "Create a Slack app" }) : t("stability.eafbd79fa826", { defaultValue: "Add Slack credentials" })}</h1>
         {repairing && (
-          <p className="mt-1 text-sm text-muted-foreground">
-            Reconnect verifies or replaces credentials for this same Slack app. It does not reinstall the app or change its workspace or channel membership. Leave credentials blank to reuse the saved values.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("stability.c4328e46cafe", { defaultValue: "Reconnect verifies or replaces credentials for this same Slack app. It does not reinstall the app or change its workspace or channel membership. Leave credentials blank to reuse the saved values." })}</p>
         )}
       </div>
       <div hidden={slackStage !== "app"} className="space-y-5">
@@ -1612,7 +1434,7 @@ settings:
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      aria-label={`Help with ${label.toLowerCase()}`}
+                      aria-label={t("stability.cbe4affdec08", { value1: label.toLowerCase(), defaultValue: "Help with {{value1}}" })}
                       className="rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <CircleHelp className="size-3.5" aria-hidden="true" />
@@ -1638,26 +1460,22 @@ settings:
           )}
           {saveSlackApp.isError && (
             <div role="alert" className="space-y-2 text-sm text-destructive">
-              <p>Couldn&apos;t save the Slack app details. Try again before connecting.</p>
-              <Button variant="outline" size="sm" onClick={persistSlackApp}>Retry saving</Button>
+              <p>{t("stability.1219ab53cc03", { defaultValue: "Couldn't save the Slack app details. Try again before connecting." })}</p>
+              <Button variant="outline" size="sm" onClick={persistSlackApp}>{t("stability.3adee60b2336", { defaultValue: "Retry saving" })}</Button>
             </div>
           )}
           <div className="flex justify-end">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="link" className="h-auto p-0 text-xs text-muted-foreground underline underline-offset-4">
-                  View Slack App Manifest
-                </Button>
+                <Button variant="link" className="h-auto p-0 text-xs text-muted-foreground underline underline-offset-4">{t("stability.d0918c4c7d01", { defaultValue: "View Slack App Manifest" })}</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Slack app manifest</DialogTitle>
-                  <DialogDescription>
-                    Generated from your app name, bot name, and slash command. Edit those fields to update the manifest.
-                  </DialogDescription>
+                  <DialogTitle>{t("stability.3d57b6051596", { defaultValue: "Slack app manifest" })}</DialogTitle>
+                  <DialogDescription>{t("stability.1feb775e5af3", { defaultValue: "Generated from your app name, bot name, and slash command. Edit those fields to update the manifest." })}</DialogDescription>
                 </DialogHeader>
                 <Textarea
-                  aria-label="Slack app manifest"
+                  aria-label={t("stability.3d57b6051596", { defaultValue: "Slack app manifest" })}
                   className="h-80 font-mono text-xs"
                   readOnly
                   value={slackManifest}
@@ -1673,7 +1491,7 @@ settings:
                       );
                     }}
                   >
-                    {manifestCopied ? "Manifest copied" : "Copy manifest"}
+                    {manifestCopied ? t("stability.64e6431bbff5", { defaultValue: "Manifest copied" }) : t("stability.415f928f80c3", { defaultValue: "Copy manifest" })}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -1681,13 +1499,9 @@ settings:
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
-          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/apps")}>
-            Save &amp; exit
-          </Button>
+          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/apps")}>{t("stability.0bd63bf3d32e", { defaultValue: "Save & exit" })}</Button>
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-            <Button variant="outline" disabled={openingSlackApp || !endpoint.setup?.webhookUrl || !slackValidation.success || saveSlackApp.isPending || saveSlackApp.isError} onClick={onSlackAppCreated}>
-              I already created the app
-            </Button>
+            <Button variant="outline" disabled={openingSlackApp || !endpoint.setup?.webhookUrl || !slackValidation.success || saveSlackApp.isPending || saveSlackApp.isError} onClick={onSlackAppCreated}>{t("stability.b71ded6b394f", { defaultValue: "I already created the app" })}</Button>
             {!repairing && (
               <Button
                 disabled={openingSlackApp || !endpoint.setup?.webhookUrl || !slackValidation.success || saveSlackApp.isPending || saveSlackApp.isError}
@@ -1701,76 +1515,66 @@ settings:
                     onSlackAppCreated();
                   }, 1000);
                 }}
-              >
-                Create Slack app <ExternalLink />
+              >{t("stability.7e043d9ff8df", { defaultValue: "Create Slack app" })}{" "}<ExternalLink />
               </Button>
             )}
           </div>
         </div>
       </div>
       <div hidden={slackStage !== "credentials"} className="space-y-5">
-        <p className="text-sm">
-          Now you need to find two secrets. They are in two different screens on Slack.
-        </p>
+        <p className="text-sm">{t("stability.6aa5da6045aa", { defaultValue: "Now you need to find two secrets. They are in two different screens on Slack." })}</p>
         {slackCredentialsSaved && !repairing && (
-          <p className="text-sm text-muted-foreground">Your credentials are saved. Leave the fields blank to keep them, or enter replacements.</p>
+          <p className="text-sm text-muted-foreground">{t("stability.817aa6e72b18", { defaultValue: "Your credentials are saved. Leave the fields blank to keep them, or enter replacements." })}</p>
         )}
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold"><label htmlFor="slack-bot-token">Bot User OAuth Token</label></h2>
+          <h2 className="text-sm font-semibold"><label htmlFor="slack-bot-token">{t("stability.d6b64bf5e951", { defaultValue: "Bot User OAuth Token" })}</label></h2>
           <ul id="slack-bot-token-help" className="list-disc space-y-1 pl-5 text-sm">
             <li>
-              <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-                Open Slack app Settings <ExternalLink className="inline size-3" />
-              </a> and choose <strong>{slackApp.appName}</strong>.
+              <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">{t("stability.30cfde1ec067", { defaultValue: "Open Slack app Settings" })}{" "}<ExternalLink className="inline size-3" />
+              </a>{" "}{t("stability.566c1f30e50c", { defaultValue: "and choose" })}{" "}<strong>{slackApp.appName}</strong>.
             </li>
-            <li>Choose <strong>OAuth &amp; Permissions</strong></li>
-            <li>Copy and paste your <strong>Bot OAuth Token</strong></li>
+            <li>{t("choose")}{" "}<strong>{t("stability.552008101593", { defaultValue: "OAuth & Permissions" })}</strong></li>
+            <li>{t("stability.ef79f9371149", { defaultValue: "Copy and paste your" })}{" "}<strong>{t("stability.9d89851e5da9", { defaultValue: "Bot OAuth Token" })}</strong></li>
           </ul>
           <Input
             id="slack-bot-token"
             type="password"
-            placeholder={slackCredentialsSaved ? "Saved — leave blank to keep" : undefined}
+            placeholder={slackCredentialsSaved ? t("stability.f1a85f6bace4", { defaultValue: "Saved — leave blank to keep" }) : undefined}
             value={credentials.botToken ?? ""}
             aria-invalid={slackBotTokenInvalid || undefined}
             aria-describedby={`slack-bot-token-help${slackBotTokenInvalid ? " slack-bot-token-warning" : ""}`}
             onChange={(event) => setCredentials({ ...credentials, botToken: event.target.value })}
           />
           {slackBotTokenInvalid && (
-            <p id="slack-bot-token-warning" role="alert" className="text-sm text-destructive">
-              Your Bot User OAuth Token must start with <code>xoxb-</code>. Copy it from <strong>OAuth &amp; Permissions</strong>.
+            <p id="slack-bot-token-warning" role="alert" className="text-sm text-destructive">{t("stability.80bd918bbda1", { defaultValue: "Your Bot User OAuth Token must start with" })}{" "}<code>xoxb-</code>. Copy it from <strong>{t("stability.552008101593", { defaultValue: "OAuth & Permissions" })}</strong>.
             </p>
           )}
         </section>
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold"><label htmlFor="slack-signing-secret">Signing Secret</label></h2>
+          <h2 className="text-sm font-semibold"><label htmlFor="slack-signing-secret">{t("stability.f5e81453d0e9", { defaultValue: "Signing Secret" })}</label></h2>
           <ul id="slack-signing-secret-help" className="list-disc space-y-1 pl-5 text-sm">
             <li>
-              <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-                Open Slack app Settings <ExternalLink className="inline size-3" />
-              </a> and choose <strong>{slackApp.appName}</strong>.
+              <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">{t("stability.30cfde1ec067", { defaultValue: "Open Slack app Settings" })}{" "}<ExternalLink className="inline size-3" />
+              </a>{" "}{t("stability.566c1f30e50c", { defaultValue: "and choose" })}{" "}<strong>{slackApp.appName}</strong>.
             </li>
-            <li>Choose <strong>Basic Information</strong></li>
-            <li>Copy and paste your <strong>Signing Secret</strong></li>
+            <li>{t("choose")}{" "}<strong>{t("stability.d094b334d809", { defaultValue: "Basic Information" })}</strong></li>
+            <li>{t("stability.ef79f9371149", { defaultValue: "Copy and paste your" })}{" "}<strong>{t("stability.f5e81453d0e9", { defaultValue: "Signing Secret" })}</strong></li>
           </ul>
           <Input
             id="slack-signing-secret"
             type="password"
-            placeholder={slackCredentialsSaved ? "Saved — leave blank to keep" : undefined}
+            placeholder={slackCredentialsSaved ? t("stability.f1a85f6bace4", { defaultValue: "Saved — leave blank to keep" }) : undefined}
             value={credentials.signingSecret ?? ""}
             aria-invalid={slackSigningSecretHasTokenPrefix || undefined}
             aria-describedby={`slack-signing-secret-help${slackSigningSecretHasTokenPrefix ? " slack-signing-secret-warning" : ""}`}
             onChange={(event) => setCredentials({ ...credentials, signingSecret: event.target.value })}
           />
           {slackSigningSecretHasTokenPrefix && (
-            <p id="slack-signing-secret-warning" role="alert" className="text-sm text-destructive">
-              Use the <strong>Signing Secret</strong>, NOT an app or bot token. The Signing Secret has no token prefix.
-            </p>
+            <p id="slack-signing-secret-warning" role="alert" className="text-sm text-destructive">{t("stability.3ffa30fbc409", { defaultValue: "Use the" })}{" "}<strong>{t("stability.f5e81453d0e9", { defaultValue: "Signing Secret" })}</strong>{t("stability.1c2ae0821df5", { defaultValue: ", NOT an app or bot token. The Signing Secret has no token prefix." })}</p>
           )}
         </section>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/apps")}>
-            Save &amp; exit
-          </Button>
+          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/apps")}>{t("stability.0bd63bf3d32e", { defaultValue: "Save & exit" })}</Button>
           <Button
             className="ml-auto"
             disabled={
@@ -1783,7 +1587,7 @@ settings:
               : onAction(repairing || slackCredentialsSaved ? "reconnect" : "configure", credentials)}
           >
             {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {continueWithSavedSlackCredentials ? "Continue" : repairing || slackCredentialsSaved ? "Reconnect Slack app" : "Connect Slack app"}
+            {continueWithSavedSlackCredentials ? t("continue") : repairing || slackCredentialsSaved ? t("stability.dcbcb32c3f0b", { defaultValue: "Reconnect Slack app" }) : t("stability.db03affc54d9", { defaultValue: "Connect Slack app" })}
           </Button>
         </div>
       </div>
@@ -1932,18 +1736,13 @@ function TryStep({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-bold">
-          Try {agentName} in {providerNames[provider]}
+        <h1 className="text-xl font-bold">{t("try")}{" "}{agentName}{" "}{t("zhComponents.text_af10ef20dd")}{" "}{providerNames[provider]}
         </h1>
-        {provider !== "slack" && <p className="mt-1 text-sm text-muted-foreground">
-          Complete this real conversation to finish setup.
-        </p>}
+        {provider !== "slack" && <p className="mt-1 text-sm text-muted-foreground">{t("stability.fae6c4770a9b", { defaultValue: "Complete this real conversation to finish setup." })}</p>}
       </div>
       {(!principalsQuery.isSuccess || guestIsolationState === "loading") &&
       !principalsQuery.isError ? (
-        <p role="status" className="text-sm text-muted-foreground">
-          Checking identity and guest readiness…
-        </p>
+        <p role="status" className="text-sm text-muted-foreground">{t("stability.572f064e1675", { defaultValue: "Checking identity and guest readiness…" })}</p>
       ) : null}
       {identityGuidance ? (
         <div
@@ -1961,35 +1760,33 @@ function TryStep({
             size="sm"
             variant="outline"
             onClick={onOpenAccess}
-          >
-            Review identity access
-          </Button>
+          >{t("stability.31688e7ebbfc", { defaultValue: "Review identity access" })}</Button>
         </div>
       ) : null}
-      {provider === "imessage-photon" && botUsername && <div className="space-y-2"><Button variant="outline" onClick={() => { void copyTextToClipboard(botUsername).then(() => { setNumberCopied(true); setCopyError(null); }, () => setCopyError("Could not copy the number. Select it in the instructions below.")); }}>{numberCopied ? "Number copied" : `Copy ${botUsername}`}</Button>{copyError && <p role="alert" className="text-sm text-destructive">{copyError}</p>}</div>}
+      {provider === "imessage-photon" && botUsername && <div className="space-y-2"><Button variant="outline" onClick={() => { void copyTextToClipboard(botUsername).then(() => { setNumberCopied(true); setCopyError(null); }, () => setCopyError("Could not copy the number. Select it in the instructions below.")); }}>{numberCopied ? t("stability.4bf3f054bc40", { defaultValue: "Number copied" }) : `Copy ${botUsername}`}</Button>{copyError && <p role="alert" className="text-sm text-destructive">{copyError}</p>}</div>}
       {provider === "slack" ? (
         <>
           <ol className="list-decimal space-y-4 pl-5 text-sm">
-            <li>Open a channel and invite {botMention} if needed.</li>
+            <li>{t("stability.8ef53ea7eb55", { defaultValue: "Open a channel and invite" })}{" "}{botMention}{" "}{t("stability.80b41565d71a", { defaultValue: "if needed." })}</li>
             <li>
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3">
                 <code>{slackTestMessage}</code>
                 <Button size="sm" variant="ghost" onClick={() => {
                   void copyTextToClipboard(slackTestMessage).then(() => { setCommandCopied(true); setCommandCopyError(false); }, () => setCommandCopyError(true));
-                }}><Copy className="size-4" />{commandCopied ? "Copied" : "Copy message"}</Button>
+                }}><Copy className="size-4" />{commandCopied ? t("copied") : t("copy_message")}</Button>
               </div>
-              <p className="mt-2 text-muted-foreground">Select the bot from Slack’s @mention suggestions.</p>
+              <p className="mt-2 text-muted-foreground">{t("stability.dc432c935515", { defaultValue: "Select the bot from Slack’s @mention suggestions." })}</p>
             </li>
-            <li>Continue the conversation in the thread.</li>
+            <li>{t("stability.88bf894ffd73", { defaultValue: "Continue the conversation in the thread." })}</li>
           </ol>
-          {commandCopyError && <p role="alert" className="text-sm text-destructive">Couldn&apos;t copy. Select and copy the command above.</p>}
-          {messageStatus.data?.messageReceivedAt ? <p role="status" className="flex items-center gap-2 text-sm"><CheckCircle2 className="size-4 text-(--status-task-done)" />Received your Slack message.</p>
-            : <p role={messageStatus.isError ? "alert" : "status"} className="text-sm text-muted-foreground">{messageStatus.isError ? "Couldn’t check for your message. You can still finish setup." : "We’ll check for your message automatically. This test is optional."}</p>}
+          {commandCopyError && <p role="alert" className="text-sm text-destructive">{t("stability.2d6635486c28", { defaultValue: "Couldn't copy. Select and copy the command above." })}</p>}
+          {messageStatus.data?.messageReceivedAt ? <p role="status" className="flex items-center gap-2 text-sm"><CheckCircle2 className="size-4 text-(--status-task-done)" />{t("stability.5fa101ce9e5e", { defaultValue: "Received your Slack message." })}</p>
+            : <p role={messageStatus.isError ? "alert" : "status"} className="text-sm text-muted-foreground">{messageStatus.isError ? t("stability.cf8b24f32438", { defaultValue: "Couldn’t check for your message. You can still finish setup." }) : t("stability.e7c6f9669f44", { defaultValue: "We’ll check for your message automatically. This test is optional." })}</p>}
           <div className="flex items-center justify-between gap-3">
-            <Button variant="ghost" className="text-muted-foreground" onClick={onSaveExit}>Save &amp; exit</Button>
+            <Button variant="ghost" className="text-muted-foreground" onClick={onSaveExit}>{t("stability.0bd63bf3d32e", { defaultValue: "Save & exit" })}</Button>
             <div className="flex flex-wrap items-center justify-end gap-2">
-              <Button variant="ghost" disabled={pending} onClick={onTest}>Skip test and finish</Button>
-              <Button disabled={pending} onClick={onTest}>{pending && <Loader2 className="size-4 animate-spin" />}I&apos;ve sent the test message</Button>
+              <Button variant="ghost" disabled={pending} onClick={onTest}>{t("stability.d41475fabe79", { defaultValue: "Skip test and finish" })}</Button>
+              <Button disabled={pending} onClick={onTest}>{pending && <Loader2 className="size-4 animate-spin" />}{t("stability.a3c904fc3c0d", { defaultValue: "I've sent the test message" })}</Button>
             </div>
           </div>
         </>
@@ -2000,15 +1797,12 @@ function TryStep({
       <div className="flex flex-wrap gap-2">
         {providerUrl && (
           <Button asChild variant="outline">
-            <a href={providerUrl} target="_blank" rel="noopener noreferrer">
-              Open {providerNames[provider]} <ExternalLink />
+            <a href={providerUrl} target="_blank" rel="noopener noreferrer">{t("open")}{" "}{providerNames[provider]} <ExternalLink />
             </a>
           </Button>
         )}
         <Button disabled={pending} onClick={onTest}>
-          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-          I've sent the test message
-        </Button>
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />}{t("stability.a3c904fc3c0d", { defaultValue: "I've sent the test message" })}</Button>
       </div>
       </>}
     </div>

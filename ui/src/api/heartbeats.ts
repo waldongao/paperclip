@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+import { translateDisplayMessage } from "@/i18n/display-message";
 import type { AgentAppearance } from "@paperclipai/shared";
 import type { IssueRecoveryAction } from "@paperclipai/shared";
 import type {
@@ -183,7 +185,7 @@ export const heartbeatsApi = {
       const recovery = tenantSessionRecovery.recoverIfNeeded(response.status, body);
       if (recovery) return recovery;
       throw new Error(
-        body?.error ?? `Trace download failed: ${response.status}`,
+        translateDisplayMessage(body?.error ?? t("zhSupport.traceDownloadFailed", { status: response.status })),
       );
     }
     return response.blob();

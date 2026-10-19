@@ -8,6 +8,8 @@ import {
   formatDateTime,
   providerDisplayName,
 } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
+import { t } from "@/i18n";
 
 interface FinanceTimelineCardProps {
   rows: FinanceEvent[];
@@ -16,13 +18,14 @@ interface FinanceTimelineCardProps {
 
 export function FinanceTimelineCard({
   rows,
-  emptyMessage = "No financial events in this period.",
+  emptyMessage = t("no_financial_events_in_this_period"),
 }: FinanceTimelineCardProps) {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader className="px-4 pt-4 pb-1">
-        <CardTitle className="text-base">Recent financial events</CardTitle>
-        <CardDescription>Top-ups, fees, credits, commitments, and other non-request charges.</CardDescription>
+        <CardTitle className="text-base">{t("recent_financial_events")}</CardTitle>
+        <CardDescription>{t("top_ups_fees_credits_commitments_and_other_non_r")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 px-4 pb-4 pt-3">
         {rows.length === 0 ? (
@@ -50,16 +53,16 @@ export function FinanceTimelineCard({
                   {(row.description || row.externalInvoiceId || row.region || row.pricingTier) && (
                     <div className="space-y-1 text-xs text-muted-foreground">
                       {row.description ? <div>{row.description}</div> : null}
-                      {row.externalInvoiceId ? <div>invoice {row.externalInvoiceId}</div> : null}
-                      {row.region ? <div>region {row.region}</div> : null}
-                      {row.pricingTier ? <div>tier {row.pricingTier}</div> : null}
+                      {row.externalInvoiceId ? <div>{t("zhComponents.text_baeba7e7b9")} {row.externalInvoiceId}</div> : null}
+                      {row.region ? <div>{t("zhComponents.text_a94a58406e")} {row.region}</div> : null}
+                      {row.pricingTier ? <div>{t("zhComponents.text_600279c821")} {row.pricingTier}</div> : null}
                     </div>
                   )}
                 </div>
                 <div className="text-right tabular-nums">
                   <div className="text-sm font-semibold">{formatCents(row.amountCents)}</div>
                   <div className="text-xs text-muted-foreground">{row.currency}</div>
-                  {row.estimated ? <div className="text-(length:--text-micro) uppercase tracking-(--tracking-eyebrow) text-amber-600">estimated</div> : null}
+                  {row.estimated ? <div className="text-(length:--text-micro) uppercase tracking-(--tracking-eyebrow) text-amber-600">{t("zhComponents.text_781012cf77")}</div> : null}
                 </div>
               </div>
             </div>

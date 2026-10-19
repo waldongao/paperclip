@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import * as p from "@clack/prompts";
 import path from "node:path";
 import pc from "picocolors";
@@ -73,7 +74,7 @@ type OnboardOptions = {
 type OnboardDefaults = Pick<PaperclipConfig, "database" | "logging" | "server" | "auth" | "storage" | "secrets">;
 
 const TAILNET_BIND_WARNING =
-  "No Tailscale address was detected during setup. The saved config will stay on loopback until Tailscale is available or PAPERCLIP_TAILNET_BIND_HOST is set.";
+  tCli("No Tailscale address was detected during setup. The saved config will stay on loopback until Tailscale is available or PAPERCLIP_TAILNET_BIND_HOST is set.");
 
 const ONBOARD_ENV_KEYS = [
   "PAPERCLIP_PUBLIC_URL",
@@ -165,7 +166,7 @@ function describeServerBinding(server: Pick<PaperclipConfig["server"], "bind" | 
     bind === "custom"
       ? server.customBindHost ?? server.host
       : bind === "tailnet"
-        ? "detected tailscale address"
+        ? tCli("detected tailscale address")
         : server.host;
   return `${bind}${detail ? ` (${detail})` : ""}:${server.port}`;
 }
@@ -311,7 +312,7 @@ function quickstartDefaultsFromEnv(opts?: { preferTrustedLocal?: boolean }): {
   };
   const ignoredEnvKeys: Array<{ key: string; reason: string }> = [];
   if (preferTrustedLocal) {
-    const forcedLocalReason = "Ignored because --yes quickstart forces trusted local loopback defaults";
+    const forcedLocalReason = tCli("Ignored because --yes quickstart forces trusted local loopback defaults");
     for (const key of [
       "PAPERCLIP_DEPLOYMENT_MODE",
       "PAPERCLIP_DEPLOYMENT_EXPOSURE",
@@ -332,25 +333,25 @@ function quickstartDefaultsFromEnv(opts?: { preferTrustedLocal?: boolean }): {
   if (deploymentMode === "local_trusted" && process.env.PAPERCLIP_DEPLOYMENT_EXPOSURE !== undefined) {
     ignoredEnvKeys.push({
       key: "PAPERCLIP_DEPLOYMENT_EXPOSURE",
-      reason: "Ignored because deployment mode local_trusted always forces private exposure",
+      reason: tCli("Ignored because deployment mode local_trusted always forces private exposure"),
     });
   }
   if (deploymentMode === "local_trusted" && process.env.PAPERCLIP_BIND !== undefined) {
     ignoredEnvKeys.push({
       key: "PAPERCLIP_BIND",
-      reason: "Ignored because deployment mode local_trusted always uses loopback reachability",
+      reason: tCli("Ignored because deployment mode local_trusted always uses loopback reachability"),
     });
   }
   if (deploymentMode === "local_trusted" && process.env.PAPERCLIP_BIND_HOST !== undefined) {
     ignoredEnvKeys.push({
       key: "PAPERCLIP_BIND_HOST",
-      reason: "Ignored because deployment mode local_trusted always uses loopback reachability",
+      reason: tCli("Ignored because deployment mode local_trusted always uses loopback reachability"),
     });
   }
   if (deploymentMode === "local_trusted" && process.env.HOST !== undefined) {
     ignoredEnvKeys.push({
       key: "HOST",
-      reason: "Ignored because deployment mode local_trusted always uses loopback reachability",
+      reason: tCli("Ignored because deployment mode local_trusted always uses loopback reachability"),
     });
   }
 
@@ -376,13 +377,13 @@ function printManagedInstallHint(): void {
   if (manifest && isManagedExecutable(process.argv[1], manifest)) return;
   if (!isEphemeralNpxExecution()) return;
   p.log.info(
-    `This npx run is temporary. Use ${pc.cyan("paperclipai install")} for atomic updates, rollback, and service support.`,
+    tCli("This npx run is temporary. Use {{value1}} for atomic updates, rollback, and service support.", { value1: String(pc.cyan("paperclipai install")) }),
   );
 }
 
 export async function onboard(opts: OnboardOptions): Promise<void> {
   if (opts.bind && !["loopback", "lan", "tailnet"].includes(opts.bind)) {
-    throw new Error(`Unsupported bind preset for onboard: ${opts.bind}. Use loopback, lan, or tailnet.`);
+    throw new Error(tCli("Unsupported bind preset for onboard: {{value1}}. Use loopback, lan, or tailnet.", { value1: String(opts.bind) }));
   }
 
   printPaperclipCliBanner();
@@ -391,24 +392,24 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
   const instance = describeLocalInstancePaths(resolvePaperclipInstanceId());
   p.log.message(
     pc.dim(
-      `Local home: ${instance.homeDir} | instance: ${instance.instanceId} | config: ${configPath}`,
+      tCli("Local home: {{value1}} | instance: {{value2}} | config: {{value3}}", { value1: String(instance.homeDir), value2: String(instance.instanceId), value3: String(configPath) }),
     ),
   );
 
   let existingConfig: PaperclipConfig | null = null;
   let invalidBackupPath: string | undefined;
   if (configExists(opts.config)) {
-    p.log.message(pc.dim(`${configPath} exists`));
+    p.log.message(pc.dim(tCli("{{value1}} exists", { value1: String(configPath) })));
 
     try {
       existingConfig = readConfig(opts.config);
       for (const warning of findPaperclipConfigKeyWarnings(existingConfig)) {
-        p.log.warn(`Unknown config key ${warning.path}; did you mean ${warning.suggestion}? It will be preserved.`);
+        p.log.warn(tCli("Unknown config key {{value1}}; did you mean {{value2}}? It will be preserved.", { value1: String(warning.path), value2: String(warning.suggestion) }));
       }
     } catch (err) {
       const backupPath = backupInvalidConfig(opts.config);
       p.log.warn(
-        `Existing config is invalid. Preserved the original bytes at ${backupPath}.\n${err instanceof Error ? err.message : String(err)}`,
+        tCli("Existing config is invalid. Preserved the original bytes at {{value1}}.\n{{value2}}", { value1: String(backupPath), value2: String(err instanceof Error ? err.message : String(err)) }),
       );
 
       const canConfirmRepair =
@@ -418,7 +419,7 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
         process.stdout.isTTY === true;
       if (!canConfirmRepair) {
         p.log.error(
-          `Refusing to replace ${configPath} without confirmation. Rerun interactively to repair from defaults; the original and ${backupPath} are unchanged.`,
+          tCli("Refusing to replace {{value1}} without confirmation. Rerun interactively to repair from defaults; the original and {{value2}} are unchanged.", { value1: String(configPath), value2: String(backupPath) }),
         );
         p.outro("");
         process.exitCode = 1;
@@ -426,11 +427,11 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
       }
 
       const repair = await p.confirm({
-        message: `Repair from defaults? The invalid original is backed up at ${backupPath}.`,
+        message: tCli("Repair from defaults? The invalid original is backed up at {{value1}}.", { value1: String(backupPath) }),
         initialValue: false,
       });
       if (p.isCancel(repair) || !repair) {
-        p.cancel(`Configuration left unchanged. Invalid backup: ${backupPath}`);
+        p.cancel(tCli("Configuration left unchanged. Invalid backup: {{value1}}", { value1: String(backupPath) }));
         process.exitCode = 1;
         return;
       }
@@ -440,54 +441,54 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
 
   if (existingConfig) {
     p.log.message(
-      pc.dim("Existing Paperclip install detected; keeping the current configuration unchanged."),
+      pc.dim(tCli("Existing Paperclip install detected; keeping the current configuration unchanged.")),
     );
-    p.log.message(pc.dim(`Use ${pc.cyan("paperclipai configure")} if you want to change settings.`));
+    p.log.message(pc.dim(tCli("Use {{value1}} if you want to change settings.", { value1: String(pc.cyan("paperclipai configure")) })));
 
     const jwtSecret = ensureAgentJwtSecret(configPath);
     const envFilePath = resolveAgentJwtEnvFile(configPath);
     if (jwtSecret.created) {
-      p.log.success(`Created ${pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")} in ${pc.dim(envFilePath)}`);
+      p.log.success(tCli("Created {{value1}} in {{value2}}", { value1: String(pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")), value2: String(pc.dim(envFilePath)) }));
     } else if (process.env.PAPERCLIP_AGENT_JWT_SECRET?.trim()) {
-      p.log.info(`Using existing ${pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")} from environment`);
+      p.log.info(tCli("Using existing {{value1}} from environment", { value1: String(pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")) }));
     } else {
-      p.log.info(`Using existing ${pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")} in ${pc.dim(envFilePath)}`);
+      p.log.info(tCli("Using existing {{value1}} in {{value2}}", { value1: String(pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")), value2: String(pc.dim(envFilePath)) }));
     }
     const toolActionSigningSecret = ensureToolActionSigningSecret(configPath);
     if (toolActionSigningSecret.created) {
-      p.log.success(`Created ${pc.cyan("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET")} in ${pc.dim(envFilePath)}`);
+      p.log.success(tCli("Created {{value1}} in {{value2}}", { value1: String(pc.cyan("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET")), value2: String(pc.dim(envFilePath)) }));
     }
 
     const keyResult = ensureLocalSecretsKeyFile(existingConfig, configPath);
     if (keyResult.status === "created") {
-      p.log.success(`Created local secrets key file at ${pc.dim(keyResult.path)}`);
+      p.log.success(tCli("Created local secrets key file at {{value1}}", { value1: String(pc.dim(keyResult.path)) }));
     } else if (keyResult.status === "existing") {
-      p.log.message(pc.dim(`Using existing local secrets key file at ${keyResult.path}`));
+      p.log.message(pc.dim(tCli("Using existing local secrets key file at {{value1}}", { value1: String(keyResult.path) })));
     }
 
     p.note(
       [
-        "Existing config preserved",
-        `Database: ${existingConfig.database.mode}`,
-        existingConfig.llm ? `LLM: ${existingConfig.llm.provider}` : "LLM: not configured",
-        `Logging: ${existingConfig.logging.mode} -> ${existingConfig.logging.logDir}`,
-        `Server: ${existingConfig.server.deploymentMode}/${existingConfig.server.exposure} @ ${describeServerBinding(existingConfig.server)}`,
-        `Allowed hosts: ${existingConfig.server.allowedHostnames.length > 0 ? existingConfig.server.allowedHostnames.join(", ") : "(loopback only)"}`,
-        `Auth URL mode: ${existingConfig.auth.baseUrlMode}${existingConfig.auth.publicBaseUrl ? ` (${existingConfig.auth.publicBaseUrl})` : ""}`,
-        `Storage: ${existingConfig.storage.provider}`,
-        `Secrets: ${existingConfig.secrets.provider} (strict mode ${existingConfig.secrets.strictMode ? "on" : "off"})`,
-        "Agent auth: PAPERCLIP_AGENT_JWT_SECRET configured",
+        tCli("Existing config preserved"),
+        tCli("Database: {{value1}}", { value1: tCli(String(existingConfig.database.mode)) }),
+        existingConfig.llm ? tCli("LLM: {{value1}}", { value1: String(existingConfig.llm.provider) }) : tCli("LLM: not configured"),
+        tCli("Logging: {{value1}} -> {{value2}}", { value1: tCli(String(existingConfig.logging.mode)), value2: String(existingConfig.logging.logDir) }),
+        tCli("Server: {{value1}}/{{value2}} @ {{value3}}", { value1: tCli(String(existingConfig.server.deploymentMode)), value2: tCli(String(existingConfig.server.exposure)), value3: String(describeServerBinding(existingConfig.server)) }),
+        tCli("Allowed hosts: {{value1}}", { value1: String(existingConfig.server.allowedHostnames.length > 0 ? existingConfig.server.allowedHostnames.join(", ") : tCli("(loopback only)")) }),
+        tCli("Auth URL mode: {{value1}}{{value2}}", { value1: tCli(String(existingConfig.auth.baseUrlMode)), value2: String(existingConfig.auth.publicBaseUrl ? ` (${existingConfig.auth.publicBaseUrl})` : "") }),
+        tCli("Storage: {{value1}}", { value1: tCli(String(existingConfig.storage.provider)) }),
+        tCli("Secrets: {{value1}} (strict mode {{value2}})", { value1: tCli(String(existingConfig.secrets.provider)), value2: String(existingConfig.secrets.strictMode ? tCli("on") : tCli("off")) }),
+        tCli("Agent auth: PAPERCLIP_AGENT_JWT_SECRET configured"),
       ].join("\n"),
-      "Configuration ready",
+      tCli("Configuration ready"),
     );
 
     p.note(
       [
-        `Run: ${pc.cyan("paperclipai run")}`,
-        `Reconfigure later: ${pc.cyan("paperclipai configure")}`,
-        `Diagnose setup: ${pc.cyan("paperclipai doctor")}`,
+        tCli("Run: {{value1}}", { value1: String(pc.cyan("paperclipai run")) }),
+        tCli("Reconfigure later: {{value1}}", { value1: String(pc.cyan("paperclipai configure")) }),
+        tCli("Diagnose setup: {{value1}}", { value1: String(pc.cyan("paperclipai doctor")) }),
       ].join("\n"),
-      "Next commands",
+      tCli("Next commands"),
     );
 
     printManagedInstallHint();
@@ -499,7 +500,7 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
     let shouldRunNow = !serviceInstalled && (opts.run === true || opts.yes === true);
     if (shouldOfferForegroundStart({ serviceInstalled, startAlreadyDecided: shouldRunNow, invokedByRun: opts.invokedByRun === true, interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY) })) {
       const answer = await p.confirm({
-        message: "Start Paperclip now?",
+        message: tCli("Start Paperclip now?"),
         initialValue: true,
       });
       if (!p.isCancel(answer)) {
@@ -512,7 +513,7 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
       return;
     }
 
-    p.outro("Existing Paperclip setup is ready.");
+    p.outro(tCli("Existing Paperclip setup is ready."));
     return;
   }
 
@@ -521,29 +522,29 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
     p.log.message(
       pc.dim(
         opts.bind
-          ? `\`--yes\` enabled: using Quickstart defaults with bind=${opts.bind}.`
-          : "`--yes` enabled: using Quickstart defaults.",
+          ? tCli("`--yes` enabled: using Quickstart defaults with bind={{value1}}.", { value1: String(opts.bind) })
+          : tCli("`--yes` enabled: using Quickstart defaults."),
       ),
     );
   } else {
     const setupModeChoice = await p.select({
-      message: "Choose setup path",
+      message: tCli("Choose setup path"),
       options: [
         {
           value: "quickstart" as const,
-          label: "Quickstart",
-          hint: "Recommended: local defaults + ready to run",
+          label: tCli("Quickstart"),
+          hint: tCli("Recommended: local defaults + ready to run"),
         },
         {
           value: "advanced" as const,
-          label: "Advanced setup",
-          hint: "Customize database, server, storage, and more",
+          label: tCli("Advanced setup"),
+          hint: tCli("Customize database, server, storage, and more"),
         },
       ],
       initialValue: "quickstart",
     });
     if (p.isCancel(setupModeChoice)) {
-      p.cancel("Setup cancelled.");
+      p.cancel(tCli("Setup cancelled."));
       return;
     }
     setupMode = setupModeChoice as SetupMode;
@@ -579,28 +580,28 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
   }
 
   if (setupMode === "advanced") {
-    p.log.step(pc.bold("Database"));
+    p.log.step(pc.bold(tCli("Database")));
     database = await promptDatabase(database);
 
     if (database.mode === "postgres" && database.connectionString) {
       const s = p.spinner();
-      s.start("Testing database connection...");
+      s.start(tCli("Testing database connection..."));
       try {
         const { createDb } = await import("@paperclipai/db");
         const db = createDb(database.connectionString);
         await db.execute("SELECT 1");
-        s.stop("Database connection successful");
+        s.stop(tCli("Database connection successful"));
       } catch {
-        s.stop(pc.yellow("Could not connect to database — you can fix this later with `paperclipai doctor`"));
+        s.stop(pc.yellow(tCli("Could not connect to database — you can fix this later with `paperclipai doctor`")));
       }
     }
 
-    p.log.step(pc.bold("LLM Provider"));
+    p.log.step(pc.bold(tCli("LLM Provider")));
     llm = await promptLlm();
 
     if (llm?.apiKey) {
       const s = p.spinner();
-      s.start("Validating API key...");
+      s.start(tCli("Validating API key..."));
       try {
         if (llm.provider === "claude") {
           const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -617,39 +618,39 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
             }),
           });
           if (res.ok || res.status === 400) {
-            s.stop("API key is valid");
+            s.stop(tCli("API key is valid"));
           } else if (res.status === 401) {
-            s.stop(pc.yellow("API key appears invalid — you can update it later"));
+            s.stop(pc.yellow(tCli("API key appears invalid — you can update it later")));
           } else {
-            s.stop(pc.yellow("Could not validate API key — continuing anyway"));
+            s.stop(pc.yellow(tCli("Could not validate API key — continuing anyway")));
           }
         } else {
           const res = await fetch("https://api.openai.com/v1/models", {
             headers: { Authorization: `Bearer ${llm.apiKey}` },
           });
           if (res.ok) {
-            s.stop("API key is valid");
+            s.stop(tCli("API key is valid"));
           } else if (res.status === 401) {
-            s.stop(pc.yellow("API key appears invalid — you can update it later"));
+            s.stop(pc.yellow(tCli("API key appears invalid — you can update it later")));
           } else {
-            s.stop(pc.yellow("Could not validate API key — continuing anyway"));
+            s.stop(pc.yellow(tCli("Could not validate API key — continuing anyway")));
           }
         }
       } catch {
-        s.stop(pc.yellow("Could not reach API — continuing anyway"));
+        s.stop(pc.yellow(tCli("Could not reach API — continuing anyway")));
       }
     }
 
-    p.log.step(pc.bold("Logging"));
+    p.log.step(pc.bold(tCli("Logging")));
     logging = await promptLogging();
 
-    p.log.step(pc.bold("Server"));
+    p.log.step(pc.bold(tCli("Server")));
     ({ server, auth } = await promptServer({ currentServer: server, currentAuth: auth }));
 
-    p.log.step(pc.bold("Storage"));
+    p.log.step(pc.bold(tCli("Storage")));
     storage = await promptStorage(storage);
 
-    p.log.step(pc.bold("Secrets"));
+    p.log.step(pc.bold(tCli("Secrets")));
     const secretsDefaults = defaultSecretsConfig();
     secrets = {
       provider: secrets.provider ?? secretsDefaults.provider,
@@ -660,42 +661,42 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
     };
     p.log.message(
       pc.dim(
-        `Using defaults: provider=${secrets.provider}, strictMode=${secrets.strictMode}, keyFile=${secrets.localEncrypted.keyFilePath}`,
+        tCli("Using defaults: provider={{value1}}, strictMode={{value2}}, keyFile={{value3}}", { value1: tCli(String(secrets.provider)), value2: String(secrets.strictMode), value3: String(secrets.localEncrypted.keyFilePath) }),
       ),
     );
   } else {
-    p.log.step(pc.bold("Quickstart"));
+    p.log.step(pc.bold(tCli("Quickstart")));
     p.log.message(
       pc.dim(
         opts.bind
-          ? `Using quickstart defaults with bind=${opts.bind}.`
-          : `Using quickstart defaults: ${server.deploymentMode}/${server.exposure} @ ${describeServerBinding(server)}.`,
+          ? tCli("Using quickstart defaults with bind={{value1}}.", { value1: String(opts.bind) })
+          : tCli("Using quickstart defaults: {{value1}}/{{value2}} @ {{value3}}.", { value1: tCli(String(server.deploymentMode)), value2: tCli(String(server.exposure)), value3: String(describeServerBinding(server)) }),
       ),
     );
     if (usedEnvKeys.length > 0) {
-      p.log.message(pc.dim(`Environment-aware defaults active (${usedEnvKeys.length} env var(s) detected).`));
+      p.log.message(pc.dim(tCli("Environment-aware defaults active ({{value1}} env var(s) detected).", { value1: String(usedEnvKeys.length) })));
     } else {
       p.log.message(
-        pc.dim("No environment overrides detected: embedded database, file storage, local encrypted secrets."),
+        pc.dim(tCli("No environment overrides detected: embedded database, file storage, local encrypted secrets.")),
       );
     }
     for (const ignored of ignoredEnvKeys) {
-      p.log.message(pc.dim(`Ignored ${ignored.key}: ${ignored.reason}`));
+      p.log.message(pc.dim(tCli("Ignored {{value1}}: {{value2}}", { value1: String(ignored.key), value2: String(ignored.reason) })));
     }
   }
 
   const jwtSecret = ensureAgentJwtSecret(configPath);
   const envFilePath = resolveAgentJwtEnvFile(configPath);
   if (jwtSecret.created) {
-    p.log.success(`Created ${pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")} in ${pc.dim(envFilePath)}`);
+    p.log.success(tCli("Created {{value1}} in {{value2}}", { value1: String(pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")), value2: String(pc.dim(envFilePath)) }));
   } else if (process.env.PAPERCLIP_AGENT_JWT_SECRET?.trim()) {
-    p.log.info(`Using existing ${pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")} from environment`);
+    p.log.info(tCli("Using existing {{value1}} from environment", { value1: String(pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")) }));
   } else {
-    p.log.info(`Using existing ${pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")} in ${pc.dim(envFilePath)}`);
+    p.log.info(tCli("Using existing {{value1}} in {{value2}}", { value1: String(pc.cyan("PAPERCLIP_AGENT_JWT_SECRET")), value2: String(pc.dim(envFilePath)) }));
   }
   const toolActionSigningSecret = ensureToolActionSigningSecret(configPath);
   if (toolActionSigningSecret.created) {
-    p.log.success(`Created ${pc.cyan("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET")} in ${pc.dim(envFilePath)}`);
+    p.log.success(tCli("Created {{value1}} in {{value2}}", { value1: String(pc.cyan("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET")), value2: String(pc.dim(envFilePath)) }));
   }
 
   const config: PaperclipConfig = {
@@ -718,9 +719,9 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
 
   const keyResult = ensureLocalSecretsKeyFile(config, configPath);
   if (keyResult.status === "created") {
-    p.log.success(`Created local secrets key file at ${pc.dim(keyResult.path)}`);
+    p.log.success(tCli("Created local secrets key file at {{value1}}", { value1: String(pc.dim(keyResult.path)) }));
   } else if (keyResult.status === "existing") {
-    p.log.message(pc.dim(`Using existing local secrets key file at ${keyResult.path}`));
+    p.log.message(pc.dim(tCli("Using existing local secrets key file at {{value1}}", { value1: String(keyResult.path) })));
   }
 
   writeConfig(config, opts.config, {
@@ -733,32 +734,32 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
 
   p.note(
     [
-      `Database: ${database.mode}`,
-      llm ? `LLM: ${llm.provider}` : "LLM: not configured",
-      `Logging: ${logging.mode} -> ${logging.logDir}`,
-      `Server: ${server.deploymentMode}/${server.exposure} @ ${describeServerBinding(server)}`,
-      `Allowed hosts: ${server.allowedHostnames.length > 0 ? server.allowedHostnames.join(", ") : "(loopback only)"}`,
-      `Auth URL mode: ${auth.baseUrlMode}${auth.publicBaseUrl ? ` (${auth.publicBaseUrl})` : ""}`,
-      `Storage: ${storage.provider}`,
-      `Secrets: ${secrets.provider} (strict mode ${secrets.strictMode ? "on" : "off"})`,
-      "Agent auth: PAPERCLIP_AGENT_JWT_SECRET configured",
+      tCli("Database: {{value1}}", { value1: tCli(String(database.mode)) }),
+      llm ? tCli("LLM: {{value1}}", { value1: String(llm.provider) }) : tCli("LLM: not configured"),
+      tCli("Logging: {{value1}} -> {{value2}}", { value1: tCli(String(logging.mode)), value2: String(logging.logDir) }),
+      tCli("Server: {{value1}}/{{value2}} @ {{value3}}", { value1: tCli(String(server.deploymentMode)), value2: tCli(String(server.exposure)), value3: String(describeServerBinding(server)) }),
+      tCli("Allowed hosts: {{value1}}", { value1: String(server.allowedHostnames.length > 0 ? server.allowedHostnames.join(", ") : tCli("(loopback only)")) }),
+      tCli("Auth URL mode: {{value1}}{{value2}}", { value1: tCli(String(auth.baseUrlMode)), value2: String(auth.publicBaseUrl ? ` (${auth.publicBaseUrl})` : "") }),
+      tCli("Storage: {{value1}}", { value1: tCli(String(storage.provider)) }),
+      tCli("Secrets: {{value1}} (strict mode {{value2}})", { value1: tCli(String(secrets.provider)), value2: String(secrets.strictMode ? tCli("on") : tCli("off")) }),
+      tCli("Agent auth: PAPERCLIP_AGENT_JWT_SECRET configured"),
     ].join("\n"),
-    "Configuration saved",
+    tCli("Configuration saved"),
   );
 
   p.note(
     [
-      `Run: ${pc.cyan("paperclipai run")}`,
-      `Reconfigure later: ${pc.cyan("paperclipai configure")}`,
-      `Diagnose setup: ${pc.cyan("paperclipai doctor")}`,
+      tCli("Run: {{value1}}", { value1: String(pc.cyan("paperclipai run")) }),
+      tCli("Reconfigure later: {{value1}}", { value1: String(pc.cyan("paperclipai configure")) }),
+      tCli("Diagnose setup: {{value1}}", { value1: String(pc.cyan("paperclipai doctor")) }),
     ].join("\n"),
-    "Next commands",
+    tCli("Next commands"),
   );
 
   printManagedInstallHint();
 
   if (canCreateBootstrapInviteImmediately({ database, server })) {
-    p.log.step("Generating bootstrap CEO invite");
+    p.log.step(tCli("Generating bootstrap CEO invite"));
     await bootstrapCeoInvite({ config: configPath });
   }
 
@@ -770,7 +771,7 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
   let shouldRunNow = !serviceInstalled && (opts.run === true || opts.yes === true);
   if (shouldOfferForegroundStart({ serviceInstalled, startAlreadyDecided: shouldRunNow, invokedByRun: opts.invokedByRun === true, interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY) })) {
     const answer = await p.confirm({
-      message: "Start Paperclip now?",
+      message: tCli("Start Paperclip now?"),
       initialValue: true,
     });
     if (!p.isCancel(answer)) {
@@ -786,12 +787,12 @@ export async function onboard(opts: OnboardOptions): Promise<void> {
   if (server.deploymentMode === "authenticated" && database.mode === "embedded-postgres") {
     p.log.info(
       [
-        "Bootstrap CEO invite will be created after the server starts.",
-        `Next: ${pc.cyan("paperclipai run")}`,
-        `Then: ${pc.cyan("paperclipai auth bootstrap-ceo")}`,
+        tCli("Bootstrap CEO invite will be created after the server starts."),
+        tCli("Next: {{value1}}", { value1: String(pc.cyan("paperclipai run")) }),
+        tCli("Then: {{value1}}", { value1: String(pc.cyan("paperclipai auth bootstrap-ceo")) }),
       ].join("\n"),
     );
   }
 
-  p.outro("You're all set!");
+  p.outro(tCli("You're all set!"));
 }

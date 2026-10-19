@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useCallback, useEffect, useState } from "react";
 import {
   CalendarClock,
@@ -170,7 +171,7 @@ export function RoutineTriggerWizard({
           saveAndExit();
         },
       },
-      { label: "Add trigger" },
+      { label: t("add_trigger") },
     ]);
   }, [saveAndExit, setBreadcrumbs, routineTitle, routineId]);
   const schedule = draft.kind === "schedule";
@@ -217,9 +218,7 @@ export function RoutineTriggerWizard({
   const selectClass =
     "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
   const goBack = (
-    <Button variant="outline" onClick={() => patch({ step: draft.step - 1 })}>
-      Back
-    </Button>
+    <Button variant="outline" onClick={() => patch({ step: draft.step - 1 })}>{t("common.back")}</Button>
   );
   return (
     <div className="min-w-0 w-full max-w-2xl space-y-6">
@@ -240,18 +239,18 @@ export function RoutineTriggerWizard({
         {!schedule && draft.step > 0 && <WebhookUrlWarning url={webhookUrl} />}
         {draft.step === 0 && (
           <fieldset className="space-y-3">
-            <legend className="sr-only">Trigger type</legend>
+            <legend className="sr-only">{t("stability.31a9d2bd7aed", { defaultValue: "Trigger type" })}</legend>
             {(
               [
                 {
                   kind: "schedule",
-                  label: "On a schedule",
+                  label: t("stability.8c4f34506ebc", { defaultValue: "On a schedule" }),
                   detail: "Every day, on weekdays, or once a week.",
                   Icon: CalendarClock,
                 },
                 {
                   kind: "webhook",
-                  label: "When another app sends a webhook",
+                  label: t("stability.d7f97da16118", { defaultValue: "When another app sends a webhook" }),
                   detail:
                     "When something happens in GitHub, another app, or a script.",
                   Icon: Webhook,
@@ -297,20 +296,20 @@ export function RoutineTriggerWizard({
           <div className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="repeat">Repeat</Label>
+                <Label htmlFor="repeat">{t("stability.b6b7a0065808", { defaultValue: "Repeat" })}</Label>
                 <select
                   id="repeat"
                   className={selectClass}
                   value={draft.frequency}
                   onChange={(event) => patch({ frequency: event.target.value })}
                 >
-                  <option value="daily">Every day</option>
-                  <option value="weekdays">Weekdays (Monday–Friday)</option>
-                  <option value="weekly">Every week</option>
+                  <option value="daily">{t("every_day")}</option>
+                  <option value="weekdays">{t("stability.0ea2df5ff8ad", { defaultValue: "Weekdays (Monday–Friday)" })}</option>
+                  <option value="weekly">{t("stability.1b7e18513af4", { defaultValue: "Every week" })}</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="run-time">Time</Label>
+                <Label htmlFor="run-time">{t("stability.33b93476cf59", { defaultValue: "Time" })}</Label>
                 <Input
                   id="run-time"
                   type="time"
@@ -321,7 +320,7 @@ export function RoutineTriggerWizard({
             </div>
             {draft.frequency === "weekly" && (
               <div className="space-y-2">
-                <Label htmlFor="run-day">Day</Label>
+                <Label htmlFor="run-day">{t("stability.8f2364e11b8b", { defaultValue: "Day" })}</Label>
                 <select
                   id="run-day"
                   className={selectClass}
@@ -343,7 +342,7 @@ export function RoutineTriggerWizard({
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="timezone">Time zone</Label>
+              <Label htmlFor="timezone">{t("stability.b9fe1464783e", { defaultValue: "Time zone" })}</Label>
               <select
                 id="timezone"
                 className={selectClass}
@@ -363,9 +362,7 @@ export function RoutineTriggerWizard({
                   <option key={zone}>{zone}</option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">
-                The time follows this zone, including daylight saving changes.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("stability.ea2bf434668f", { defaultValue: "The time follows this zone, including daylight saving changes." })}</p>
             </div>
           </div>
         )}
@@ -380,23 +377,18 @@ export function RoutineTriggerWizard({
                 </p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Each scheduled run creates a task for the routine’s assigned
-              agent. Any existing webhook triggers will continue to work.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("stability.ee4ebabb6717", { defaultValue: "Each scheduled run creates a task for the routine’s assigned agent. Any existing webhook triggers will continue to work." })}</p>
           </div>
         )}
         {draft.step === 0 && draft.kind === "webhook" && (
           <fieldset className="space-y-2">
-            <legend className="mb-2 text-sm font-medium">
-              What’s sending the webhook?
-            </legend>
+            <legend className="mb-2 text-sm font-medium">{t("stability.850bfd5b6f32", { defaultValue: "What’s sending the webhook?" })}</legend>
             <div className="grid gap-2 sm:grid-cols-2">
               {(
                 [
                   {
                     sender: "custom",
-                    label: "Another app or script",
+                    label: t("stability.3368721465f9", { defaultValue: "Another app or script" }),
                     Icon: Globe,
                   },
                   { sender: "github", label: "GitHub", Icon: GitBranch },
@@ -429,9 +421,7 @@ export function RoutineTriggerWizard({
           </fieldset>
         )}
         {draft.kind === "webhook" && draft.step === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Public services need a publicly reachable HTTPS webhook URL.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("stability.090e88c6260e", { defaultValue: "Public services need a publicly reachable HTTPS webhook URL." })}</p>
         )}
         {!schedule && draft.step === 1 && (
           <div className="space-y-5">
@@ -448,35 +438,26 @@ export function RoutineTriggerWizard({
               />
             )}
             <CopyField
-              label={github ? "Payload URL" : "Webhook URL"}
+              label={github ? t("stability.1de5cdcfa7ca", { defaultValue: "Payload URL" }) : t("webhook_url")}
               value={webhookUrl}
             />
             {!github && draft.signingMode !== "bearer" && (
-              <p className="text-sm text-muted-foreground">
-                Paste this key into your app’s signing secret field.
-                {draft.signingMode !== "fireflies_hmac" && <>
-                  {" "}If your app uses custom headers instead, set Authorization to Bearer followed
-                  by a space and this key.
-                </>}
+              <p className="text-sm text-muted-foreground">{t("stability.3dd90f15925b", { defaultValue: "Paste this key into your app’s signing secret field." })}{draft.signingMode !== "fireflies_hmac" && <>
+                  {" "}{t("stability.4d7327f21d8e", { defaultValue: "If your app uses custom headers instead, set Authorization to Bearer followed by a space and this key." })}</>}
               </p>
             )}
             {webhookSecret ? (
               <CopyField
-                label={github ? "Secret" : draft.signingMode === "bearer" ? "Authorization header value" : "Secret key"}
+                label={github ? t("secret") : draft.signingMode === "bearer" ? t("stability.39a91b3db30e", { defaultValue: "Authorization header value" }) : t("stability.f47a99ebcf29", { defaultValue: "Secret key" })}
                 value={!github && draft.signingMode === "bearer" ? `Bearer ${webhookSecret}` : webhookSecret}
               />
             ) : (
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  The key is hidden after leaving setup. If you haven’t saved it
-                  in your app, generate a replacement.
-                </p>
+                <p className="text-sm text-muted-foreground">{t("stability.8e6e20d139ef", { defaultValue: "The key is hidden after leaving setup. If you haven’t saved it in your app, generate a replacement." })}</p>
                 <Button
                   variant="outline"
                   onClick={() => void perform(() => onRotateKey?.())}
-                >
-                  Generate new key
-                </Button>
+                >{t("stability.3a14b7bb1a2d", { defaultValue: "Generate new key" })}</Button>
               </div>
             )}
           </div>
@@ -484,24 +465,18 @@ export function RoutineTriggerWizard({
         {!schedule && draft.step === 2 && (
           <div className="space-y-5">
             <div className="space-y-1 rounded-md border border-border p-4">
-              <p className="text-sm font-medium">Connection test only</p>
-              <p className="text-sm text-muted-foreground">
-                Events received during setup won’t start the routine or create
-                tasks.
-              </p>
+              <p className="text-sm font-medium">{t("stability.fd7045f15f97", { defaultValue: "Connection test only" })}</p>
+              <p className="text-sm text-muted-foreground">{t("stability.ca8e4cd46363", { defaultValue: "Events received during setup won’t start the routine or create tasks." })}</p>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium">
-                Send an event from {github ? "GitHub" : "your app"}
+              <p className="text-sm font-medium">{t("stability.af0f9889db03", { defaultValue: "Send an event from" })}{" "}{github ? "GitHub" : t("stability.4696a33536d7", { defaultValue: "your app" })}
               </p>
               <p className="text-sm text-muted-foreground">
                 {github
-                  ? "Open this webhook in your repository settings. Under Recent Deliveries, choose Redeliver on an event."
-                  : "Look for “Send test” in your app’s webhook settings. If it doesn’t have one, do the action that should trigger the webhook—for example, complete a deployment."}
+                  ? t("stability.e2c845a58aac", { defaultValue: "Open this webhook in your repository settings. Under Recent Deliveries, choose Redeliver on an event." })
+                  : t("stability.643e56b82219", { defaultValue: "Look for “Send test” in your app’s webhook settings. If it doesn’t have one, do the action that should trigger the webhook—for example, complete a deployment." })}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Keep this page open to see the test result.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("stability.f5c741548eae", { defaultValue: "Keep this page open to see the test result." })}</p>
             </div>
             <div
               role="status"
@@ -517,32 +492,27 @@ export function RoutineTriggerWizard({
               <div className="space-y-1">
                 <p className="text-sm font-medium">
                   {checkResult === "received"
-                    ? "Test event received · Connection working"
+                    ? t("stability.b57a6eee90b0", { defaultValue: "Test event received · Connection working" })
                     : checkResult === "rejected"
-                      ? "Event arrived, but the key was rejected"
+                      ? t("stability.8ac7b7edc6a0", { defaultValue: "Event arrived, but the key was rejected" })
                       : checkResult === "no_event"
-                        ? "No event received yet"
-                        : "Waiting for an event from your app…"}
+                        ? t("stability.4d6fd6a8ec99", { defaultValue: "No event received yet" })
+                        : t("stability.6da2e8bcc917", { defaultValue: "Waiting for an event from your app…" })}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {checkResult === "received"
-                    ? "Authentication passed. No routine run or task was created."
+                    ? t("stability.407050a5a842", { defaultValue: "Authentication passed. No routine run or task was created." })
                     : checkResult === "rejected"
-                      ? "Go back to Connect your app, update the key in your sending app, and resend. No task was created."
-                      : "Waiting to verify delivery and authentication. The routine is not running."}
+                      ? t("stability.d5b974d7c1eb", { defaultValue: "Go back to Connect your app, update the key in your sending app, and resend. No task was created." })
+                      : t("stability.f29bb26ef7a2", { defaultValue: "Waiting to verify delivery and authentication. The routine is not running." })}
                 </p>
               </div>
             </div>
             <details>
-              <summary className="cursor-pointer text-xs text-muted-foreground">
-                Troubleshoot delivery
-              </summary>
+              <summary className="cursor-pointer text-xs text-muted-foreground">{t("stability.f854de0340ea", { defaultValue: "Troubleshoot delivery" })}</summary>
               <div className="space-y-3 pt-3">
-                <p className="text-xs text-muted-foreground">
-                  Check that the webhook is enabled in your sending app and that
-                  its URL matches. Scripts must send POST with a JSON body.
-                </p>
-                <CopyField label="Webhook URL" value={webhookUrl} />
+                <p className="text-xs text-muted-foreground">{t("stability.a4e5ad3df38a", { defaultValue: "Check that the webhook is enabled in your sending app and that its URL matches. Scripts must send POST with a JSON body." })}</p>
+                <CopyField label={t("webhook_url")} value={webhookUrl} />
               </div>
             </details>
           </div>
@@ -550,15 +520,12 @@ export function RoutineTriggerWizard({
         {!schedule && draft.step === 2 && (
           <p className="text-xs text-muted-foreground">
             {routineActive
-              ? "Finish setup to enable this webhook. Future events will start the routine; this test event won’t be replayed."
-              : "Finish setup to save this webhook. The routine is paused; enable its automatic triggers when you’re ready. This test event won’t be replayed."}
+              ? t("stability.391fff2bae3c", { defaultValue: "Finish setup to enable this webhook. Future events will start the routine; this test event won’t be replayed." })
+              : t("stability.7580f0663983", { defaultValue: "Finish setup to save this webhook. The routine is paused; enable its automatic triggers when you’re ready. This test event won’t be replayed." })}
           </p>
         )}
         {schedule && draft.step === 2 && !routineActive && (
-          <p className="text-sm text-muted-foreground">
-            The routine is paused. Enable its automatic triggers when you’re
-            ready to use this schedule.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("stability.28f907214665", { defaultValue: "The routine is paused. Enable its automatic triggers when you’re ready to use this schedule." })}</p>
         )}
         {saveError && (
           <p role="alert" className="text-sm text-destructive">
@@ -568,26 +535,20 @@ export function RoutineTriggerWizard({
         <SetupWizardFooter onSaveExit={saveAndExit}>
           {draft.step > 0 && goBack}
           {draft.step === 0 ? (
-            <Button disabled={draft.kind === "choose"} onClick={advance}>
-              Continue
-            </Button>
+            <Button disabled={draft.kind === "choose"} onClick={advance}>{t("continue")}</Button>
           ) : schedule ? (
             draft.step === 1 ? (
-              <Button disabled={!draft.time} onClick={advance}>
-                Review schedule
-              </Button>
+              <Button disabled={!draft.time} onClick={advance}>{t("stability.98c00356c056", { defaultValue: "Review schedule" })}</Button>
             ) : (
-              <Button onClick={() => void perform(() => onFinish(draft))}>
-                Add schedule
-              </Button>
+              <Button onClick={() => void perform(() => onFinish(draft))}>{t("stability.79218735c296", { defaultValue: "Add schedule" })}</Button>
             )
           ) : draft.step === 1 ? (
-            <Button onClick={advance}>Check connection</Button>
+            <Button onClick={advance}>{t("stability.be5dff52eeb0", { defaultValue: "Check connection" })}</Button>
           ) : (
             <Button onClick={() => void perform(() => onFinish(draft))}>
               {checkResult === "received"
-                ? "Finish setup"
-                : "Finish without checking"}
+                ? t("finish_setup")
+                : t("stability.ccfc47b4b1a3", { defaultValue: "Finish without checking" })}
             </Button>
           )}
         </SetupWizardFooter>

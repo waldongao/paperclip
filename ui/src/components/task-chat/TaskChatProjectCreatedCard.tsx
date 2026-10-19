@@ -1,14 +1,15 @@
+import { t } from "@/i18n";
 import { FolderKanban, GitBranch } from "lucide-react";
 import { Link } from "@/lib/router";
 import type { TaskChatProjectCreatedItem } from "./task-chat-model";
 
 export function TaskChatProjectCreatedCard({ item }: { item: TaskChatProjectCreatedItem }) {
   return (
-    <article className="rounded-lg border border-border bg-card p-3" aria-label={`Project created: ${item.name}`}>
+    <article className="rounded-lg border border-border bg-card p-3" aria-label={t("stability.d07ff8727337", { value1: item.name, defaultValue: "Project created: {{value1}}" })}>
       <div className="flex items-start gap-3">
         <FolderKanban className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-xs text-muted-foreground">Project created</p>
+          <p className="text-xs text-muted-foreground">{t("stability.5f4743eff7e7", { defaultValue: "Project created" })}</p>
           <Link to={`/projects/${item.projectId}`} className="break-words text-sm font-medium hover:underline focus-visible:underline">{item.name}</Link>
           {item.description && <p className="line-clamp-3 text-sm text-muted-foreground">{item.description}</p>}
           {item.repositories.length > 0 && <ul className="space-y-1 pt-1">

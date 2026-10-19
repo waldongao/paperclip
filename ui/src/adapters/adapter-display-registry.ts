@@ -17,6 +17,7 @@ import {
   Cpu,
 } from "lucide-react";
 import { OpenCodeLogoIcon } from "@/components/OpenCodeLogoIcon";
+import { t } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Type suffix parsing
@@ -61,94 +62,94 @@ export interface AdapterDisplayInfo {
 
 const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
   acpx_local: {
-    label: "ACPX (retired)",
-    description: "Retired standalone ACPX adapter",
+    label: t("acpx_retired"),
+    description: t("retired_standalone_acpx_adapter"),
     icon: Bot,
     comingSoon: true,
-    disabledLabel: "Use Claude Code or Codex with the ACP engine",
+    disabledLabel: t("use_claude_code_or_codex_with_the_acp_engine"),
     hideFromVisualSelection: true,
   },
   claude_local: {
-    label: "Claude Code",
-    description: "Claude Code CLI harness",
+    label: t("claude_code"),
+    description: t("claude_code_cli_harness"),
     icon: Sparkles,
     recommended: true,
   },
   codex_local: {
-    label: "Codex",
-    description: "Codex CLI harness",
+    label: t("codex"),
+    description: t("codex_cli_harness"),
     icon: Code,
     recommended: true,
   },
   paperclip_runner: {
-    label: "Paperclip Runner",
-    description: "Experimental Rust runner with a Codex provider",
+    label: t("paperclip_runner"),
+    description: t("experimental_rust_runner_with_a_codex_provider"),
     icon: Cpu,
     experimental: true,
   },
   gemini_local: {
-    label: "Gemini CLI",
-    description: "Gemini CLI harness",
+    label: t("gemini_cli"),
+    description: t("gemini_cli_harness"),
     icon: Gem,
   },
   grok_local: {
-    label: "Grok Build",
-    description: "Grok Build harness",
+    label: t("grok_build"),
+    description: t("grok_build_harness"),
     icon: Bot,
   },
   kimi_local: {
-    label: "Kimi Code",
-    description: "Kimi Code CLI harness",
+    label: t("kimi_code"),
+    description: t("kimi_code_cli_harness"),
     icon: Moon,
   },
   hermes_gateway: {
-    label: "Hermes Gateway",
-    description: "Remote Hermes API server",
+    label: t("hermes_gateway"),
+    description: t("remote_hermes_api_server"),
     icon: Bot,
     hideFromVisualSelection: true,
   },
   hermes_local: {
-    label: "Hermes",
-    description: "Hermes harness",
+    label: t("hermes"),
+    description: t("hermes_harness"),
     icon: Bot,
   },
   opencode_local: {
-    label: "OpenCode",
-    description: "OpenCode multi-provider harness",
+    label: t("opencode"),
+    description: t("opencode_multi_provider_harness"),
     icon: OpenCodeLogoIcon,
   },
   pi_local: {
-    label: "Pi",
-    description: "Pi harness",
+    label: t("pi"),
+    description: t("pi_harness"),
     icon: Terminal,
   },
   cursor: {
-    label: "Cursor",
-    description: "Cursor CLI harness",
+    label: t("cursor"),
+    description: t("cursor_cli_harness"),
     icon: MousePointer2,
   },
   cursor_cloud: {
-    label: "Cursor Cloud",
-    description: "Managed remote Cursor agent",
+    label: t("cursor_cloud"),
+    description: t("managed_remote_cursor_agent"),
     icon: MousePointer2,
   },
   openclaw_gateway: {
-    label: "OpenClaw Gateway",
-    description: "External gateway adapter",
+    label: t("openclaw_gateway"),
+    description: t("external_gateway_adapter"),
     icon: Bot,
     comingSoon: true,
-    disabledLabel: "Invite external agents from the add-agent modal",
+    disabledLabel: t("invite_external_agents_from_the_add_agent_modal"),
     hideFromVisualSelection: true,
   },
   process: {
-    label: "Process",
-    description: "Internal process adapter",
+    label: t("process"),
+    description: t("internal_process_adapter"),
     icon: Cpu,
     comingSoon: true,
   },
   http: {
     label: "HTTP",
-    description: "Internal HTTP adapter",
+    description: t("internal_http_adapter"),
     icon: Cpu,
     comingSoon: true,
   },
@@ -195,7 +196,7 @@ export function getAdapterDisplay(type: string): AdapterDisplayInfo {
   const label = withSuffix(humanizeType(type), suffix);
   return {
     label,
-    description: suffix ? `External ${suffix} adapter` : "External adapter",
+    description: suffix ? t("zhSupport.externalAdapter", { suffix }) : t("external_adapter"),
     icon: Cpu,
   };
 }

@@ -115,6 +115,7 @@ describe("test-drive data isolation", () => {
     process.env.PAPERCLIP_CONFIG = "/normal/config.json";
     process.env.PAPERCLIP_IN_WORKTREE = "true";
     process.env.PAPERCLIP_TEST_PROVIDER_KEY = "secret-value";
+    process.env.PAPERCLIP_LOCALE = "zh-CN";
     process.env.DATABASE_URL = "postgres://normal-instance";
 
     const prepared = await prepareTestDriveEnvironment(
@@ -135,6 +136,7 @@ describe("test-drive data isolation", () => {
     expect(process.env.PAPERCLIP_BIND).toBe("loopback");
     expect(process.env.HOST).toBe("127.0.0.1");
     expect(process.env.PAPERCLIP_TEST_PROVIDER_KEY).toBe("secret-value");
+    expect(process.env.PAPERCLIP_LOCALE).toBe("zh-CN");
     expect(process.env.DATABASE_URL).toBeUndefined();
     expect(Number(process.env.PORT)).toBeGreaterThanOrEqual(3100);
   });

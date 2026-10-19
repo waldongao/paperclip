@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { readFile } from "node:fs/promises";
 import { Command } from "commander";
 import { emailSendSchema } from "@paperclipai/shared";
@@ -12,7 +13,7 @@ export function registerEmailCommands(program: Command) {
   const email = program
     .command("email")
     .description(
-      "Explicitly send and inspect task-bound AgentMail conversations",
+      tCli("Explicitly send and inspect task-bound AgentMail conversations"),
     );
   addCommonClientOptions(email.command("inboxes"), {
     includeCompany: true,
@@ -29,7 +30,7 @@ export function registerEmailCommands(program: Command) {
         .command(verb)
         .requiredOption(
           "--file <path>",
-          "JSON request file, including a stable idempotencyKey",
+          tCli("JSON request file, including a stable idempotencyKey"),
         ),
       { includeCompany: true },
     ).action(async (opts: BaseClientOptions & { file: string }) => {
@@ -48,7 +49,7 @@ export function registerEmailCommands(program: Command) {
     });
   }
   addCommonClientOptions(
-    email.command("thread").argument("<issueId>", "Email task ID"),
+    email.command("thread").argument("<issueId>", tCli("Email task ID")),
     { includeCompany: true },
   ).action(async (issueId: string, opts: BaseClientOptions) => {
     const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -62,7 +63,7 @@ export function registerEmailCommands(program: Command) {
   addCommonClientOptions(
     email
       .command("delivery")
-      .argument("<publicationId>", "Publication ID returned by send"),
+      .argument("<publicationId>", tCli("Publication ID returned by send")),
     { includeCompany: true },
   ).action(async (publicationId: string, opts: BaseClientOptions) => {
     const ctx = resolveCommandContext(opts, { requireCompany: true });

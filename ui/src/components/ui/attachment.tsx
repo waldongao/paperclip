@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { t } from "@/i18n";
 
 // shadcn base/attachment (base-lyra registry variant), ported verbatim except
 // for the import paths above. https://ui.shadcn.com/docs/components/base/attachment
@@ -56,7 +57,7 @@ const attachmentMediaVariants = cva(
       variant: {
         icon: "",
         image:
-          "opacity-60 group-data-[state=done]/attachment:opacity-100 group-data-[state=idle]/attachment:opacity-100 *:[img]:aspect-square *:[img]:w-full *:[img]:object-cover",
+          t("opacity_60_group_data_state_done_attachment_opac"),
       },
     },
     defaultVariants: {

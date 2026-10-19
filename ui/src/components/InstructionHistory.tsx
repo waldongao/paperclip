@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState } from "react";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import type { AgentInstructionsFileDetail } from "@paperclipai/shared";
@@ -62,13 +63,11 @@ export function InstructionHistory({
         variant="outline"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-      >
-        History
-      </Button>
+      >{t("history")}</Button>
       {open && (
         <div className="space-y-3">
           {history.isLoading && (
-            <p className="text-sm text-muted-foreground">Loading revisions…</p>
+            <p className="text-sm text-muted-foreground">{t("loading_revisions")}</p>
           )}
           {error && (
             <p role="alert" className="text-sm text-destructive">
@@ -90,7 +89,7 @@ export function InstructionHistory({
                 <span className="text-sm text-muted-foreground">
                   {revision.source} ·{" "}
                   {new Date(revision.createdAt).toLocaleString()}
-                  {revision.id === currentRevisionId ? " · Current" : ""}
+                  {revision.id === currentRevisionId ? t("stability.d4d88028db51", { defaultValue: " · Current" }) : ""}
                 </span>
               </div>
             ))}
@@ -100,19 +99,15 @@ export function InstructionHistory({
               variant="ghost"
               disabled={history.isFetchingNextPage}
               onClick={() => void history.fetchNextPage()}
-            >
-              Older revisions
-            </Button>
+            >{t("stability.11ad78ef6152", { defaultValue: "Older revisions" })}</Button>
           )}
           {diff.data && (
             <>
-              <p className="text-sm text-muted-foreground">Selected revision</p>
+              <p className="text-sm text-muted-foreground">{t("stability.52dba32d2d4e", { defaultValue: "Selected revision" })}</p>
               <pre className="whitespace-pre-wrap break-words rounded-md border border-border p-3 font-mono text-sm">
                 {diff.data.from.content}
               </pre>
-              <p className="text-sm text-muted-foreground">
-                Changes from selected revision to current
-              </p>
+              <p className="text-sm text-muted-foreground">{t("stability.d8a8577f3b63", { defaultValue: "Changes from selected revision to current" })}</p>
               <pre className="whitespace-pre-wrap break-words rounded-md border border-border p-3 font-mono text-sm">
                 {diff.data.removed && `Removed:\n${diff.data.removed}\n`}
                 {diff.data.added && `Added:\n${diff.data.added}`}
@@ -128,13 +123,9 @@ export function InstructionHistory({
                   selected === currentRevisionId
                 }
                 onClick={() => restore.mutate()}
-              >
-                Restore as new revision
-              </Button>
+              >{t("restore_as_new_revision")}</Button>
               {disabled && (
-                <p className="text-sm text-muted-foreground">
-                  Save or cancel your edits before restoring.
-                </p>
+                <p className="text-sm text-muted-foreground">{t("stability.da38de7c17b2", { defaultValue: "Save or cancel your edits before restoring." })}</p>
               )}
             </>
           )}

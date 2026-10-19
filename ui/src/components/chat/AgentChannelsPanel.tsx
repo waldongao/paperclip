@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, MessageSquarePlus } from "lucide-react";
 import { chatEndpointsApi, type ChatProvider } from "@/api/chatEndpoints";
@@ -38,28 +39,24 @@ export function AgentChannelsPanel({
     <section className="max-w-3xl space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Channels</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Chat and email identities connected to this agent.
-          </p>
+          <h2 className="text-lg font-semibold">{t("stability.4c8906cf76f5", { defaultValue: "Channels" })}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("stability.1a1a7a34710f", { defaultValue: "Chat and email identities connected to this agent." })}</p>
         </div>
         <Button asChild size="sm">
           <Link to={`/apps?chatAgentId=${encodeURIComponent(agentId)}`}>
-            <MessageSquarePlus />
-            Connect a channel
-          </Link>
+            <MessageSquarePlus />{t("stability.283fa1a6131e", { defaultValue: "Connect a channel" })}</Link>
         </Button>
       </div>
       {query.isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading channels…</p>
+        <p className="text-sm text-muted-foreground">{t("stability.b09d106b3f77", { defaultValue: "Loading channels…" })}</p>
       ) : endpoints.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-5">
-          <p className="text-sm font-medium">No channels connected</p>
+          <p className="text-sm font-medium">{t("stability.ce30a0411e96", { defaultValue: "No channels connected" })}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {enabled ? "Connect AgentMail, Slack, GitHub Code Review Bot, Discord, Microsoft Teams, or Telegram from Connectors." : "Connect AgentMail from Connectors."}
+            {enabled ? t("stability.f2d5b36e5182", { defaultValue: "Connect AgentMail, Slack, GitHub Code Review Bot, Discord, Microsoft Teams, or Telegram from Connectors." }) : t("stability.dfa2bbda97d0", { defaultValue: "Connect AgentMail from Connectors." })}
           </p>
           <Button asChild className="mt-3" variant="outline" size="sm">
-            <Link to="/apps">Open Connectors</Link>
+            <Link to="/apps">{t("stability.d985974b1d05", { defaultValue: "Open Connectors" })}</Link>
           </Button>
         </div>
       ) : (
@@ -76,13 +73,12 @@ export function AgentChannelsPanel({
                 <p className="truncate text-xs text-muted-foreground">
                   {endpoint.botLabel ??
                     endpoint.providerAccountLabel ??
-                    "Provider identity"}
+                    t("stability.656eefd90b92", { defaultValue: "Provider identity" })}
                 </p>
               </div>
               <StatusBadge status={endpoint.status} />
               <Button asChild size="sm" variant="outline">
-                <Link to={`/apps/chat/${endpoint.id}/settings`}>
-                  Open connection <ExternalLink />
+                <Link to={`/apps/chat/${endpoint.id}/settings`}>{t("stability.bfb179e9b5bc", { defaultValue: "Open connection" })}{" "}<ExternalLink />
                 </Link>
               </Button>
             </div>

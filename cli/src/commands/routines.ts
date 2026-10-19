@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
@@ -114,7 +115,7 @@ async function ensureEmbeddedPostgres(dataDir: string, preferredPort: number): P
     EmbeddedPostgres = mod.default as EmbeddedPostgresCtor;
   } catch {
     throw new Error(
-      "Embedded PostgreSQL support requires dependency `embedded-postgres`. Reinstall dependencies and try again.",
+      tCli("Embedded PostgreSQL support requires dependency `embedded-postgres`. Reinstall dependencies and try again."),
     );
   }
   await prepareEmbeddedPostgresNativeRuntime();
@@ -147,7 +148,7 @@ async function ensureEmbeddedPostgres(dataDir: string, preferredPort: number): P
       await instance.initialise();
     } catch (error) {
       throw formatEmbeddedPostgresError(error, {
-        fallbackMessage: `Failed to initialize embedded PostgreSQL cluster in ${dataDir} on port ${port}`,
+        fallbackMessage: tCli("Failed to initialize embedded PostgreSQL cluster in {{value1}} on port {{value2}}", { value1: String(dataDir), value2: String(port) }),
         recentLogs: logBuffer.getRecentLogs(),
       });
     }
@@ -161,7 +162,7 @@ async function ensureEmbeddedPostgres(dataDir: string, preferredPort: number): P
     await instance.start();
   } catch (error) {
     throw formatEmbeddedPostgresError(error, {
-      fallbackMessage: `Failed to start embedded PostgreSQL on port ${port}`,
+      fallbackMessage: tCli("Failed to start embedded PostgreSQL on port {{value1}}", { value1: String(port) }),
       recentLogs: logBuffer.getRecentLogs(),
     });
   }
@@ -185,7 +186,7 @@ async function openConfiguredDb(configPath: string): Promise<{
 }> {
   const config = readConfig(configPath);
   if (!config) {
-    throw new Error(`Config not found at ${configPath}.`);
+    throw new Error(tCli("Config not found at {{value1}}.", { value1: String(configPath) }));
   }
 
   let embeddedHandle: EmbeddedPostgresHandle | null = null;
@@ -213,7 +214,7 @@ async function openConfiguredDb(configPath: string): Promise<{
 
     const connectionString = nonEmpty(config.database.connectionString);
     if (!connectionString) {
-      throw new Error(`Config at ${configPath} does not define a database connection string.`);
+      throw new Error(tCli("Config at {{value1}} does not define a database connection string.", { value1: String(configPath) }));
     }
 
     await applyPendingMigrations(connectionString);
@@ -242,12 +243,12 @@ export async function disableAllRoutinesInConfig(
     ?? nonEmpty(process.env.PAPERCLIP_COMPANY_ID)
     ?? null;
   if (!companyId) {
-    throw new Error("Company ID is required. Pass --company-id or set PAPERCLIP_COMPANY_ID.");
+    throw new Error(tCli("Company ID is required. Pass --company-id or set PAPERCLIP_COMPANY_ID."));
   }
 
   const config = readConfig(configPath);
   if (!config) {
-    throw new Error(`Config not found at ${configPath}.`);
+    throw new Error(tCli("Config not found at {{value1}}.", { value1: String(configPath) }));
   }
 
   let embeddedHandle: EmbeddedPostgresHandle | null = null;
@@ -266,7 +267,7 @@ export async function disableAllRoutinesInConfig(
     } else {
       const connectionString = nonEmpty(config.database.connectionString);
       if (!connectionString) {
-        throw new Error(`Config at ${configPath} does not define a database connection string.`);
+        throw new Error(tCli("Config at {{value1}} does not define a database connection string.", { value1: String(configPath) }));
       }
       await applyPendingMigrations(connectionString);
       db = createDb(connectionString) as ClosableDb;
@@ -322,32 +323,32 @@ export async function disableAllRoutinesCommand(options: RoutinesDisableAllOptio
   }
 
   if (result.totalRoutines === 0) {
-    console.log(pc.dim(`No routines found for company ${result.companyId}.`));
+    console.log(pc.dim(tCli("No routines found for company {{value1}}.", { value1: String(result.companyId) })));
     return;
   }
 
   console.log(
-    `Paused ${result.pausedCount} routine(s) for company ${result.companyId} ` +
-      `(${result.alreadyPausedCount} already paused, ${result.archivedCount} archived).`,
+    tCli("Paused {{value1}} routine(s) for company {{value2}} ", { value1: String(result.pausedCount), value2: String(result.companyId) }) +
+      tCli("({{value1}} already paused, {{value2}} archived).", { value1: String(result.alreadyPausedCount), value2: String(result.archivedCount) }),
   );
 }
 
 export function registerRoutineCommands(program: Command): void {
-  const routinesCommand = program.command("routines").description("Local routine maintenance commands");
+  const routinesCommand = program.command("routines").description(tCli("Local routine maintenance commands"));
 
   routinesCommand
     .command("disable-all")
-    .description("Pause all non-archived routines in the configured local instance for one company")
-    .option("-c, --config <path>", "Path to config file")
-    .option("-d, --data-dir <path>", "Paperclip data directory root (isolates state from ~/.paperclip)")
-    .option("-C, --company-id <id>", "Company ID")
-    .option("--json", "Output raw JSON")
+    .description(tCli("Pause all non-archived routines in the configured local instance for one company"))
+    .option("-c, --config <path>", tCli("Path to config file"))
+    .option("-d, --data-dir <path>", tCli("Paperclip data directory root (isolates state from ~/.paperclip)"))
+    .option("-C, --company-id <id>", tCli("Company ID"))
+    .option("--json", tCli("Output raw JSON"))
     .action(async (opts: RoutinesDisableAllOptions) => {
       try {
         await disableAllRoutinesCommand(opts);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error(pc.red(message));
+        console.error(pc.red(translateCliDisplayMessage(message)));
         process.exit(1);
       }
     });

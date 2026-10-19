@@ -1,3 +1,4 @@
+import { tCli } from "../../i18n.js";
 import { Command } from "commander";
 import type { Project } from "@paperclipai/shared";
 import { createProjectSchema, updateProjectSchema } from "@paperclipai/shared";
@@ -48,13 +49,13 @@ interface ProjectDeleteOptions extends BaseClientOptions {
 }
 
 export function registerProjectCommands(program: Command): void {
-  const project = program.command("project").description("Project operations");
+  const project = program.command("project").description(tCli("Project operations"));
 
   addCommonClientOptions(
     project
       .command("list")
-      .description("List projects for a company")
-      .option("-C, --company-id <id>", "Company ID")
+      .description(tCli("List projects for a company"))
+      .option("-C, --company-id <id>", tCli("Company ID"))
       .action(async (opts: ProjectListOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -87,9 +88,9 @@ export function registerProjectCommands(program: Command): void {
   addCommonClientOptions(
     project
       .command("get")
-      .description("Get one project by ID or shortname")
-      .argument("<project>", "Project ID or shortname")
-      .option("-C, --company-id <id>", "Company ID for shortname lookup")
+      .description(tCli("Get one project by ID or shortname"))
+      .argument("<project>", tCli("Project ID or shortname"))
+      .option("-C, --company-id <id>", tCli("Company ID for shortname lookup"))
       .action(async (projectRef: string, opts: ProjectListOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -106,18 +107,18 @@ export function registerProjectCommands(program: Command): void {
   addCommonClientOptions(
     project
       .command("create")
-      .description("Create a project")
-      .requiredOption("-C, --company-id <id>", "Company ID")
-      .requiredOption("--name <name>", "Project name")
-      .option("--description <text>", "Project description")
-      .option("--status <status>", "Project status")
-      .option("--goal-id <id>", "Deprecated single goal ID")
-      .option("--goal-ids <csv>", "Comma-separated goal IDs")
-      .option("--lead-agent-id <id>", "Lead agent ID")
-      .option("--target-date <date>", "Target date")
-      .option("--color <value>", "Project color")
-      .option("--env-json <json>", "Project env binding JSON")
-      .option("--execution-workspace-policy-json <json>", "Execution workspace policy JSON")
+      .description(tCli("Create a project"))
+      .requiredOption("-C, --company-id <id>", tCli("Company ID"))
+      .requiredOption("--name <name>", tCli("Project name"))
+      .option("--description <text>", tCli("Project description"))
+      .option("--status <status>", tCli("Project status"))
+      .option("--goal-id <id>", tCli("Deprecated single goal ID"))
+      .option("--goal-ids <csv>", tCli("Comma-separated goal IDs"))
+      .option("--lead-agent-id <id>", tCli("Lead agent ID"))
+      .option("--target-date <date>", tCli("Target date"))
+      .option("--color <value>", tCli("Project color"))
+      .option("--env-json <json>", tCli("Project env binding JSON"))
+      .option("--execution-workspace-policy-json <json>", tCli("Execution workspace policy JSON"))
       .action(async (opts: ProjectCreateOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
@@ -145,20 +146,20 @@ export function registerProjectCommands(program: Command): void {
   addCommonClientOptions(
     project
       .command("update")
-      .description("Update a project")
-      .argument("<project>", "Project ID or shortname")
-      .option("-C, --company-id <id>", "Company ID for shortname lookup")
-      .option("--name <name>", "Project name")
-      .option("--description <text|null>", "Project description")
-      .option("--status <status>", "Project status")
-      .option("--goal-id <id|null>", "Deprecated single goal ID")
-      .option("--goal-ids <csv>", "Comma-separated goal IDs")
-      .option("--lead-agent-id <id|null>", "Lead agent ID")
-      .option("--target-date <date|null>", "Target date")
-      .option("--color <value|null>", "Project color")
-      .option("--env-json <json|null>", "Project env binding JSON")
-      .option("--execution-workspace-policy-json <json|null>", "Execution workspace policy JSON")
-      .option("--archived-at <iso8601|null>", "Archive timestamp or null")
+      .description(tCli("Update a project"))
+      .argument("<project>", tCli("Project ID or shortname"))
+      .option("-C, --company-id <id>", tCli("Company ID for shortname lookup"))
+      .option("--name <name>", tCli("Project name"))
+      .option("--description <text|null>", tCli("Project description"))
+      .option("--status <status>", tCli("Project status"))
+      .option("--goal-id <id|null>", tCli("Deprecated single goal ID"))
+      .option("--goal-ids <csv>", tCli("Comma-separated goal IDs"))
+      .option("--lead-agent-id <id|null>", tCli("Lead agent ID"))
+      .option("--target-date <date|null>", tCli("Target date"))
+      .option("--color <value|null>", tCli("Project color"))
+      .option("--env-json <json|null>", tCli("Project env binding JSON"))
+      .option("--execution-workspace-policy-json <json|null>", tCli("Execution workspace policy JSON"))
+      .option("--archived-at <iso8601|null>", tCli("Archive timestamp or null"))
       .action(async (projectRef: string, opts: ProjectUpdateOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
@@ -188,13 +189,13 @@ export function registerProjectCommands(program: Command): void {
   addCommonClientOptions(
     project
       .command("delete")
-      .description("Delete a project")
-      .argument("<project>", "Project ID or shortname")
-      .option("-C, --company-id <id>", "Company ID for shortname lookup")
-      .option("--yes", "Confirm deletion")
+      .description(tCli("Delete a project"))
+      .argument("<project>", tCli("Project ID or shortname"))
+      .option("-C, --company-id <id>", tCli("Company ID for shortname lookup"))
+      .option("--yes", tCli("Confirm deletion"))
       .action(async (projectRef: string, opts: ProjectDeleteOptions) => {
         try {
-          if (!opts.yes) throw new Error("Deletion requires --yes.");
+          if (!opts.yes) throw new Error(tCli("Deletion requires --yes."));
           const ctx = resolveCommandContext(opts);
           const query = ctx.companyId ? `?${new URLSearchParams({ companyId: ctx.companyId }).toString()}` : "";
           const deleted = await ctx.api.delete<Project>(`${apiPath`/api/projects/${projectRef}`}${query}`);
@@ -223,6 +224,6 @@ function parseOptionalJson(value: string | undefined): unknown {
   try {
     return JSON.parse(value);
   } catch (err) {
-    throw new Error(`Invalid JSON: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(tCli("Invalid JSON: {{value0}}", { value0: err instanceof Error ? err.message : String(err) }));
   }
 }

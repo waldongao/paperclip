@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { AgentCharacter } from "../AgentCharacter";
 import { useAgentAppearanceDraft } from "../../hooks/useAgentAppearanceDraft";
 import { AiConnectionField, aiProviderForAdapter } from "../ai-connections/AiConnectionField";
@@ -77,9 +78,7 @@ export function NewAgentSetup() {
   const [params] = useSearchParams();
   if (!selectedCompanyId)
     return (
-      <p className="text-sm text-muted-foreground">
-        Select an organization to create an agent.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("stability.28b980d2331c", { defaultValue: "Select an organization to create an agent." })}</p>
     );
   return (
     <Setup
@@ -571,8 +570,8 @@ function Setup({
         className="text-sm text-muted-foreground"
       >
         {savedAgent.error
-          ? "Could not load the created agent. Return to Agents to view it."
-          : "Loading your agent…"}
+          ? t("stability.07abe0b11e94", { defaultValue: "Could not load the created agent. Return to Agents to view it." })
+          : t("stability.48046357d49e", { defaultValue: "Loading your agent…" })}
       </p>
     );
   if (!name || !adapterType)
@@ -643,7 +642,7 @@ function Setup({
                 <span>
                   ·{" "}
                   {runnerProvider === "codex"
-                    ? "Native app server runner"
+                    ? t("stability.6254c5e60349", { defaultValue: "Native app server runner" })
                     : "Paperclip Runner"}
                 </span>
               )}
@@ -661,20 +660,15 @@ function Setup({
           </p>
         )}
         {adapters.data && !available && (
-          <p role="alert" className="text-sm text-destructive">
-            This adapter is unavailable. Choose an enabled adapter.
-          </p>
+          <p role="alert" className="text-sm text-destructive">{t("stability.36fcb6b4dee1", { defaultValue: "This adapter is unavailable. Choose an enabled adapter." })}</p>
         )}
         {(managedOnly || forced.forced) &&
           !envs.isPending &&
           !environmentId && (
-            <p role="alert" className="text-sm text-destructive">
-              No managed environment is available. Configure an environment
-              before continuing.
-            </p>
+            <p role="alert" className="text-sm text-destructive">{t("stability.3dcfbcb90a7b", { defaultValue: "No managed environment is available. Configure an environment before continuing." })}</p>
           )}
         <div className="flex flex-col gap-8 md:flex-row">
-          <nav aria-label="Agent setup steps" className="shrink-0 md:w-44">
+          <nav aria-label={t("stability.1f28c3a9138a", { defaultValue: "Agent setup steps" })} className="shrink-0 md:w-44">
             <ol className="flex flex-wrap gap-2 md:flex-col">
               {steps.map((step, index) => (
                 <li key={step}>
@@ -715,15 +709,15 @@ function Setup({
                   <OnboardingCard className="mx-auto">
                     <div className="mb-8">
                       <OnboardingHeading
-                        title="Connect a model"
+                        title={t("connect_a_model")}
                         lede={`Connect ${name} to ${connectionAdapter === "claude_local" ? "Claude" : connectionAdapter === "grok_local" ? "Grok" : "OpenAI"}.`}
                         center
                       />
                     </div>
                     <div className="mb-5">
-                      <Field label="Environment">
+                      <Field label={t("environment")}>
                         <select
-                          aria-label="Environment"
+                          aria-label={t("environment")}
                           className={controlClass}
                           value={environmentOverride}
                           disabled={busy || forced.forced}
@@ -733,7 +727,7 @@ function Setup({
                             resetTest();
                           }}
                         >
-                          <option value="">Default: {environmentLabel}</option>
+                          <option value="">{t("default")}{" "}{environmentLabel}</option>
                           {(envs.data ?? []).filter((env) => env.status === "active" && (!managedOnly || env.driver !== "local")).map((env) => (
                             <option key={env.id} value={env.id}>{environmentDisplayLabel(env)}</option>
                           ))}
@@ -775,27 +769,27 @@ function Setup({
                       <h2 className="flex items-center gap-3 text-lg font-semibold">
                         <Check className="size-5" />
                         {created.status === "pending_approval"
-                          ? "Agent submitted for approval"
-                          : "Your agent is ready"}
+                          ? t("stability.9357fe166529", { defaultValue: "Agent submitted for approval" })
+                          : t("stability.bf213d4f14f8", { defaultValue: "Your agent is ready" })}
                       </h2>
                       <dl className="grid grid-cols-2 gap-4 text-sm">
-                        <dt className="text-muted-foreground">Adapter</dt>
+                        <dt className="text-muted-foreground">{t("adapter")}</dt>
                         <dd>{getAdapterDisplay(adapterType).label}</dd>
                         {showModel && (
                           <>
-                            <dt className="text-muted-foreground">Model</dt>
+                            <dt className="text-muted-foreground">{t("model")}</dt>
                             <dd className="break-all">
                               {String(confirmationModel)}
                             </dd>
                           </>
                         )}
-                        <dt className="text-muted-foreground">Environment</dt>
+                        <dt className="text-muted-foreground">{t("environment")}</dt>
                         <dd>{environmentLabel}</dd>
                       </dl>
                       <p className="text-sm text-muted-foreground">
                         {created.status === "pending_approval"
-                          ? "An organization administrator must approve this agent before it can work."
-                          : "Assign a task when you’re ready for this agent to work."}
+                          ? t("stability.77d7c0fff464", { defaultValue: "An organization administrator must approve this agent before it can work." })
+                          : t("stability.adbf2c57694b", { defaultValue: "Assign a task when you’re ready for this agent to work." })}
                       </p>
                     </div>
                     <div className="flex flex-wrap justify-between gap-3">
@@ -803,9 +797,7 @@ function Setup({
                         variant="outline"
                         onClick={() => navigate(`${agentUrl(created)}/runtime`)}
                       >
-                        <Settings2 className="size-4" />
-                        Edit configuration
-                      </Button>
+                        <Settings2 className="size-4" />{t("stability.3076810095c3", { defaultValue: "Edit configuration" })}</Button>
                       <Button
                         disabled={created.status === "pending_approval"}
                         onClick={() =>
@@ -814,9 +806,7 @@ function Setup({
                             status: "todo",
                           })
                         }
-                      >
-                        Assign {created.name} a Task
-                        <ArrowRight className="size-4" />
+                      >{t("assign")}{" "}{created.name}{" "}{t("stability.da913ed47bf7", { defaultValue: "a Task" })}<ArrowRight className="size-4" />
                       </Button>
                     </div>
                   </div>
@@ -828,28 +818,22 @@ function Setup({
                       void finish();
                     }}
                   >
-                    <h2 className="text-xl font-semibold">
-                      Configure your agent
-                    </h2>
+                    <h2 className="text-xl font-semibold">{t("stability.be9ca645b7c1", { defaultValue: "Configure your agent" })}</h2>
                     <fieldset disabled={busy} className="space-y-8">
                       <section className="space-y-5">
-                        <h3 className="text-sm font-semibold">Runtime</h3>
+                        <h3 className="text-sm font-semibold">{t("runtime")}</h3>
                         {aiProviderForAdapter(brandType) && (
                           connection && !aiBinding ? (
                             <div className="space-y-3">
-                              <p className="text-sm text-muted-foreground">
-                                Using the connection selected in the Connect step.
-                              </p>
-                              <Button type="button" variant="outline" onClick={() => setScreen("connect")}>
-                                Change connection
-                              </Button>
+                              <p className="text-sm text-muted-foreground">{t("stability.7129ce38e602", { defaultValue: "Using the connection selected in the Connect step." })}</p>
+                              <Button type="button" variant="outline" onClick={() => setScreen("connect")}>{t("stability.286b1c9dc3f5", { defaultValue: "Change connection" })}</Button>
                             </div>
                           ) : (
                             <AiConnectionField companyId={companyId} agentName={name} adapterType={brandType} model={model} environmentId={environmentId ?? undefined} value={aiBinding}
                               onChange={binding => { binding.mode !== "router" && setRuntimeAiBinding(binding); resetTest(); }} />
                           )
                         )}
-                        {models.error && <p role="alert" className="text-sm text-destructive">Could not load models. Retry or enter a model ID manually.</p>}
+                        {models.error && <p role="alert" className="text-sm text-destructive">{t("stability.c8cad4cf3160", { defaultValue: "Could not load models. Retry or enter a model ID manually." })}</p>}
                         {((showModel && !usingKimiApi) ||
                           efforts.length > 0) && (
                           <div className="grid items-start gap-5 sm:grid-cols-2">
@@ -888,9 +872,9 @@ function Setup({
                               />
                             )}
                             {efforts.length > 0 && (
-                              <Field label="Thinking effort">
+                              <Field label={t("thinking_effort")}>
                                 <select
-                                  aria-label="Thinking effort"
+                                  aria-label={t("thinking_effort")}
                                   className={controlClass}
                                   value={effort}
                                   onChange={(event) => {
@@ -898,7 +882,7 @@ function Setup({
                                     resetTest();
                                   }}
                                 >
-                                  <option value="">Auto</option>
+                                  <option value="">{t("auto")}</option>
                                   {efforts.map((value) => (
                                     <option key={value} value={value}>
                                       {value}
@@ -915,17 +899,14 @@ function Setup({
                           </p>
                         )}
                         {showModel && models.error && (
-                          <p className="text-xs text-muted-foreground">
-                            Couldn’t load models. You can enter a model ID
-                            manually.
-                          </p>
+                          <p className="text-xs text-muted-foreground">{t("stability.5943c11e53e5", { defaultValue: "Couldn’t load models. You can enter a model ID manually." })}</p>
                         )}
                         {hasCredentialField && !aiBinding && (
                           <div className="grid gap-5 sm:grid-cols-2">
                             {chooseProvider && (
-                              <Field label="API key provider">
+                              <Field label={t("stability.d8551dcfa9b4", { defaultValue: "API key provider" })}>
                                 <select
-                                  aria-label="API key provider"
+                                  aria-label={t("stability.d8551dcfa9b4", { defaultValue: "API key provider" })}
                                   className={controlClass}
                                   value={provider}
                                   onChange={(event) => {
@@ -939,7 +920,7 @@ function Setup({
                                   {Object.keys(providerKeys).map((key) => (
                                     <option key={key} value={key}>
                                       {key === "openrouter"
-                                        ? "OpenRouter"
+                                        ? t("openrouter")
                                         : key === "openai"
                                           ? "OpenAI"
                                           : key === "anthropic"
@@ -976,13 +957,13 @@ function Setup({
                                     }}
                                     placeholder={
                                       selectedBinding
-                                        ? "Using saved key"
+                                        ? t("stability.57220904acdb", { defaultValue: "Using saved key" })
                                         : [
                                               "cursor_cloud",
                                               "hermes_gateway",
                                             ].includes(adapterType)
-                                          ? "Required"
-                                          : "Optional if already configured"
+                                          ? t("required")
+                                          : t("stability.74f784d771ed", { defaultValue: "Optional if already configured" })
                                     }
                                   />
                                   {adapterType === "cursor_cloud" && (
@@ -991,9 +972,7 @@ function Setup({
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="shrink-0 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
-                                    >
-                                      get api key
-                                    </a>
+                                    >{t("stability.b2384483ca1f", { defaultValue: "get api key" })}</a>
                                   )}
                                 </div>
                               </Field>
@@ -1004,7 +983,7 @@ function Setup({
                                   chooseProvider ? "sm:col-span-2" : undefined
                                 }
                               >
-                                <Field label="Or use an organization secret">
+                                <Field label={t("stability.961df787a0b1", { defaultValue: "Or use an organization secret" })}>
                                   <SecretPicker
                                     secretId={
                                       selectedBinding &&
@@ -1028,17 +1007,14 @@ function Setup({
                                 </Field>
                               </div>
                             )}
-                            <p className="text-xs text-muted-foreground sm:col-span-2">
-                              New keys are saved as organization secrets when
-                              you finish setup.
-                              {multiProvider && ` Use a ${provider}/model ID.`}
+                            <p className="text-xs text-muted-foreground sm:col-span-2">{t("stability.ff961302d927", { defaultValue: "New keys are saved as organization secrets when you finish setup." })}{multiProvider && ` Use a ${provider}/model ID.`}
                             </p>
                           </div>
                         )}
                         {adapterType === "hermes_gateway" && (
-                          <Field label="Hermes API base URL">
+                          <Field label={t("stability.ccec8cd458fb", { defaultValue: "Hermes API base URL" })}>
                             <Input
-                              aria-label="Hermes API base URL"
+                              aria-label={t("stability.ccec8cd458fb", { defaultValue: "Hermes API base URL" })}
                               value={gatewayUrl}
                               onChange={(event) => {
                                 setGatewayUrl(event.target.value);
@@ -1050,20 +1026,20 @@ function Setup({
                         )}
                         {usingKimiApi && (
                           <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="Kimi API model name">
+                            <Field label={t("stability.d880c2be9c04", { defaultValue: "Kimi API model name" })}>
                               <Input
-                                aria-label="Kimi API model name"
+                                aria-label={t("stability.d880c2be9c04", { defaultValue: "Kimi API model name" })}
                                 value={kimiModel}
                                 onChange={(event) => {
                                   setKimiModel(event.target.value);
                                   resetTest();
                                 }}
-                                placeholder="kimi-for-coding"
+                                placeholder={t("stability.a856fb3d0899", { defaultValue: "kimi-for-coding" })}
                               />
                             </Field>
-                            <Field label="Kimi API protocol">
+                            <Field label={t("stability.2fd46541e589", { defaultValue: "Kimi API protocol" })}>
                               <select
-                                aria-label="Kimi API protocol"
+                                aria-label={t("stability.2fd46541e589", { defaultValue: "Kimi API protocol" })}
                                 className={controlClass}
                                 value={kimiProtocol}
                                 onChange={(event) => {
@@ -1079,26 +1055,26 @@ function Setup({
                               </select>
                             </Field>
                             <Field
-                              label="Kimi API base URL"
+                              label={t("stability.b46e77c4df79", { defaultValue: "Kimi API base URL" })}
                               hint="Optional override for your provider endpoint."
                             >
                               <Input
-                                aria-label="Kimi API base URL"
+                                aria-label={t("stability.b46e77c4df79", { defaultValue: "Kimi API base URL" })}
                                 value={kimiBaseUrl}
                                 onChange={(event) => {
                                   setKimiBaseUrl(event.target.value);
                                   resetTest();
                                 }}
-                                placeholder="Provider default"
+                                placeholder={t("stability.352a25678fb9", { defaultValue: "Provider default" })}
                               />
                             </Field>
                           </div>
                         )}
                         {adapterType === "cursor_cloud" && (
                           <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="GitHub repository">
+                            <Field label={t("stability.505554929de3", { defaultValue: "GitHub repository" })}>
                               <Input
-                                aria-label="GitHub repository"
+                                aria-label={t("stability.505554929de3", { defaultValue: "GitHub repository" })}
                                 value={repository}
                                 onChange={(event) => {
                                   setRepository(event.target.value);
@@ -1107,10 +1083,10 @@ function Setup({
                                 placeholder="https://github.com/your-org/repo"
                               />
                             </Field>
-                            <Field label="Branch">
+                            <Field label={t("branch")}>
                               <Input
-                                aria-label="Branch"
-                                placeholder="Repository default"
+                                aria-label={t("branch")}
+                                placeholder={t("stability.e88cba3b99d1", { defaultValue: "Repository default" })}
                                 value={branch}
                                 onChange={(event) => {
                                   setBranch(event.target.value);
@@ -1125,9 +1101,9 @@ function Setup({
                         adapterType,
                       ) && (
                         <section className="space-y-5">
-                          <h3 className="text-sm font-semibold">Environment</h3>
+                          <h3 className="text-sm font-semibold">{t("environment")}</h3>
                           <select
-                            aria-label="Environment"
+                            aria-label={t("environment")}
                             className={controlClass}
                             value={environmentOverride}
                             disabled={forced.forced}
@@ -1138,8 +1114,7 @@ function Setup({
                               if (connectionAdapter) setScreen("connect");
                             }}
                           >
-                            <option value="">
-                              Default: {environmentLabel}
+                            <option value="">{t("default")}{" "}{environmentLabel}
                             </option>
                             {(envs.data ?? [])
                               .filter((env) => env.status === "active" && (!managedOnly || env.driver !== "local"))
@@ -1172,9 +1147,7 @@ function Setup({
                           disabled={busy}
                           onClick={() => setScreen("connect")}
                         >
-                          <ArrowLeft className="size-4" />
-                          Connection
-                        </Button>
+                          <ArrowLeft className="size-4" />{t("connection")}</Button>
                       ) : (
                         <span />
                       )}
@@ -1187,7 +1160,7 @@ function Setup({
                           Boolean(connectionAdapter && !connection)
                         }
                       >
-                        {saving ? "Creating…" : "Finish setup"}
+                        {saving ? t("creating") : t("finish_setup")}
                         <Check className="size-4" />
                       </Button>
                     </div>

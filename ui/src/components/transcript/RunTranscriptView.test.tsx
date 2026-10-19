@@ -7,8 +7,30 @@ import { buildTranscript, type RunLogChunk, type TranscriptEntry } from "../../a
 import type { ToolRunDecision } from "@paperclipai/shared";
 import { ThemeProvider } from "../../context/ThemeContext";
 import { RunTranscriptView, keyTranscriptBlocks, normalizeTranscript } from "./RunTranscriptView";
+import { i18n } from "@/i18n";
 
 describe("RunTranscriptView", () => {
+  it("localizes known invocation status while keeping custom tool names and raw status", async () => {
+    const originalLanguage = i18n.language;
+    const decision = {
+      invocation: { id: "invocation-localized", status: "rate_limited" },
+      auditEvents: [], actionRequest: null, pendingAction: null, decision: null,
+      outcome: null, reasonCode: null, denialReason: null,
+    } as unknown as ToolRunDecision;
+    try {
+      await i18n.changeLanguage("zh-CN");
+      const html = renderToStaticMarkup(<ThemeProvider><RunTranscriptView
+        entries={[{ kind: "tool_call", ts: "2026-03-12T00:00:00.000Z", name: "customer_custom_tool", invocationId: decision.invocation.id, input: {} }]}
+        toolDecisions={[decision]} />
+      </ThemeProvider>);
+      expect(html).toContain("已达速率限制");
+      expect(html).toContain("Customer Custom Tool");
+      expect(decision.invocation.status).toBe("rate_limited");
+    } finally {
+      await i18n.changeLanguage(originalLanguage);
+    }
+  });
+
   it("renders provider activity semantically without dumping the payload", () => {
     const html = renderToStaticMarkup(<RunTranscriptView entries={[{ kind: "provider_activity", ts: "2026-08-21T12:00:00.000Z", family: "plan", eventType: "plan.updated", status: "completed", title: "Plan", summary: "Plan completed", payload: { steps: [{ stepId: "s1", body: "Validate schemas", status: "completed" }], hiddenSecret: "must-not-render" } }]} />);
     expect(html).toContain("Plan");

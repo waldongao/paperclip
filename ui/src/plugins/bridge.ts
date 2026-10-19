@@ -39,6 +39,7 @@ import { useToastActions, type ToastInput } from "@/context/ToastContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { isGlobalPath, normalizeCompanyPrefix } from "@/lib/company-routes";
 import { normalizeRememberedInstanceSettingsPath } from "@/lib/instance-settings";
+import { t, useTranslation } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Bridge error type (mirrors the SDK's PluginBridgeError)
@@ -174,11 +175,12 @@ export const PluginBridgeContext =
   createContext<PluginBridgeContextValue | null>(null);
 
 function usePluginBridgeContext(): PluginBridgeContextValue {
+  const { t } = useTranslation();
   const ctx = useContext(PluginBridgeContext);
   if (!ctx) {
     throw new Error(
-      "Plugin bridge hook called outside of a <PluginBridgeContext.Provider>. " +
-        "Ensure the plugin component is rendered within a PluginBridgeScope.",
+      t("plugin_bridge_hook_called_outside_of_a_pluginbri") +
+        t("ensure_the_plugin_component_is_rendered_within_a"),
     );
   }
   return ctx;
@@ -216,7 +218,7 @@ function extractBridgeError(err: unknown): PluginBridgeError {
 
   return {
     code: "UNKNOWN",
-    message: err instanceof Error ? err.message : String(err),
+    message: err instanceof ApiError ? err.rawMessage : err instanceof Error ? err.message : String(err),
   };
 }
 
@@ -656,7 +658,7 @@ export function usePluginStream<T = unknown>(
     source.onerror = () => {
       setConnecting(false);
       setConnected(false);
-      setError(new Error(`Failed to connect to plugin stream "${channel}"`));
+      setError(new Error(t("zhSupport.pluginStreamFailed", { channel })));
       source.close();
       if (sourceRef.current === source) {
         sourceRef.current = null;

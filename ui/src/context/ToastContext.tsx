@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import {
   createContext,
   useCallback,
@@ -8,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useTranslation } from "@/i18n";
 
 export type ToastTone = "info" | "success" | "warn" | "error";
 
@@ -174,17 +176,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 export function useToastState() {
+  const { t } = useTranslation();
   const context = useContext(ToastStateContext);
   if (!context) {
-    throw new Error("useToastState must be used within a ToastProvider");
+    throw new Error(t("usetoaststate_must_be_used_within_a_toastprovide"));
   }
   return context;
 }
 
 export function useToastActions() {
+  const { t } = useTranslation();
   const context = useContext(ToastActionsContext);
   if (!context) {
-    throw new Error("useToastActions must be used within a ToastProvider");
+    throw new Error(t("usetoastactions_must_be_used_within_a_toastprovi"));
   }
   return context;
 }

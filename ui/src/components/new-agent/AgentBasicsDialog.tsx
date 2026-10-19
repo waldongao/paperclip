@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useCompany } from "@/context/CompanyContext";
 import { useAgentAppearanceDraft } from "@/hooks/useAgentAppearanceDraft";
 import { AgentCharacter } from "../AgentCharacter";
@@ -148,19 +149,15 @@ export function AgentBasicsDialog({
       >
         <div
           className="flex items-center gap-2 px-6 py-5 text-xs text-muted-foreground"
-          aria-label="New agent progress"
+          aria-label={t("stability.260193aa8a06", { defaultValue: "New agent progress" })}
         >
           <span
             className={cn(step === "name" && "font-medium text-foreground")}
-          >
-            1. Name
-          </span>
+          >{t("stability.6dce9cbb76b5", { defaultValue: "1. Name" })}</span>
           <ChevronRight className="size-3" />
           <span
             className={cn(step === "adapter" && "font-medium text-foreground")}
-          >
-            2. Adapter
-          </span>
+          >{t("stability.f692efe7c246", { defaultValue: "2. Adapter" })}</span>
         </div>
         <form
           className="flex min-h-0 flex-col"
@@ -178,26 +175,24 @@ export function AgentBasicsDialog({
               <div className="space-y-2">
                 <DialogTitle className="text-3xl font-semibold tracking-tight">
                   {step === "name"
-                    ? "Meet your next agent"
-                    : "Choose an adapter"}
+                    ? t("stability.945b95776ed6", { defaultValue: "Meet your next agent" })
+                    : t("stability.ea43ab7d4644", { defaultValue: "Choose an adapter" })}
                 </DialogTitle>
                 <DialogDescription className="text-base">
                   {step === "name"
-                    ? "Start with a name. Make them your own."
+                    ? t("stability.8d8fc9f2333c", { defaultValue: "Start with a name. Make them your own." })
                     : `How should ${name.trim()} work?`}
                 </DialogDescription>
               </div>
             </div>
             {step === "name" ? (
               <div className="space-y-2">
-                <label htmlFor={id} className="text-sm font-medium">
-                  Agent name
-                </label>
+                <label htmlFor={id} className="text-sm font-medium">{t("agent_name")}</label>
                 <Input
                   id={id}
                   autoFocus
                   maxLength={100}
-                  placeholder="e.g. Darnold"
+                  placeholder={t("stability.4c64e4feedf5", { defaultValue: "e.g. Darnold" })}
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   className="h-12 text-base"
@@ -208,18 +203,14 @@ export function AgentBasicsDialog({
                     variant="link"
                     className="px-0 text-muted-foreground"
                     onClick={onInvite}
-                  >
-                    Invite an external agent
-                  </Button>
+                  >{t("invite_an_external_agent")}</Button>
                 )}
               </div>
             ) : (
               <fieldset className="space-y-4">
-                <legend className="sr-only">Adapter</legend>
+                <legend className="sr-only">{t("adapter")}</legend>
                 {isPending && (
-                  <p role="status" className="text-sm text-muted-foreground">
-                    Loading adapters…
-                  </p>
+                  <p role="status" className="text-sm text-muted-foreground">{t("stability.89e30959db8c", { defaultValue: "Loading adapters…" })}</p>
                 )}
                 {error && (
                   <p role="alert" className="text-sm text-destructive">
@@ -263,18 +254,16 @@ export function AgentBasicsDialog({
                   })}
                 </div>
                 {validAdapter && adapterType === "paperclip_runner" && (
-                  <label className="flex flex-col gap-2 text-sm font-medium">
-                    Runner
-                    <select
+                  <label className="flex flex-col gap-2 text-sm font-medium">{t("runner")}<select
                       className="rounded-md border border-border bg-background px-3 py-2"
                       value={runnerProvider}
                       onChange={(event) =>
                         setRunnerProvider(event.target.value)
                       }
                     >
-                      <option value="codex">Codex (app server)</option>
-                      <option value="claude">Claude (ACPX)</option>
-                      <option value="grok">Grok Build (ACPX)</option>
+                      <option value="codex">{t("stability.d64fe2f5ed15", { defaultValue: "Codex (app server)" })}</option>
+                      <option value="claude">{t("stability.60a5ff321287", { defaultValue: "Claude (ACPX)" })}</option>
+                      <option value="grok">{t("stability.1760fae9b914", { defaultValue: "Grok Build (ACPX)" })}</option>
                       <option value="opencode">OpenCode</option>
                     </select>
                   </label>
@@ -289,19 +278,17 @@ export function AgentBasicsDialog({
               onClick={() => (step === "name" ? onClose() : setStep("name"))}
             >
               {step === "name" ? (
-                "Cancel"
+                t("common.cancel")
               ) : (
                 <>
-                  <ArrowLeft className="size-4" />
-                  Back
-                </>
+                  <ArrowLeft className="size-4" />{t("common.back")}</>
               )}
             </Button>
             <Button
               type="submit"
               disabled={!name.trim() || (step === "adapter" && !validAdapter)}
             >
-              {step === "name" ? "Choose adapter" : "Configure agent"}
+              {step === "name" ? t("stability.83a3d0a902c8", { defaultValue: "Choose adapter" }) : t("stability.14c603bd68de", { defaultValue: "Configure agent" })}
               <ArrowRight className="size-4" />
             </Button>
           </div>

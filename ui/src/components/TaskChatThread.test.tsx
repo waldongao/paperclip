@@ -8,6 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TaskChatThread } from "./TaskChatThread";
+import { i18n } from "@/i18n";
+const initialLanguage = i18n.language;
 import type {
   IssueDocument,
   IssueQueuedCommentQueue,
@@ -133,13 +135,14 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => {
+afterEach(async () => {
   flushSync(() => root?.unmount());
   queryClient.clear();
   root = null;
   container.remove();
   localStorage.clear();
   vi.restoreAllMocks();
+  await i18n.changeLanguage(initialLanguage);
 });
 
 function render(ui: ReactElement) {
@@ -2469,7 +2472,8 @@ describe("TaskChatThread runtime transcript selection", () => {
     );
   });
 
-  it("keeps a yielded question turn out of the final-response slot", () => {
+  it.each(["en", "zh-CN"])("keeps a yielded question turn out of the final-response slot in %s", async (locale) => {
+    await i18n.changeLanguage(locale);
     nativeTranscriptState.transcriptByRun.set("native-question", [
       {
         kind: "assistant",

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { DispositionRecoveryNotice, useDispositionRecoverySnapshot } from "@/components/DispositionRecoveryNotice";
 import { useId, useState } from "react";
 import {
@@ -75,7 +76,7 @@ export function TaskChatSystemNotice({
   const relative = item.createdAtIso ? timeAgo(item.createdAtIso) : undefined;
   const showTryAgain =
     Boolean(onTryAgainNoLiveExecutionPath) &&
-    (item.presentation?.title?.trim() === "No live execution path" ||
+    ((item.presentation?.title?.trim() === "No live execution path" || item.presentation?.title?.trim() === t("no_live_execution_path")) ||
       item.text.toLowerCase().includes("no live execution path"));
   const handleTryAgain = () => {
     void Promise.resolve()
@@ -94,7 +95,7 @@ export function TaskChatSystemNotice({
       data-testid="task-chat-system-notice"
       data-tone={streamlined ? tone : undefined}
       role={streamlined ? "group" : undefined}
-      aria-label={streamlined ? `System update: ${title}` : undefined}
+      aria-label={streamlined ? t("zhComponents.message_7626b03b7c", { value1: title }) : undefined}
     >
       <div className="flex max-w-(--pct-85) items-center gap-1.5">
         <button
@@ -126,7 +127,7 @@ export function TaskChatSystemNotice({
             disabled={tryAgainNoLiveExecutionPathPending}
             data-testid="task-chat-no-live-path-try-again"
           >
-            {tryAgainNoLiveExecutionPathPending ? "Trying again..." : "Try again"}
+            {tryAgainNoLiveExecutionPathPending ? t("trying_again") : t("try_again")}
           </Button>
         ) : null}
       </div>
@@ -162,7 +163,7 @@ export function TaskChatSystemNotice({
                 disabled={tryAgainNoLiveExecutionPathPending}
                 data-testid="task-chat-no-live-path-try-again"
               >
-                {tryAgainNoLiveExecutionPathPending ? "Trying again..." : "Try again"}
+                {tryAgainNoLiveExecutionPathPending ? t("trying_again") : t("try_again")}
               </Button>
             </div>
           ) : null}

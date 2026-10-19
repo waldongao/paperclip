@@ -1,3 +1,4 @@
+import { tCli, translateCliDisplayMessage } from "../i18n.js";
 import { readFile } from "node:fs/promises";
 import { Command } from "commander";
 import pc from "picocolors";
@@ -195,19 +196,19 @@ interface ReviewBulkOptions extends PipelineOptions {
 }
 
 export function registerPipelineCommands(program: Command): void {
-  const pipelines = program.command("pipelines").description("Pipeline and case operations");
+  const pipelines = program.command("pipelines").description(tCli("Pipeline and case operations"));
 
   addPipelineOptions(
     pipelines
       .command("create")
-      .description("Create a pipeline")
-      .requiredOption("--key <key>", "Pipeline key")
-      .requiredOption("--name <name>", "Pipeline name")
-      .option("--description <text>", "Pipeline description")
-      .option("--project-id <id>", "Project ID")
-      .option("--enforce-transitions", "Only allow configured transitions")
-      .option("--stages-json <json>", "Pipeline stage array as JSON")
-      .option("--stages-file <path>", "Read pipeline stage array from JSON file")
+      .description(tCli("Create a pipeline"))
+      .requiredOption("--key <key>", tCli("Pipeline key"))
+      .requiredOption("--name <name>", tCli("Pipeline name"))
+      .option("--description <text>", tCli("Pipeline description"))
+      .option("--project-id <id>", tCli("Project ID"))
+      .option("--enforce-transitions", tCli("Only allow configured transitions"))
+      .option("--stages-json <json>", tCli("Pipeline stage array as JSON"))
+      .option("--stages-file <path>", tCli("Read pipeline stage array from JSON file"))
       .action((opts: CreateOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const body: JsonObject = {
@@ -226,7 +227,7 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("list")
-      .description("List pipelines")
+      .description(tCli("List pipelines"))
       .action((opts: PipelineOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const rows = await ctx.api.get<PipelineSummary[]>(apiPath`/api/companies/${ctx.companyId}/pipelines`) ?? [];
@@ -239,8 +240,8 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("get")
-      .description("Get a pipeline by ID or key")
-      .argument("<pipeline>", "Pipeline ID or key")
+      .description(tCli("Get a pipeline by ID or key"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
       .action((pipeline: string, opts: PipelineOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printPipeline(await getPipeline(ctx, pipeline), ctx);
@@ -250,10 +251,10 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("set-transitions")
-      .description("Replace a pipeline transition edge set")
-      .argument("<pipeline>", "Pipeline ID or key")
-      .requiredOption("--file <path>", "JSON file with transition array or { transitions }")
-      .option("--enforce", "Enable transition enforcement")
+      .description(tCli("Replace a pipeline transition edge set"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
+      .requiredOption("--file <path>", tCli("JSON file with transition array or { transitions }"))
+      .option("--enforce", tCli("Enable transition enforcement"))
       .action((pipeline: string, opts: TransitionSetOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const pipelineId = await resolvePipelineId(ctx, pipeline);
@@ -264,12 +265,12 @@ export function registerPipelineCommands(program: Command): void {
       })),
   );
 
-  const guidance = pipelines.command("guidance").description("Pipeline guidance document operations");
+  const guidance = pipelines.command("guidance").description(tCli("Pipeline guidance document operations"));
   addPipelineOptions(
     guidance
       .command("get")
-      .description("Get pipeline guidance")
-      .argument("<pipeline>", "Pipeline ID or key")
+      .description(tCli("Get pipeline guidance"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
       .action((pipeline: string, opts: PipelineOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const pipelineId = await resolvePipelineId(ctx, pipeline);
@@ -280,18 +281,18 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     guidance
       .command("put")
-      .description("Create or replace pipeline guidance")
-      .argument("<pipeline>", "Pipeline ID or key")
-      .option("--file <path>", "Markdown file")
-      .option("--body <markdown>", "Markdown body")
-      .option("--title <title>", "Document title")
+      .description(tCli("Create or replace pipeline guidance"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
+      .option("--file <path>", tCli("Markdown file"))
+      .option("--body <markdown>", tCli("Markdown body"))
+      .option("--title <title>", tCli("Document title"))
       .action((pipeline: string, opts: GuidancePutOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const pipelineId = await resolvePipelineId(ctx, pipeline);
         const body = opts.body ?? (opts.file ? await readFile(opts.file, "utf8") : undefined);
-        if (body === undefined) throw new Error("Guidance body is required. Pass --file or --body.");
+        if (body === undefined) throw new Error(tCli("Guidance body is required. Pass --file or --body."));
         printOutput(await ctx.api.put(apiPath`/api/pipelines/${pipelineId}/documents/guidance`, {
-          title: opts.title ?? "Pipeline guidance",
+          title: opts.title ?? tCli("Pipeline guidance"),
           body,
         }), { json: ctx.json });
       })),
@@ -300,16 +301,16 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("set-automation")
-      .description("Set a run_routine onEnter automation on a stage")
-      .argument("<pipeline>", "Pipeline ID or key")
-      .requiredOption("--stage <key>", "Stage key")
-      .requiredOption("--routine <id>", "Routine ID")
-      .option("--note <text>", "Automation note")
+      .description(tCli("Set a run_routine onEnter automation on a stage"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
+      .requiredOption("--stage <key>", tCli("Stage key"))
+      .requiredOption("--routine <id>", tCli("Routine ID"))
+      .option("--note <text>", tCli("Automation note"))
       .action((pipeline: string, opts: AutomationOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const detail = await getPipeline(ctx, pipeline);
         const stage = detail.stages?.find((item) => item.key === opts.stage);
-        if (!stage) throw new Error(`Stage not found on pipeline ${detail.key}: ${opts.stage}`);
+        if (!stage) throw new Error(tCli("Stage not found on pipeline {{value1}}: {{value2}}", { value1: String(detail.key), value2: String(opts.stage) }));
         const config = {
           ...(stage.config ?? {}),
           onEnter: {
@@ -326,18 +327,18 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("ingest")
-      .description("Ingest one case into a pipeline")
-      .argument("<pipeline>", "Pipeline ID or key")
-      .option("--case-key <key>", "Case idempotency key")
-      .requiredOption("--title <title>", "Case title")
-      .option("--summary <text>", "Case summary")
-      .option("--fields-json <json>", "Case fields JSON object")
-      .option("--fields-file <path>", "Read case fields JSON object from file")
-      .option("--stage <key>", "Initial stage key")
-      .option("--parent-case <id>", "Parent case ID")
-      .option("--workspace-ref-json <json>", "Workspace ref JSON object")
-      .option("--blocked-by <csv>", "Comma-separated blocker case IDs")
-      .option("--blocked-by-key <csv>", "Comma-separated blocker case keys")
+      .description(tCli("Ingest one case into a pipeline"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
+      .option("--case-key <key>", tCli("Case idempotency key"))
+      .requiredOption("--title <title>", tCli("Case title"))
+      .option("--summary <text>", tCli("Case summary"))
+      .option("--fields-json <json>", tCli("Case fields JSON object"))
+      .option("--fields-file <path>", tCli("Read case fields JSON object from file"))
+      .option("--stage <key>", tCli("Initial stage key"))
+      .option("--parent-case <id>", tCli("Parent case ID"))
+      .option("--workspace-ref-json <json>", tCli("Workspace ref JSON object"))
+      .option("--blocked-by <csv>", tCli("Comma-separated blocker case IDs"))
+      .option("--blocked-by-key <csv>", tCli("Comma-separated blocker case keys"))
       .action((pipeline: string, opts: IngestOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const pipelineId = await resolvePipelineId(ctx, pipeline);
@@ -349,9 +350,9 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("ingest-batch")
-      .description("Ingest a batch of cases")
-      .argument("<pipeline>", "Pipeline ID or key")
-      .requiredOption("--file <path>", "JSON file containing an array or { items }")
+      .description(tCli("Ingest a batch of cases"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
+      .requiredOption("--file <path>", tCli("JSON file containing an array or { items }"))
       .action((pipeline: string, opts: IngestBatchOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const pipelineId = await resolvePipelineId(ctx, pipeline);
@@ -364,12 +365,12 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("cases")
-      .description("List cases in a pipeline")
-      .argument("<pipeline>", "Pipeline ID or key")
-      .option("--stage <key>", "Filter by stage key")
-      .option("--parent <caseId>", "Filter by parent case ID")
-      .option("--terminal", "Only terminal cases")
-      .option("--q <text>", "Search title/summary")
+      .description(tCli("List cases in a pipeline"))
+      .argument("<pipeline>", tCli("Pipeline ID or key"))
+      .option("--stage <key>", tCli("Filter by stage key"))
+      .option("--parent <caseId>", tCli("Filter by parent case ID"))
+      .option("--terminal", tCli("Only terminal cases"))
+      .option("--q <text>", tCli("Search title/summary"))
       .action((pipeline: string, opts: CasesOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const pipelineId = await resolvePipelineId(ctx, pipeline);
@@ -384,15 +385,15 @@ export function registerPipelineCommands(program: Command): void {
       })),
   );
 
-  const caseCommand = pipelines.command("case").description("Pipeline case operations");
+  const caseCommand = pipelines.command("case").description(tCli("Pipeline case operations"));
   registerCaseCommands(caseCommand);
 
   addPipelineOptions(
     pipelines
       .command("review-inbox")
-      .description("List cases waiting in review stages")
-      .option("--pipeline <idOrKey>", "Filter to one pipeline")
-      .option("--parent <caseId>", "Filter by parent case ID")
+      .description(tCli("List cases waiting in review stages"))
+      .option("--pipeline <idOrKey>", tCli("Filter to one pipeline"))
+      .option("--parent <caseId>", tCli("Filter by parent case ID"))
       .action((opts: ReviewInboxOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const params = new URLSearchParams();
@@ -407,8 +408,8 @@ export function registerPipelineCommands(program: Command): void {
   addPipelineOptions(
     pipelines
       .command("review-bulk")
-      .description("Apply bulk review decisions: approve, reject, or request_changes")
-      .requiredOption("--file <path>", "JSON file containing an array or { items }")
+      .description(tCli("Apply bulk review decisions: approve, reject, or request_changes"))
+      .requiredOption("--file <path>", tCli("JSON file containing an array or { items }"))
       .action((opts: ReviewBulkOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const input = await readJsonFile(opts.file);
@@ -422,8 +423,8 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("get")
-      .description("Get a case")
-      .argument("<caseId>", "Case ID")
+      .description(tCli("Get a case"))
+      .argument("<caseId>", tCli("Case ID"))
       .action((caseId: string, opts: PipelineOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printCaseDetail(await ctx.api.get<CaseDetail>(apiPath`/api/cases/${caseId}`), ctx);
@@ -433,8 +434,8 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("events")
-      .description("List case events")
-      .argument("<caseId>", "Case ID")
+      .description(tCli("List case events"))
+      .argument("<caseId>", tCli("Case ID"))
       .action((caseId: string, opts: PipelineOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printOutput(await ctx.api.get(apiPath`/api/cases/${caseId}/events`), { json: ctx.json });
@@ -444,8 +445,8 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("rollup")
-      .description("Get recursive case rollup")
-      .argument("<caseId>", "Case ID")
+      .description(tCli("Get recursive case rollup"))
+      .argument("<caseId>", tCli("Case ID"))
       .action((caseId: string, opts: PipelineOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printOutput(await ctx.api.get(apiPath`/api/cases/${caseId}/rollup`), { json: ctx.json });
@@ -455,16 +456,16 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("edit")
-      .description("Edit case content")
-      .argument("<caseId>", "Case ID")
-      .option("--expected-version <n>", "Expected case version")
-      .option("--title <title>", "New title")
-      .option("--summary <text>", "New summary")
-      .option("--fields-json <json>", "Replacement fields JSON object")
-      .option("--fields-file <path>", "Read replacement fields from JSON file")
-      .option("--workspace-ref-json <json>", "Workspace ref JSON object")
-      .option("--parent-case <id>", "Parent case ID")
-      .option("--lease-token <token>", "Lease token")
+      .description(tCli("Edit case content"))
+      .argument("<caseId>", tCli("Case ID"))
+      .option("--expected-version <n>", tCli("Expected case version"))
+      .option("--title <title>", tCli("New title"))
+      .option("--summary <text>", tCli("New summary"))
+      .option("--fields-json <json>", tCli("Replacement fields JSON object"))
+      .option("--fields-file <path>", tCli("Read replacement fields from JSON file"))
+      .option("--workspace-ref-json <json>", tCli("Workspace ref JSON object"))
+      .option("--parent-case <id>", tCli("Parent case ID"))
+      .option("--lease-token <token>", tCli("Lease token"))
       .action((caseId: string, opts: EditOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const body: JsonObject = {};
@@ -472,7 +473,7 @@ function registerCaseCommands(caseCommand: Command): void {
         setIfDefined(body, "summary", opts.summary);
         setIfDefined(body, "parentCaseId", opts.parentCase);
         setIfDefined(body, "leaseToken", opts.leaseToken);
-        if (opts.expectedVersion) body.expectedVersion = parsePositiveInt(opts.expectedVersion, "expected version");
+        if (opts.expectedVersion) body.expectedVersion = parsePositiveInt(opts.expectedVersion, tCli("expected version"));
         const fields = await readJsonFromOptions(opts.fieldsJson, opts.fieldsFile);
         if (fields !== undefined) body.fields = fields;
         if (opts.workspaceRefJson) body.workspaceRef = parseJson(opts.workspaceRefJson);
@@ -483,12 +484,12 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("claim")
-      .description("Claim a case lease")
-      .argument("<caseId>", "Case ID")
-      .option("--lease-seconds <n>", "Lease duration in seconds")
+      .description(tCli("Claim a case lease"))
+      .argument("<caseId>", tCli("Case ID"))
+      .option("--lease-seconds <n>", tCli("Lease duration in seconds"))
       .action((caseId: string, opts: ClaimOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
-        const body = opts.leaseSeconds ? { leaseSeconds: parsePositiveInt(opts.leaseSeconds, "lease seconds") } : {};
+        const body = opts.leaseSeconds ? { leaseSeconds: parsePositiveInt(opts.leaseSeconds, tCli("lease seconds")) } : {};
         printOutput(await ctx.api.post(apiPath`/api/cases/${caseId}/claim`, body), { json: ctx.json });
       })),
   );
@@ -496,10 +497,10 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("release")
-      .description("Release a case lease")
-      .argument("<caseId>", "Case ID")
-      .option("--lease-token <token>", "Lease token")
-      .option("--force", "Force release as board/user")
+      .description(tCli("Release a case lease"))
+      .argument("<caseId>", tCli("Case ID"))
+      .option("--lease-token <token>", tCli("Lease token"))
+      .option("--force", tCli("Force release as board/user"))
       .action((caseId: string, opts: ReleaseOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printOutput(await ctx.api.post(apiPath`/api/cases/${caseId}/release`, {
@@ -512,18 +513,18 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("transition")
-      .description("Transition a case to another stage")
-      .argument("<caseId>", "Case ID")
-      .requiredOption("--to <stageKey>", "Target stage key")
-      .requiredOption("--expected-version <n>", "Expected case version")
-      .option("--reason <text>", "Transition reason")
-      .option("--lease-token <token>", "Lease token")
-      .option("--accept-suggestion <id>", "Accepted suggestion ID")
+      .description(tCli("Transition a case to another stage"))
+      .argument("<caseId>", tCli("Case ID"))
+      .requiredOption("--to <stageKey>", tCli("Target stage key"))
+      .requiredOption("--expected-version <n>", tCli("Expected case version"))
+      .option("--reason <text>", tCli("Transition reason"))
+      .option("--lease-token <token>", tCli("Lease token"))
+      .option("--accept-suggestion <id>", tCli("Accepted suggestion ID"))
       .action((caseId: string, opts: CaseTransitionOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printOutput(await ctx.api.post(apiPath`/api/cases/${caseId}/transition`, {
           toStageKey: opts.to,
-          expectedVersion: parsePositiveInt(opts.expectedVersion, "expected version"),
+          expectedVersion: parsePositiveInt(opts.expectedVersion, tCli("expected version")),
           reason: opts.reason,
           leaseToken: opts.leaseToken,
           acceptSuggestionId: opts.acceptSuggestion,
@@ -534,11 +535,11 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("suggest")
-      .description("Suggest a transition without moving the case")
-      .argument("<caseId>", "Case ID")
-      .requiredOption("--to <stageKey>", "Target stage key")
-      .requiredOption("--rationale <text>", "Suggestion rationale")
-      .option("--confidence <n>", "Confidence 0..1")
+      .description(tCli("Suggest a transition without moving the case"))
+      .argument("<caseId>", tCli("Case ID"))
+      .requiredOption("--to <stageKey>", tCli("Target stage key"))
+      .requiredOption("--rationale <text>", tCli("Suggestion rationale"))
+      .option("--confidence <n>", tCli("Confidence 0..1"))
       .action((caseId: string, opts: SuggestOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const body: JsonObject = {
@@ -553,14 +554,14 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("resolve-suggestion")
-      .description("Accept or dismiss a pending transition suggestion")
-      .argument("<caseId>", "Case ID")
-      .requiredOption("--suggestion <id>", "Suggestion ID")
-      .option("--accept", "Accept the suggestion")
-      .option("--dismiss", "Dismiss the suggestion")
-      .option("--expected-version <n>", "Expected case version")
-      .option("--reason <text>", "Decision reason")
-      .option("--lease-token <token>", "Lease token")
+      .description(tCli("Accept or dismiss a pending transition suggestion"))
+      .argument("<caseId>", tCli("Case ID"))
+      .requiredOption("--suggestion <id>", tCli("Suggestion ID"))
+      .option("--accept", tCli("Accept the suggestion"))
+      .option("--dismiss", tCli("Dismiss the suggestion"))
+      .option("--expected-version <n>", tCli("Expected case version"))
+      .option("--reason <text>", tCli("Decision reason"))
+      .option("--lease-token <token>", tCli("Lease token"))
       .action((caseId: string, opts: ResolveSuggestionOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const decision = exactlyOneFlag(opts.accept, opts.dismiss, "--accept", "--dismiss") === "--accept" ? "accept" : "dismiss";
@@ -570,7 +571,7 @@ function registerCaseCommands(caseCommand: Command): void {
           reason: opts.reason,
           leaseToken: opts.leaseToken,
         };
-        if (opts.expectedVersion) body.expectedVersion = parsePositiveInt(opts.expectedVersion, "expected version");
+        if (opts.expectedVersion) body.expectedVersion = parsePositiveInt(opts.expectedVersion, tCli("expected version"));
         printOutput(await ctx.api.post(apiPath`/api/cases/${caseId}/resolve-suggestion`, body), { json: ctx.json });
       })),
   );
@@ -578,20 +579,20 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("review")
-      .description("Approve, reject, or request changes for a case in a review stage")
-      .argument("<caseId>", "Case ID")
-      .option("--approve", "Approve the case")
-      .option("--reject", "Reject the case")
-      .option("--request-changes", "Request changes for the case")
-      .option("--reason <text>", "Decision reason")
-      .requiredOption("--expected-version <n>", "Expected case version")
-      .option("--edits-json <json>", "Review edits JSON")
-      .option("--edits-file <path>", "Read review edits JSON from file")
-      .option("--title <title>", "Edit title before decision")
-      .option("--summary <text>", "Edit summary before decision")
-      .option("--fields-json <json>", "Edit fields before decision")
-      .option("--fields-file <path>", "Read edit fields from JSON file")
-      .option("--lease-token <token>", "Lease token")
+      .description(tCli("Approve, reject, or request changes for a case in a review stage"))
+      .argument("<caseId>", tCli("Case ID"))
+      .option("--approve", tCli("Approve the case"))
+      .option("--reject", tCli("Reject the case"))
+      .option("--request-changes", tCli("Request changes for the case"))
+      .option("--reason <text>", tCli("Decision reason"))
+      .requiredOption("--expected-version <n>", tCli("Expected case version"))
+      .option("--edits-json <json>", tCli("Review edits JSON"))
+      .option("--edits-file <path>", tCli("Read review edits JSON from file"))
+      .option("--title <title>", tCli("Edit title before decision"))
+      .option("--summary <text>", tCli("Edit summary before decision"))
+      .option("--fields-json <json>", tCli("Edit fields before decision"))
+      .option("--fields-file <path>", tCli("Read edit fields from JSON file"))
+      .option("--lease-token <token>", tCli("Lease token"))
       .action((caseId: string, opts: ReviewOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         const decision = reviewDecisionFromOptions(opts);
@@ -600,7 +601,7 @@ function registerCaseCommands(caseCommand: Command): void {
           decision,
           reason: opts.reason,
           edits,
-          expectedVersion: parsePositiveInt(opts.expectedVersion, "expected version"),
+          expectedVersion: parsePositiveInt(opts.expectedVersion, tCli("expected version")),
           leaseToken: opts.leaseToken,
         }), { json: ctx.json });
       })),
@@ -609,9 +610,9 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("block")
-      .description("Replace a case blocker set")
-      .argument("<caseId>", "Case ID")
-      .requiredOption("--by <csv>", "Comma-separated blocker case IDs, or empty string to clear")
+      .description(tCli("Replace a case blocker set"))
+      .argument("<caseId>", tCli("Case ID"))
+      .requiredOption("--by <csv>", tCli("Comma-separated blocker case IDs, or empty string to clear"))
       .action((caseId: string, opts: BlockOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printOutput(await ctx.api.put(apiPath`/api/cases/${caseId}/blockers`, {
@@ -623,8 +624,8 @@ function registerCaseCommands(caseCommand: Command): void {
   addPipelineOptions(
     caseCommand
       .command("open-conversation")
-      .description("Open or return the case conversation issue")
-      .argument("<caseId>", "Case ID")
+      .description(tCli("Open or return the case conversation issue"))
+      .argument("<caseId>", tCli("Case ID"))
       .action((caseId: string, opts: PipelineOptions) => withPipelineErrors(async () => {
         const ctx = resolvePipelineContext(opts);
         printOutput(await ctx.api.post(apiPath`/api/cases/${caseId}/open-conversation`, {}), { json: ctx.json });
@@ -644,14 +645,14 @@ async function resolvePipelineId(ctx: ResolvedClientContext & { companyId: strin
   if (looksLikeUuid(pipeline)) return pipeline;
   const rows = await ctx.api.get<PipelineSummary[]>(apiPath`/api/companies/${ctx.companyId}/pipelines`) ?? [];
   const match = rows.find((row) => row.key === pipeline || row.id === pipeline);
-  if (!match) throw new Error(`Pipeline not found by key or id: ${pipeline}`);
+  if (!match) throw new Error(tCli("Pipeline not found by key or id: {{value1}}", { value1: String(pipeline) }));
   return match.id;
 }
 
 async function getPipeline(ctx: ResolvedClientContext & { companyId: string }, pipeline: string): Promise<PipelineDetail> {
   const pipelineId = await resolvePipelineId(ctx, pipeline);
   const detail = await ctx.api.get<PipelineDetail>(apiPath`/api/pipelines/${pipelineId}`);
-  if (!detail) throw new Error(`Pipeline not found: ${pipeline}`);
+  if (!detail) throw new Error(tCli("Pipeline not found: {{value1}}", { value1: String(pipeline) }));
   return detail;
 }
 
@@ -679,7 +680,7 @@ async function buildReviewEdits(opts: ReviewOptions): Promise<JsonObject | undef
 }
 
 async function readJsonFromOptions(json?: string, file?: string): Promise<unknown | undefined> {
-  if (json && file) throw new Error("Pass either inline JSON or a JSON file, not both.");
+  if (json && file) throw new Error(tCli("Pass either inline JSON or a JSON file, not both."));
   if (json) return parseJson(json);
   if (file) return readJsonFile(file);
   return undefined;
@@ -693,13 +694,13 @@ function parseJson(value: string): unknown {
   try {
     return JSON.parse(value) as unknown;
   } catch (error) {
-    throw new Error(`Invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(tCli("Invalid JSON: {{value1}}", { value1: String(error instanceof Error ? error.message : String(error)) }));
   }
 }
 
 function asObject(value: unknown): JsonObject {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("Expected a JSON object.");
+    throw new Error(tCli("Expected a JSON object."));
   }
   return value as JsonObject;
 }
@@ -710,7 +711,7 @@ function asOptionalObject(value: unknown): JsonObject | undefined {
 
 function parsePositiveInt(value: string, label: string): number {
   const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error(`Invalid ${label}: ${value}`);
+  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error(tCli("Invalid {{value1}}: {{value2}}", { value1: String(label), value2: String(value) }));
   return parsed;
 }
 
@@ -727,7 +728,7 @@ function looksLikeUuid(value: string): boolean {
 }
 
 function exactlyOneFlag(first: boolean | undefined, second: boolean | undefined, firstName: string, secondName: string): string {
-  if (Boolean(first) === Boolean(second)) throw new Error(`Pass exactly one of ${firstName} or ${secondName}.`);
+  if (Boolean(first) === Boolean(second)) throw new Error(tCli("Pass exactly one of {{value1}} or {{value2}}.", { value1: String(firstName), value2: String(secondName) }));
   return first ? firstName : secondName;
 }
 
@@ -738,7 +739,7 @@ function reviewDecisionFromOptions(opts: ReviewOptions): "approve" | "reject" | 
     opts.requestChanges ? { flag: "--request-changes", decision: "request_changes" as const } : null,
   ].filter((item): item is NonNullable<typeof item> => item !== null);
   if (selected.length !== 1) {
-    throw new Error("Pass exactly one of --approve, --reject, or --request-changes.");
+    throw new Error(tCli("Pass exactly one of --approve, --reject, or --request-changes."));
   }
   return selected[0]!.decision;
 }
@@ -748,7 +749,7 @@ function printPipeline(row: PipelineDetail | PipelineSummary | null, ctx: Resolv
   if (ctx.json) return printOutput(row, { json: true });
   console.log(formatPipeline(row));
   if ("stages" in row && row.stages?.length) {
-    console.log(pc.bold("Stages"));
+    console.log(pc.bold(tCli("Stages")));
     row.stages.forEach((stage) => {
       console.log(`  ${formatInlineRecord({
         id: stage.id,
@@ -820,18 +821,18 @@ function handlePipelineError(error: unknown): never {
     const code = stringValue(details?.code) ?? stringValue(body?.code);
     const stage = details?.stage ?? details?.currentStage ?? details?.currentStageKey ?? details?.stageKey;
     const version = details?.version ?? details?.currentVersion;
-    const parts = [`API error ${error.status}: ${error.message}`];
+    const parts = [tCli("API error {{value1}}: {{value2}}", { value1: String(error.status), value2: translateCliDisplayMessage(error.message) })];
     if (code) parts.push(`code=${code}`);
     if (version !== undefined) parts.push(`currentVersion=${String(version)}`);
     if (stage !== undefined) parts.push(`currentStage=${formatStageForError(stage)}`);
     console.error(pc.red(parts.join(" ")));
     if (error.status === 409) {
-      console.error(pc.yellow("Recovery: re-read the case with `paperclipai pipelines case get <case-id> --json`, then retry with the current version/stage."));
+      console.error(pc.yellow(tCli("Recovery: re-read the case with `paperclipai pipelines case get <case-id> --json`, then retry with the current version/stage.")));
     }
     if (error.details !== undefined && !code) console.error(pc.dim(`details=${JSON.stringify(error.details)}`));
     process.exit(1);
   }
-  console.error(pc.red(error instanceof Error ? error.message : String(error)));
+  console.error(pc.red(translateCliDisplayMessage(error instanceof Error ? error.message : String(error))));
   process.exit(1);
 }
 

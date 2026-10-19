@@ -1,3 +1,6 @@
+
+import { t } from "@/i18n";
+
 type TranscriptDensity = "comfortable" | "compact";
 
 type TranscriptActivity = {
@@ -118,7 +121,7 @@ export function isCommandTool(name: string, input: unknown): boolean {
 }
 
 export function displayToolName(name: string, input: unknown): string {
-  if (isCommandTool(name, input)) return "Executing command";
+  if (isCommandTool(name, input)) return t("executing_command");
   return humanizeLabel(name);
 }
 
@@ -135,7 +138,7 @@ export function summarizeToolInput(
   const record = asRecord(input);
   if (!record) {
     const serialized = compactWhitespace(formatUnknown(input));
-    return serialized ? truncate(serialized, compactMax) : `Inspect ${name} input`;
+    return serialized ? truncate(serialized, compactMax) : t("zhSupport.inspectToolInput", { name });
   }
 
   const command = typeof record.command === "string"
@@ -162,14 +165,14 @@ export function summarizeToolInput(
   if (Array.isArray(record.paths) && record.paths.length > 0) {
     const first = record.paths.find((value): value is string => typeof value === "string" && value.trim().length > 0);
     if (first) {
-      return truncate(`${record.paths.length} paths, starting with ${first}`, compactMax);
+      return truncate(t("zhSupport.pathSummary", { count: record.paths.length, first }), compactMax);
     }
   }
 
   const keys = Object.keys(record);
-  if (keys.length === 0) return `No ${name} input`;
-  if (keys.length === 1) return truncate(`${keys[0]} payload`, compactMax);
-  return truncate(`${keys.length} fields: ${keys.slice(0, 3).join(", ")}`, compactMax);
+  if (keys.length === 0) return t("zhSupport.noToolInput", { name });
+  if (keys.length === 1) return truncate(t("zhSupport.fieldPayload", { key: keys[0] }), compactMax);
+  return truncate(t("zhSupport.fieldsSummary", { count: keys.length, fields: keys.slice(0, 3).join(t("zhSupport.listSeparator")) }), compactMax);
 }
 
 function readToolDetailValue(value: unknown, max = 200): string | null {
@@ -186,7 +189,7 @@ function readToolDetailValue(value: unknown, max = 200): string | null {
 export function describeToolInput(name: string, input: unknown): ToolInputDetail[] {
   if (typeof input === "string") {
     const summary = compactWhitespace(isCommandTool(name, input) ? stripWrappedShell(input) : input);
-    return summary ? [{ label: isCommandTool(name, input) ? "Command" : "Input", value: truncate(summary, 200), tone: "code" }] : [];
+    return summary ? [{ label: isCommandTool(name, input) ? t("command") : t("input"), value: truncate(summary, 200), tone: "code" }] : [];
   }
 
   const record = asRecord(input);
@@ -203,16 +206,16 @@ export function describeToolInput(name: string, input: unknown): ToolInputDetail
   };
 
   pushDetail(
-    "Intent",
+    t("intent"),
     summarizeRecord(record, ["description", "summary", "reason", "goal", "intent", "action", "task"]) ?? null,
   );
-  pushDetail("Path", readToolDetailValue(record.path) ?? readToolDetailValue(record.filePath) ?? readToolDetailValue(record.file_path));
-  pushDetail("Directory", readToolDetailValue(record.cwd));
-  pushDetail("Query", readToolDetailValue(record.query));
-  pushDetail("Target", readToolDetailValue(record.url) ?? readToolDetailValue(record.target));
-  pushDetail("Prompt", readToolDetailValue(record.prompt) ?? readToolDetailValue(record.message));
-  pushDetail("Pattern", readToolDetailValue(record.pattern));
-  pushDetail("Name", readToolDetailValue(record.name) ?? readToolDetailValue(record.title));
+  pushDetail(t("path"), readToolDetailValue(record.path) ?? readToolDetailValue(record.filePath) ?? readToolDetailValue(record.file_path));
+  pushDetail(t("directory"), readToolDetailValue(record.cwd));
+  pushDetail(t("query"), readToolDetailValue(record.query));
+  pushDetail(t("target"), readToolDetailValue(record.url) ?? readToolDetailValue(record.target));
+  pushDetail(t("prompt_a817d7"), readToolDetailValue(record.prompt) ?? readToolDetailValue(record.message));
+  pushDetail(t("pattern"), readToolDetailValue(record.pattern));
+  pushDetail(t("name"), readToolDetailValue(record.name) ?? readToolDetailValue(record.title));
 
   if (Array.isArray(record.paths) && record.paths.length > 0) {
     const paths = record.paths
@@ -220,8 +223,8 @@ export function describeToolInput(name: string, input: unknown): ToolInputDetail
       .slice(0, 3)
       .join(", ");
     if (paths) {
-      const suffix = record.paths.length > 3 ? `, +${record.paths.length - 3} more` : "";
-      pushDetail("Paths", `${paths}${suffix}`);
+      const suffix = record.paths.length > 3 ? t("zhSupport.morePaths", { count: record.paths.length - 3 }) : "";
+      pushDetail(t("paths"), `${paths}${suffix}`);
     }
   }
 
@@ -230,8 +233,8 @@ export function describeToolInput(name: string, input: unknown): ToolInputDetail
     : typeof record.cmd === "string"
       ? record.cmd
       : null;
-  if (command && isCommandTool(name, record) && !details.some((detail) => detail.label === "Intent")) {
-    pushDetail("Command", truncate(stripWrappedShell(command), 200), "code");
+  if (command && isCommandTool(name, record) && !details.some((detail) => detail.label === t("intent"))) {
+    pushDetail(t("command"), truncate(stripWrappedShell(command), 200), "code");
   }
 
   return details;
@@ -242,15 +245,15 @@ export function summarizeToolResult(
   isError: boolean | undefined,
   density: TranscriptDensity = "comfortable",
 ): string {
-  if (!result) return isError ? "Tool failed" : "Waiting for result";
+  if (!result) return isError ? t("tool_failed") : t("waiting_for_result_481bf2");
   const structured = parseStructuredToolResult(result);
   if (structured) {
     if (structured.body) {
       return truncate(structured.body.split("\n")[0] ?? structured.body, density === "compact" ? 84 : 140);
     }
-    if (structured.status === "completed") return "Completed";
+    if (structured.status === "completed") return t("completed");
     if (structured.status === "failed" || structured.status === "error") {
-      return structured.exitCode ? `Failed with exit code ${structured.exitCode}` : "Failed";
+      return structured.exitCode ? t("zhSupport.failedExitCode", { code: structured.exitCode }) : t("failed");
     }
   }
   const lines = result
@@ -266,7 +269,7 @@ export function parseSystemActivity(text: string): TranscriptActivity | null {
   if (!match) return null;
   return {
     status: match[1].toLowerCase() === "started" ? "running" : "completed",
-    name: humanizeLabel(match[2] ?? "Activity"),
+    name: humanizeLabel(match[2] ?? t("activity")),
     activityId: match[3] || undefined,
   };
 }

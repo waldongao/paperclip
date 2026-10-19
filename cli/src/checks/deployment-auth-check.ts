@@ -1,3 +1,4 @@
+import { tCli } from "../i18n.js";
 import { inferBindModeFromHost } from "@paperclipai/shared";
 import type { PaperclipConfig } from "../config/schema.js";
 import type { CheckResult } from "./index.js";
@@ -11,17 +12,17 @@ export function deploymentAuthCheck(config: PaperclipConfig): CheckResult {
   if (mode === "local_trusted") {
     if (bind !== "loopback") {
       return {
-        name: "Deployment/auth mode",
+        name: tCli("Deployment/auth mode"),
         status: "fail",
-        message: `local_trusted requires loopback binding (found ${bind})`,
+        message: tCli("local_trusted requires loopback binding (found {{bind}})", { bind: String(bind) }),
         canRepair: false,
-        repairHint: "Run `paperclipai configure --section server` and choose Local trusted / loopback reachability",
+        repairHint: tCli("Run `paperclipai configure --section server` and choose Local trusted / loopback reachability"),
       };
     }
     return {
-      name: "Deployment/auth mode",
+      name: tCli("Deployment/auth mode"),
       status: "pass",
-      message: "local_trusted mode is configured for loopback-only access",
+      message: tCli("local_trusted mode is configured for loopback-only access"),
     };
   }
 
@@ -30,59 +31,59 @@ export function deploymentAuthCheck(config: PaperclipConfig): CheckResult {
     process.env.PAPERCLIP_AGENT_JWT_SECRET?.trim();
   if (!secret) {
     return {
-      name: "Deployment/auth mode",
+      name: tCli("Deployment/auth mode"),
       status: "fail",
-      message: "authenticated mode requires BETTER_AUTH_SECRET (or PAPERCLIP_AGENT_JWT_SECRET)",
+      message: tCli("authenticated mode requires BETTER_AUTH_SECRET (or PAPERCLIP_AGENT_JWT_SECRET)"),
       canRepair: false,
-      repairHint: "Set BETTER_AUTH_SECRET before starting Paperclip",
+      repairHint: tCli("Set BETTER_AUTH_SECRET before starting Paperclip"),
     };
   }
 
   if (auth.baseUrlMode === "explicit" && !auth.publicBaseUrl) {
     return {
-      name: "Deployment/auth mode",
+      name: tCli("Deployment/auth mode"),
       status: "fail",
-      message: "auth.baseUrlMode=explicit requires auth.publicBaseUrl",
+      message: tCli("auth.baseUrlMode=explicit requires auth.publicBaseUrl"),
       canRepair: false,
-      repairHint: "Run `paperclipai configure --section server` and provide a base URL",
+      repairHint: tCli("Run `paperclipai configure --section server` and provide a base URL"),
     };
   }
 
   if (exposure === "public") {
     if (auth.baseUrlMode !== "explicit" || !auth.publicBaseUrl) {
       return {
-        name: "Deployment/auth mode",
+        name: tCli("Deployment/auth mode"),
         status: "fail",
-        message: "authenticated/public requires explicit auth.publicBaseUrl",
+        message: tCli("authenticated/public requires explicit auth.publicBaseUrl"),
         canRepair: false,
-        repairHint: "Run `paperclipai configure --section server` and select public exposure",
+        repairHint: tCli("Run `paperclipai configure --section server` and select public exposure"),
       };
     }
     try {
       const url = new URL(auth.publicBaseUrl);
       if (url.protocol !== "https:") {
         return {
-          name: "Deployment/auth mode",
+          name: tCli("Deployment/auth mode"),
           status: "warn",
-          message: "Public exposure should use an https:// auth.publicBaseUrl",
+          message: tCli("Public exposure should use an https:// auth.publicBaseUrl"),
           canRepair: false,
-          repairHint: "Use HTTPS in production for secure session cookies",
+          repairHint: tCli("Use HTTPS in production for secure session cookies"),
         };
       }
     } catch {
       return {
-        name: "Deployment/auth mode",
+        name: tCli("Deployment/auth mode"),
         status: "fail",
-        message: "auth.publicBaseUrl is not a valid URL",
+        message: tCli("auth.publicBaseUrl is not a valid URL"),
         canRepair: false,
-        repairHint: "Run `paperclipai configure --section server` and provide a valid URL",
+        repairHint: tCli("Run `paperclipai configure --section server` and provide a valid URL"),
       };
     }
   }
 
   return {
-    name: "Deployment/auth mode",
+    name: tCli("Deployment/auth mode"),
     status: "pass",
-    message: `Mode ${mode}/${exposure} with bind ${bind} and auth URL mode ${auth.baseUrlMode}`,
+    message: tCli("Mode {{mode}}/{{exposure}} with bind {{bind}} and auth URL mode {{baseUrlMode}}", { mode: String(mode), exposure: String(exposure), bind: String(bind), baseUrlMode: String(auth.baseUrlMode) }),
   };
 }

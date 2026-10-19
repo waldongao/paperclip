@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useId, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { connectionInstructionsConfig, type ToolConnection } from "@paperclipai/shared";
@@ -18,14 +19,14 @@ export function HonchoWorkspaceSettings({ connection, canConfigure }: { connecti
     mutationFn: () => toolsApi.updateConnection(connection.id, { config: { ...connectionConfig, methodConfig: { ...config, workspaceId: value.trim() } } }),
     onSuccess: async () => { await client.invalidateQueries({ queryKey: ["tools"] }); setDraft(null); },
   });
-  return <section className="space-y-3" aria-label="Honcho workspace">
-    <label htmlFor={id} className="text-sm font-medium">Honcho workspace</label>
-    <Input id={id} value={value} maxLength={512} disabled={!canConfigure || mutation.isPending} placeholder="Workspace ID" onChange={(event) => setDraft(event.target.value)} />
-    {!value.trim() && <InlineBanner tone="warning">Enter a workspace to include Honcho instructions. Existing tools remain available.</InlineBanner>}
+  return <section className="space-y-3" aria-label={t("stability.c02a59522c5e", { defaultValue: "Honcho workspace" })}>
+    <label htmlFor={id} className="text-sm font-medium">{t("stability.c02a59522c5e", { defaultValue: "Honcho workspace" })}</label>
+    <Input id={id} value={value} maxLength={512} disabled={!canConfigure || mutation.isPending} placeholder={t("workspace_id")} onChange={(event) => setDraft(event.target.value)} />
+    {!value.trim() && <InlineBanner tone="warning">{t("stability.28127e98c5c2", { defaultValue: "Enter a workspace to include Honcho instructions. Existing tools remain available." })}</InlineBanner>}
     {mutation.isError && <div role="alert"><InlineBanner tone="danger">{mutation.error.message}</InlineBanner></div>}
     {draft !== null && draft !== saved && <div className="flex items-center justify-between">
-      <Button variant="ghost" disabled={mutation.isPending} onClick={() => { setDraft(null); mutation.reset(); }}>Cancel</Button>
-      <Button disabled={!canConfigure || mutation.isPending || !value.trim()} onClick={() => mutation.mutate()}>{mutation.isPending ? "Saving…" : "Save workspace"}</Button>
+      <Button variant="ghost" disabled={mutation.isPending} onClick={() => { setDraft(null); mutation.reset(); }}>{t("common.cancel")}</Button>
+      <Button disabled={!canConfigure || mutation.isPending || !value.trim()} onClick={() => mutation.mutate()}>{mutation.isPending ? t("saving_56a228") : t("stability.6a9c1db1f5de", { defaultValue: "Save workspace" })}</Button>
     </div>}
   </section>;
 }

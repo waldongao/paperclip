@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import {
   CircleCheck,
   CircleAlert,
@@ -13,27 +14,27 @@ export type TestState = "idle" | "running" | "pass" | "fail";
 const copy = {
   idle: {
     title: "Test your agent",
-    description: "Check that your runtime and model can respond.",
+    description: t("stability.0325fd6d4e81", { defaultValue: "Check that your runtime and model can respond." }),
     action: "Run test",
   },
   running: {
     title: "Testing connection",
-    description: "Checking the runtime and waiting for a model response…",
+    description: t("stability.a1c61e0777f0", { defaultValue: "Checking the runtime and waiting for a model response…" }),
     action: "Testing…",
   },
   pass: {
     title: "Connection successful",
-    description: "Your runtime checks passed. Review the details below.",
+    description: t("stability.4edd56668f39", { defaultValue: "Your runtime checks passed. Review the details below." }),
     action: "Test again",
   },
   warn: {
     title: "Connection needs attention",
-    description: "Review the test details before running your agent.",
+    description: t("stability.a186aaf27c8a", { defaultValue: "Review the test details before running your agent." }),
     action: "Test again",
   },
   fail: {
     title: "Couldn't connect",
-    description: "Check your model and provider connection, then try again.",
+    description: t("stability.c7c75083b81f", { defaultValue: "Check your model and provider connection, then try again." }),
     action: "Retry test",
   },
 } as const;
@@ -62,7 +63,7 @@ export function RuntimeTestCard({
           : Play;
   return (
     <section
-      aria-label="Runtime test"
+      aria-label={t("stability.a3b5b9078336", { defaultValue: "Runtime test" })}
       className="rounded-lg border border-border bg-card"
     >
       <div className="flex items-start gap-3 p-4 sm:items-center">
@@ -116,9 +117,7 @@ export function RuntimeTestCard({
             <ChevronRight
               aria-hidden="true"
               className="size-3 transition-transform group-open:rotate-90"
-            />
-            Test details
-          </summary>
+            />{t("stability.7cc561a55b3b", { defaultValue: "Test details" })}</summary>
           <ul className="space-y-3 px-4 pb-4">
             {result.checks.map((check) => (
               <li

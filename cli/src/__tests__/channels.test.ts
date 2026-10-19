@@ -1,10 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   channelForVersion,
+  channelsCommand,
   collectChannelState,
   RELEASE_CHANNELS,
 } from "../commands/channels.js";
 import type { CommandRunner } from "../commands/install.js";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 describe("channelForVersion", () => {
   it("maps published versions to their lane", () => {
@@ -77,5 +83,25 @@ describe("collectChannelState", () => {
       "nightly",
       "canary",
     ]);
+  });
+
+  it("localizes the human channel description while preserving JSON in Chinese", async () => {
+    vi.stubEnv("PAPERCLIP_LOCALE", "zh-CN");
+    const output = vi.spyOn(console, "log").mockImplementation(() => {});
+    await channelsCommand({ json: true }, fakeRunner);
+    const parsed = JSON.parse(String(output.mock.calls[0]?.[0]));
+    expect(parsed.channels[0]).toEqual({
+      channel: "stable",
+      distTag: "latest",
+      cadence: "manual, soaked in beta for 3+ days",
+      audience: "the recommended release for almost everyone",
+      version: "2026.722.0",
+    });
+    output.mockClear();
+    await channelsCommand({}, fakeRunner);
+    const humanText = output.mock.calls.map(([text]) => String(text)).join("\n");
+    expect(humanText).toContain("Paperclip 发布通道");
+    expect(humanText).not.toContain("manual, soaked in beta for 3+ days");
+    expect(humanText).toContain("npx paperclipai@latest onboard");
   });
 });

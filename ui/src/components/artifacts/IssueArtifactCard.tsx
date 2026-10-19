@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useContext, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -61,11 +62,9 @@ export function IssueArtifactFile(props: IssueArtifactFileProps) {
     <Button
       variant="outline"
       size="sm"
-      aria-label={`Open in tab: ${props.title}`}
+      aria-label={t("stability.5d58d26890d4", { value1: props.title, defaultValue: "Open in tab: {{value1}}" })}
       onClick={() => openTextAttachment(attachmentId, props.filename)}
-    >
-      Open in tab
-    </Button>
+    >{t("stability.0e5d95967de3", { defaultValue: "Open in tab" })}</Button>
   ) : null;
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [csvRequested, setCsvRequested] = useState(false);
@@ -142,9 +141,7 @@ export function IssueArtifactFile(props: IssueArtifactFileProps) {
             {openTextAction}
             {downloadPath ? (
               <Button asChild size="sm" variant="outline">
-                <a href={downloadPath} download={props.filename}>
-                  Download file
-                </a>
+                <a href={downloadPath} download={props.filename}>{t("download_file")}</a>
               </Button>
             ) : null}
           </>
@@ -179,18 +176,16 @@ export function IssueArtifactFile(props: IssueArtifactFileProps) {
       {csv && (tooLarge || data.isError || !localCsv) && (
         <div className="px-2 text-xs text-muted-foreground" role="status">
           {tooLarge
-            ? "CSV is too large to preview. Download the file to view it."
+            ? t("stability.b22a2423ce3f", { defaultValue: "CSV is too large to preview. Download the file to view it." })
             : data.isError
               ? data.error.message
-              : "CSV preview is unavailable. Download the file to view it."}
+              : t("stability.1006f7fa44ca", { defaultValue: "CSV preview is unavailable. Download the file to view it." })}
           {data.isError && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => void data.refetch()}
-            >
-              Retry preview
-            </Button>
+            >{t("retry_preview")}</Button>
           )}
         </div>
       )}
@@ -215,7 +210,7 @@ export function IssueWorkProductArtifactCard({
     updatedAt: formatDateTime(wp.updatedAt),
     statusBadge:
       wp.healthStatus === "unhealthy" ? (
-        <Badge variant="destructive">Unhealthy</Badge>
+        <Badge variant="destructive">{t("unhealthy")}</Badge>
       ) : chip ? (
         <Badge variant="outline">{chip.label}</Badge>
       ) : undefined,
