@@ -3,6 +3,9 @@
 本地环境配置以标品原版稳定运行优先。只调整本机工具链、代理、端口和
 产品提供的配置入口，不修改产品自带的启动脚本或业务源码。
 
+日常服务使用下文“稳定版的日常使用”中的独立入口。以下 `start/stop/restart`
+是旧主检出环境的回退操作；源码检查和依赖准备仍使用相同脚本的 `pnpm` 入口。
+
 在项目根目录运行 `bash scripts/local-env.sh <command>`：
 
 - `setup`：使用项目声明的 pnpm 版本安装依赖，检查 workspace 链接。
@@ -68,7 +71,7 @@ GitHub SSH 认证，避免 HTTPS 凭据缺少 workflow 作用域导致官方工�
 3200 / 数据库 54349 保留为隔离验证实例，数据位于
 `~/.paperclip-worktrees/instances/stable/`。该实例的工作树执行开关默认关闭，自动
 备份也受预览模式限制，不能当作日常入口。需要验证时，在稳定工作区执行
-`bash scripts/local-env.sh pnpm dev:once`；停止用 `pnpm dev:stop`。
+`bash scripts/local-env.sh pnpm dev:once`；停止该前台验证进程使用 Ctrl+C；本轮临时 API 和数据库已停止。
 主检出的 `.paperclip-local/` 仍是升级前恢复点，不能与新版本共用同一实例目录。
 
 在稳定源码工作区执行完整检查：
@@ -81,7 +84,8 @@ bash scripts/local-env.sh pnpm check:i18n
 bash scripts/local-env.sh pnpm check:token-gates
 ```
 
-本机 Node 为 `24.15.0`，项目 pnpm 固定为 `9.15.4`。
+本机 Node 为 `24.15.0`，项目 pnpm 固定为 `9.15.4`，独立工具链位于
+`~/.local/share/paperclip-toolchain/`，不依赖旧检出的缓存目录。
 Runner 使用仓库 `rust-toolchain.toml` 固定的 Rust `1.97.1`；Rust 安装在
 `~/.cargo/bin`，新 shell 会自动加载，已有 shell 可执行 `source ~/.cargo/env`。
 安装和构建沿用 `.env.local` 的本机代理设置，依赖安装坚持 `--frozen-lockfile`。
@@ -97,3 +101,6 @@ Runner 使用仓库 `rust-toolchain.toml` 固定的 Rust `1.97.1`；Rust 安装�
 不要把 `origin/master` 直接合入日常稳定入口，也不要用依赖升级代替正式版升级。
 误删引用可以从私密备份目录的 Git bundle 或本地 `refs/archive/` 恢复；
 恢复个人分支时先核对整理前的 SHA，不把私有发布前备份推送到远端。
+
+官方 remote 仅默认获取 `master`，其余本地跟踪引用已归档。升级正式版时用
+`git fetch origin tag <正式标签>` 明确获取标签，再按整理记录做备份、整合和验证。
