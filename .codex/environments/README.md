@@ -32,12 +32,15 @@ Codex 操作定义在本目录的 `environment.toml`。本机脚本管理上述�
 
 ## 本地分支维护
 
-- `master`：只跟踪 `origin/master`，作为官方开发线镜像。
-- `codex/stable`：以正式标签 `v2026.1012.0` 为底座的中文维护入口。
-- `codex/complete-chinese-localization`：干净的原始中文版回退分支；原未提交副本已完整归档，
-  修复已整合到稳定线，不再以未提交状态保留在日常工作区。
-- 本机环境和历史引导修复不重复合并；冗余引用先保存在归档引用和完整 Git bundle 中。
-- `codex/private-backup/before-remote-push-2026-10-08`：只保留本地恢复用途。
+- `codex/stable`：唯一保留的本地日常分支，以正式标签 `v2026.1012.0` 为底座。
+- 旧中文版 `codex/complete-chinese-localization` 的本地及个人远端分支已清理；
+  原修复已全部进入稳定线，完整历史保存在归档引用和独立 Git bundle 中。
+- 原本地 `master` 与 `codex/private-backup/before-remote-push-2026-10-08`
+  也已转入恢复归档，不再占用日常分支列表；私有备份未推送。
+- `origin/master` 仅作上游开发线比较参考，个人远端 `master` 保留原默认分支角色。
+  正式升级仍显式获取正式标签，不能把开发线直接合入稳定维护分支。
+- 恢复资料位于 `/Users/waldon/paperclip-backups/2026-10-19-stability/branch-retirement/`；
+  删除前已验证独立 bundle 的完整历史与逐分支 SHA。
 
 `origin` 是官方仓库，只用于获取上游；`personal` 是
 [waldongao/paperclip](https://github.com/waldongao/paperclip)。个人仓库推送使用本机已有的
