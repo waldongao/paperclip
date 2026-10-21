@@ -93,7 +93,7 @@ jobs:
     # Only the current master commit can use AWS. A preview or older source
     # falls back to GitHub-hosted runners, including raced merge dispatches.
     name: Check preview artifacts
-    if: github.ref == 'refs/heads/master' && github.event_name == 'workflow_dispatch' && (inputs.channel == 'preview' || inputs.channel == 'cloud-migrator') && !inputs.dry_run
+    if: github.repository == 'paperclipai/paperclip' && (github.ref == 'refs/heads/master' && github.event_name == 'workflow_dispatch' && (inputs.channel == 'preview' || inputs.channel == 'cloud-migrator') && !inputs.dry_run)
     runs-on: ${{ vars.AWS_POST_MERGE_CI_ENABLED == 'true' && github.repository == 'paperclipai/paperclip' && github.repository_id == '1170821064' && github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.event_name == 'workflow_dispatch' && inputs.channel == 'cloud-migrator' && github.sha != '' && inputs.source_ref == github.sha && 'runs-on/fleet=paperclip-post-merge-x64/env=public-ci' || 'ubuntu-latest' }}
     permissions:
       contents: read
@@ -162,7 +162,7 @@ jobs:
     # npm trusted publishing supports GitHub-hosted runners only.
     name: Publish preview migrator
     needs: [plan_preview, package_preview]
-    if: github.ref == 'refs/heads/master' && needs.plan_preview.outputs.packages == 'true' && needs.package_preview.result == 'success'
+    if: github.repository == 'paperclipai/paperclip' && (github.ref == 'refs/heads/master' && needs.plan_preview.outputs.packages == 'true' && needs.package_preview.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # A manual preview and a merge-triggered migrator may compile in parallel.
@@ -258,7 +258,7 @@ jobs:
   publish_image_preview:
     name: Publish preview cloud image
     needs: [plan_preview, image_preview]
-    if: github.ref == 'refs/heads/master' && needs.plan_preview.outputs.image == 'true' && needs.image_preview.result == 'success'
+    if: github.repository == 'paperclipai/paperclip' && (github.ref == 'refs/heads/master' && needs.plan_preview.outputs.image == 'true' && needs.image_preview.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # This existing environment has an external master-only branch policy.
@@ -384,7 +384,7 @@ jobs:
       runner_binaries_only: true
 
   publish_canary:
-    if: ${{ !cancelled() && github.event_name == 'push' && needs.verify_canary.result == 'success' && needs.release_runner_source.result == 'success' && (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success') }}
+    if: ${{ github.repository == 'paperclipai/paperclip' && (!cancelled() && github.event_name == 'push' && needs.verify_canary.result == 'success' && needs.release_runner_source.result == 'success' && (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success')) }}
     needs: [verify_canary, release_runner_source, release_runner_binaries]
     runs-on: ubuntu-latest
     timeout-minutes: 150
@@ -589,7 +589,7 @@ jobs:
   # canary publish, so the nightly publish skips re-verification.
 
   select_nightly:
-    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'nightly')
+    if: github.repository == 'paperclipai/paperclip' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'nightly'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -691,12 +691,14 @@ jobs:
     # Publish when smoke passed, or when smoke was deliberately skipped by a
     # dry-run dispatch (the publish itself is a dry-run in that case).
     if: >-
-      !cancelled() &&
-      needs.select_nightly.outputs.proceed == 'true' &&
-      needs.release_runner_source.result == 'success' &&
-      (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success') &&
-      (needs.smoke_nightly.result == 'success' ||
-       (needs.smoke_nightly.result == 'skipped' && github.event_name == 'workflow_dispatch' && inputs.dry_run))
+      github.repository == 'paperclipai/paperclip' && (
+        !cancelled() &&
+        needs.select_nightly.outputs.proceed == 'true' &&
+        needs.release_runner_source.result == 'success' &&
+        (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success') &&
+        (needs.smoke_nightly.result == 'success' ||
+         (needs.smoke_nightly.result == 'skipped' && github.event_name == 'workflow_dispatch' && inputs.dry_run))
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 150
     environment: npm-canary
@@ -831,7 +833,7 @@ jobs:
   # are the approval gate.
 
   select_beta:
-    if: github.event_name == 'workflow_dispatch' && inputs.channel == 'beta'
+    if: github.repository == 'paperclipai/paperclip' && (github.event_name == 'workflow_dispatch' && inputs.channel == 'beta')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -970,12 +972,14 @@ jobs:
   publish_beta:
     needs: [select_beta, verify_beta_candidate, release_runner_source, release_runner_binaries]
     if: >-
-      !cancelled() &&
-      needs.select_beta.result == 'success' &&
-      needs.release_runner_source.result == 'success' &&
-      (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success') &&
-      (needs.verify_beta_candidate.result == 'success' ||
-       (needs.verify_beta_candidate.result == 'skipped' && needs.select_beta.outputs.mode == 'promote'))
+      github.repository == 'paperclipai/paperclip' && (
+        !cancelled() &&
+        needs.select_beta.result == 'success' &&
+        needs.release_runner_source.result == 'success' &&
+        (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success') &&
+        (needs.verify_beta_candidate.result == 'success' ||
+         (needs.verify_beta_candidate.result == 'skipped' && needs.select_beta.outputs.mode == 'promote'))
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 150
     environment: npm-beta
@@ -1114,7 +1118,7 @@ jobs:
   # trigger the pr.yml checks a merge requires.
   draft_stable_notes:
     needs: [select_beta, publish_beta]
-    if: ${{ !cancelled() && !inputs.dry_run && needs.publish_beta.result == 'success' }}
+    if: ${{ github.repository == 'paperclipai/paperclip' && (!cancelled() && !inputs.dry_run && needs.publish_beta.result == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -1202,7 +1206,7 @@ jobs:
   # advances mid-run could be soak-checked at one commit and verified or
   # published at another.
   preflight_stable:
-    if: github.event_name == 'workflow_dispatch' && inputs.channel == 'stable'
+    if: github.repository == 'paperclipai/paperclip' && (github.event_name == 'workflow_dispatch' && inputs.channel == 'stable')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -1359,14 +1363,14 @@ jobs:
           exit 1
 
   verify_stable:
-    if: github.event_name == 'workflow_dispatch' && inputs.channel == 'stable'
+    if: github.repository == 'paperclipai/paperclip' && (github.event_name == 'workflow_dispatch' && inputs.channel == 'stable')
     needs: preflight_stable
     uses: ./.github/workflows/release-verify.yml
     with:
       ref: ${{ needs.preflight_stable.outputs.sha }}
 
   preview_stable:
-    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.channel == 'stable' && inputs.dry_run && needs.preflight_stable.result == 'success' && needs.verify_stable.result == 'success' && needs.release_runner_source.result == 'success' && (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success') }}
+    if: ${{ github.repository == 'paperclipai/paperclip' && (!cancelled() && github.event_name == 'workflow_dispatch' && inputs.channel == 'stable' && inputs.dry_run && needs.preflight_stable.result == 'success' && needs.verify_stable.result == 'success' && needs.release_runner_source.result == 'success' && (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success')) }}
     needs: [preflight_stable, verify_stable, release_runner_source, release_runner_binaries]
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -1419,7 +1423,7 @@ jobs:
           ./scripts/release.sh "${args[@]}"
 
   publish_stable:
-    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.channel == 'stable' && !inputs.dry_run && needs.preflight_stable.result == 'success' && needs.verify_stable.result == 'success' && needs.release_runner_source.result == 'success' && (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success') }}
+    if: ${{ github.repository == 'paperclipai/paperclip' && (!cancelled() && github.event_name == 'workflow_dispatch' && inputs.channel == 'stable' && !inputs.dry_run && needs.preflight_stable.result == 'success' && needs.verify_stable.result == 'success' && needs.release_runner_source.result == 'success' && (needs.release_runner_source.outputs.required == 'false' || needs.release_runner_binaries.result == 'success')) }}
     needs: [preflight_stable, verify_stable, release_runner_source, release_runner_binaries]
     runs-on: ubuntu-latest
     timeout-minutes: 150
@@ -1581,7 +1585,7 @@ jobs:
   # draft job above.
   canonicalize_stable_notes:
     needs: [preflight_stable, publish_stable]
-    if: ${{ needs.preflight_stable.outputs.notes_mode == 'master_beta' && needs.publish_stable.result == 'success' }}
+    if: ${{ github.repository == 'paperclipai/paperclip' && (needs.preflight_stable.outputs.notes_mode == 'master_beta' && needs.publish_stable.result == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

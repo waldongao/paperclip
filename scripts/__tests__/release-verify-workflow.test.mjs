@@ -22,6 +22,158 @@ function readWorkflow(name) {
   return readFileSync(path.join(repoRoot, ".github/workflows", name), "utf8");
 }
 
+// Evaluate only the expression primitives used by these job gates. Keep the
+// implicit success() rule too: an explicit !cancelled() must still allow a
+// successful promotion whose optional Runner or candidate ancestor was skipped.
+function repositoryGuardExpression(workflowName, job) {
+  const body = readWorkflow(workflowName).split(`\n  ${job}:\n`)[1]?.split(/\n  [\w-]+:\n/)[0];
+  assert.ok(body, `missing ${workflowName}:${job}`);
+  const match = body.match(/^    if: (.+)\n/m);
+  assert.ok(match, `${workflowName}:${job} needs a job-level repository gate`);
+  const expression = match[1] === ">-"
+    ? body.slice(match.index + match[0].length).match(/^(?: {6}[^\n]*\n)+/)?.[0]
+    : match[1];
+  assert.ok(expression, `missing ${workflowName}:${job} expression`);
+  return expression.replace(/^\s*\$\{\{\s*|\s*\}\}\s*$/g, "").replace(/\s+/g, " ").trim();
+}
+
+function evaluateRepositoryGuard(expression, overrides) {
+  const context = {
+    github: { repository: "paperclipai/paperclip", event_name: "workflow_dispatch", ref: "refs/heads/master" },
+    inputs: { channel: "nightly", dry_run: false },
+    needs: Object.fromEntries([
+      "package_preview", "image_preview", "verify_canary", "select_nightly",
+      "release_runner_source", "release_runner_binaries", "select_beta",
+      "verify_beta_candidate", "publish_beta", "preflight_stable", "verify_stable", "publish_stable",
+    ].map((job) => [job, { result: "success", outputs: {} }])),
+    cancelled: false,
+    success: true,
+  };
+  context.needs.plan_preview = { result: "success", outputs: { packages: "true", image: "true" } };
+  context.needs.select_nightly.outputs.proceed = "true";
+  context.needs.release_runner_source.outputs.required = "false";
+  context.needs.release_runner_binaries.result = "skipped";
+  context.needs.smoke_nightly = { result: "success", outputs: {} };
+  context.needs.select_beta.outputs.mode = "candidate";
+  context.needs.preflight_stable.outputs.notes_mode = "master_beta";
+  for (const [key, value] of Object.entries(overrides)) {
+    const parts = key.split(".");
+    const owner = parts.slice(0, -1).reduce((object, part) => object[part], context);
+    owner[parts.at(-1)] = value;
+  }
+  const explicitStatus = /\b(?:success|failure|cancelled|always)\s*\(/.test(expression);
+  if (!explicitStatus && !context.success) return false;
+  return Boolean(runInNewContext(expression, {
+    github: context.github, inputs: context.inputs, needs: context.needs,
+    cancelled: () => context.cancelled, success: () => context.success,
+    startsWith: (value, prefix) => value.startsWith(prefix),
+  }, { timeout: 100 }));
+}
+
+const runnerRequired = {
+  "needs.release_runner_source.outputs.required": "true",
+  "needs.release_runner_binaries.result": "success",
+};
+const runnerRejected = [
+  { "needs.release_runner_source.result": "failure" },
+  { "needs.release_runner_source.outputs.required": "true", "needs.release_runner_binaries.result": "skipped" },
+  { "needs.release_runner_source.outputs.required": "true", "needs.release_runner_binaries.result": "failure" },
+];
+
+// Each row proves both sides of the boundary: official publication still
+// satisfies its original event/channel/evidence rules, and the same successful
+// context cannot publish from either this fork or a similarly named repository.
+const repositoryGuardCases = [
+  ["release.yml", "plan_preview", [{ "inputs.channel": "preview" }, { "inputs.channel": "cloud-migrator" }], [
+    { "github.ref": "refs/heads/topic" }, { "github.event_name": "push" },
+    { "inputs.channel": "nightly" }, { "inputs.dry_run": true },
+  ]],
+  ["release.yml", "publish_preview", [{}], [
+    { "github.ref": "refs/heads/topic" }, { "needs.plan_preview.outputs.packages": "false" },
+    { "needs.package_preview.result": "failure" },
+  ]],
+  ["release.yml", "publish_image_preview", [{}], [
+    { "github.ref": "refs/heads/topic" }, { "needs.plan_preview.outputs.image": "false" },
+    { "needs.image_preview.result": "failure" },
+  ]],
+  ["release.yml", "publish_canary", [{ "github.event_name": "push" }, { "github.event_name": "push", ...runnerRequired }], [
+    { "github.event_name": "schedule" }, { "needs.verify_canary.result": "failure" }, ...runnerRejected,
+  ], true],
+  ["release.yml", "select_nightly", [{ "github.event_name": "schedule" }, {}], [
+    { "github.event_name": "push" }, { "github.event_name": "workflow_dispatch", "inputs.channel": "beta" },
+  ]],
+  ["release.yml", "publish_nightly", [
+    { "github.event_name": "schedule" }, { "github.event_name": "schedule", ...runnerRequired },
+    { "inputs.dry_run": true, "needs.smoke_nightly.result": "skipped" },
+  ], [
+    { "needs.select_nightly.outputs.proceed": "false" }, { "needs.smoke_nightly.result": "failure" },
+    { "needs.smoke_nightly.result": "skipped" },
+    { "needs.smoke_nightly.result": "skipped", "inputs.dry_run": true }, ...runnerRejected,
+  ], true],
+  ["release.yml", "select_beta", [{ "inputs.channel": "beta" }], [
+    { "github.event_name": "push" }, { "inputs.channel": "nightly" },
+  ]],
+  ["release.yml", "publish_beta", [
+    {}, runnerRequired, { "needs.select_beta.outputs.mode": "promote", "needs.verify_beta_candidate.result": "skipped" },
+  ], [
+    { "needs.select_beta.result": "failure" }, { "needs.verify_beta_candidate.result": "failure" },
+    { "needs.verify_beta_candidate.result": "skipped" }, ...runnerRejected,
+  ], true],
+  ["release.yml", "draft_stable_notes", [{}], [
+    { "inputs.dry_run": true }, { "needs.publish_beta.result": "failure" },
+  ], true],
+  ...["preflight_stable", "verify_stable"].map((job) => ["release.yml", job, [{ "inputs.channel": "stable" }], [
+    { "github.event_name": "push" }, { "inputs.channel": "beta" },
+  ]]),
+  ["release.yml", "preview_stable", [
+    { "inputs.channel": "stable", "inputs.dry_run": true },
+    { "inputs.channel": "stable", "inputs.dry_run": true, ...runnerRequired },
+  ], [
+    { "inputs.dry_run": false }, { "inputs.channel": "nightly" }, { "github.event_name": "push" },
+    { "needs.preflight_stable.result": "failure" }, { "needs.verify_stable.result": "failure" }, ...runnerRejected,
+  ], true],
+  ["release.yml", "publish_stable", [{ "inputs.channel": "stable" }, { "inputs.channel": "stable", ...runnerRequired }], [
+    { "inputs.dry_run": true }, { "inputs.channel": "nightly" }, { "github.event_name": "push" },
+    { "needs.preflight_stable.result": "failure" }, { "needs.verify_stable.result": "failure" }, ...runnerRejected,
+  ], true],
+  ["release.yml", "canonicalize_stable_notes", [{}], [
+    { "needs.preflight_stable.outputs.notes_mode": "source" }, { "needs.publish_stable.result": "failure" },
+  ]],
+  ...["build-and-push", "merge-and-push"].map((job) => ["docker.yml", job, [
+    { "github.event_name": "push" }, { "github.ref": "refs/tags/v2026.1020.0" },
+  ], []]),
+  ["docker.yml", "promote_canary_channel", [{ "github.ref": "refs/tags/canary/v2026.1020.0-canary.1" }], [
+    { "github.ref": "refs/heads/master" }, { "github.ref": "refs/tags/nightly/v2026.1020.0-nightly.1" },
+    { "github.ref": "refs/tags/beta/v2026.1020.0-beta.1" },
+  ]],
+  ["refresh-lockfile.yml", "refresh", [{ "github.event_name": "push" }, {}], []],
+  ["agent-runtime-images.yml", "build-and-sign", [{ "github.event_name": "push" }, {}], []],
+];
+
+for (const [workflow, job, accepted, rejected, explicitStatus] of repositoryGuardCases) {
+  test(`official repository gate protects ${workflow}:${job}`, () => {
+    const expression = repositoryGuardExpression(workflow, job);
+    assert.match(expression, /^github\.repository == 'paperclipai\/paperclip'(?:$| && \()/);
+    for (const context of accepted) {
+      assert.equal(evaluateRepositoryGuard(expression, context), true, `official accepted context: ${JSON.stringify(context)}`);
+      for (const repository of ["waldongao/paperclip", "paperclipai/paperclip-fork"]) {
+        assert.equal(evaluateRepositoryGuard(expression, { ...context, "github.repository": repository }), false,
+          `fork must not run ${job}: ${repository}`);
+      }
+      assert.equal(evaluateRepositoryGuard(expression, { ...context, cancelled: true, success: false }), false);
+      if (explicitStatus) {
+        assert.match(expression, /!cancelled\(\)/, "preserve explicit cancellation instead of implicit success()");
+        assert.equal(evaluateRepositoryGuard(expression, { ...context, success: false }), true,
+          "an optional skipped ancestor must not suppress proven successful publication");
+      }
+    }
+    for (const context of rejected) {
+      assert.equal(evaluateRepositoryGuard(expression, { ...accepted[0], ...context }), false,
+        `official rejected context: ${JSON.stringify(context)}`);
+    }
+  });
+}
+
 test("Docker Hub mirrors apply to both image builders without widening publication access", () => {
   const dockerWorkflow = readWorkflow("docker.yml");
   const releaseWorkflow = readWorkflow("release.yml");
@@ -99,7 +251,7 @@ test("canary reuses exact-source proof while stable keeps full verification", ()
   // once; verification must consume that pin, not re-resolve the ref.
   assert.match(
     releaseWorkflow,
-    /verify_stable:\n\s+if: github\.event_name == 'workflow_dispatch' && inputs\.channel == 'stable'\n(?:\s+needs: [^\n]+\n)?\s+uses: \.\/\.github\/workflows\/release-verify\.yml\n\s+with:\n\s+ref: \$\{\{ needs\.preflight_stable\.outputs\.sha \}\}/,
+    /verify_stable:\n\s+if: github\.repository == 'paperclipai\/paperclip' && \(github\.event_name == 'workflow_dispatch' && inputs\.channel == 'stable'\)\n(?:\s+needs: [^\n]+\n)?\s+uses: \.\/\.github\/workflows\/release-verify\.yml\n\s+with:\n\s+ref: \$\{\{ needs\.preflight_stable\.outputs\.sha \}\}/,
   );
   assert.doesNotMatch(
     releaseWorkflow,
